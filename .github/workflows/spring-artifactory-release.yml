@@ -7,15 +7,20 @@ on:
         description: 'Additional Maven or Gradle command arguments: tasks, goals, plugins etc. The `install` for Maven is included. The `build` and `artifactoryPublish` for Gradle are included.'
         required: false
         type: string
+      verifyStagedWorkflow:
+        description: 'A workflow name in the target project to dispatch against staged artifacts. The `releaseVersion` must be a workflow input.'
+        required: false
+        type: string
+        default: verify-staged-artifacts.yml
 
     secrets:
-      GH_ACTIONS_REPO_TOKEN:
-        required: true
       GRADLE_ENTERPRISE_CACHE_USER:
-        required: true
+        required: false
       GRADLE_ENTERPRISE_CACHE_PASSWORD:
-        required: true
+        required: false
       GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+        required: false
+      GH_ACTIONS_REPO_TOKEN:
         required: true
       OSSRH_URL:
         required: true
@@ -87,7 +92,7 @@ jobs:
       - name: Call smoke tests workflow
         uses: aurelien-baudet/workflow-dispatch@v2
         with:
-          workflow: verify-staged-artifacts.yml
+          workflow: ${{ inputs.verifyStagedWorkflow }}
           wait-for-completion-interval: 30s
           display-workflow-run-url-interval: 5s
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}

@@ -17,7 +17,20 @@ jobs:
     uses: artembilan/spring-messaging-build-tools/.github/workflows/spring-artifactory-release.yml@main
     with:
       buildToolArgs: dist
-    secrets: inherit
+      verifyStagedWorkflow: verify-staged-artifacts.yml
+    secrets:
+      GH_ACTIONS_REPO_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+      GRADLE_ENTERPRISE_CACHE_USER: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
+      GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+      JF_ARTIFACTORY_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+      SPRING_RELEASE_SLACK_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_SLACK_WEBHOOK_URL }}
+      OSSRH_URL: ${{ secrets.OSSRH_URL }}
+      OSSRH_S01_TOKEN_USERNAME: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
+      OSSRH_S01_TOKEN_PASSWORD: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}
+      OSSRH_STAGING_PROFILE_NAME: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 ```
 on every branch which is supposed to be released via GitHub actions.
 
@@ -25,11 +38,13 @@ The `buildToolArgs` parameter for this job means extra build tool arguments.
 For example, the mentioned `dist` value is a Gradle task in the project.
 Can be any Maven goal or other command line arguments.
 
+The mentioned secrets must be passed explicitly since these reusable workflows might be in different GitHub org than target project. 
+
 When a release workflow is dispatched, the `releaseVersion` job determines the milestone to release against the current SNAPSHOT version in the branch.
 If no milestone scheduled, the whole workflow is cancelled.
 Then `staging` job uses the `releaseVersion` output from the previous `releaseVersion` job and dispatch the work to Gradle or Maven jobs according to the project build tool.
-The `verify-staged` requires a `verify-staged-artifacts.yml` workflow present in the project.
-For example, [Spring Integation for AWS](https://github.com/spring-projects/spring-integration-aws) use `jfrog rt download` command to verify that released `spring-integration-aws.jar` is valid.
+The `verify-staged` expects an optional `verifyStagedWorkflow` input (the `verify-staged-artifacts.yml`, by default) workflow supplied from the target project.
+For example, [Spring Integration for AWS](https://github.com/spring-projects/spring-integration-aws) use `jfrog rt download` command to verify that released `spring-integration-aws.jar` is valid.
 Other projects may check out their samples repository and setup release version to perform smoke tests against just staged artifacts.
 
 The next job in the workflow is to promote release from staging either to `libs-milestone-local` or `libs-release-local`(and Maven Central) according to the releasing version schema.
