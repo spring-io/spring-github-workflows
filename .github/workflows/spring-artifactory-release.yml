@@ -90,7 +90,7 @@ jobs:
           workflow: verify-staged-artifacts.yml
           workflow-logs: print
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-          inputs: '{ "releaseVersion": "${{ inputs.releaseVersion }}" }'
+          inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
 
   promote-milestone:
     needs: [releaseVersion, staging, verify-staged]
