@@ -35,7 +35,7 @@ jobs:
       - name: Download Release Files
         run: |
           jfrog rt download \
-            --spec .github/release-files-spec.json \
+            --spec release-files-spec.json \
             --spec-vars "buildname=${{ inputs.buildName }};buildnumber=${{ inputs.buildNumber }}"
 
       # Create checksums, signatures and create staging repo on central and upload

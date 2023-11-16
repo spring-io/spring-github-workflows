@@ -50,7 +50,7 @@ jobs:
           show-progress: false
 
       - name: Copy the spring-project-init.gradle
-        run: rsync build/.github/spring-project-init.gradle ~/.gradle/init.d/
+        run: rsync build/spring-project-init.gradle ~/.gradle/init.d/
 
       - uses: jfrog/setup-jfrog-cli@v3
         with:
