@@ -47,7 +47,7 @@ jobs:
   staging-with-gradle:
     needs: maven-or-gradle
     if: ${{ needs.maven-or-gradle.outputs.isMaven == 'false' }}
-    uses: $BUILD_TOOLS_REPO/spring-artifactory-gradle-release-staging.yml@main
+    uses: $BUILD_TOOLS_REPO/.github/workflows/spring-artifactory-gradle-release-staging.yml@main
     with:
       releaseVersion: ${{ inputs.releaseVersion }}
       gradleTasks: ${{ inputs.buildToolArgs }}
@@ -57,7 +57,7 @@ jobs:
   staging-with-maven:
     needs: maven-or-gradle
     if: ${{ needs.maven-or-gradle.outputs.isMaven == 'true' }}
-    uses: $BUILD_TOOLS_REPO/spring-artifactory-maven-release-staging.yml@main
+    uses: $BUILD_TOOLS_REPO/.github/workflows/spring-artifactory-maven-release-staging.yml@main
     with:
       releaseVersion: ${{ inputs.releaseVersion }}
       mavenArgs: ${{ inputs.buildToolArgs }}
