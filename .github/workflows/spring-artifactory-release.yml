@@ -84,12 +84,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v4
-        with:
-          show-progress: false
-
       - name: Call smoke tests workflow
-        run: gh workflow run verify-staged-artifacts.yml -r ${{ github.ref_name }} -f releaseVersion=${{ needs.releaseVersion.outputs.releaseVersion }}
+        uses: aurelien-baudet/workflow-dispatch@v2
+        with:
+          workflow: verify-staged-artifacts.yml
+          workflow-logs: print
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          inputs: '{ "releaseVersion": "${{ inputs.releaseVersion }}" }'
 
   promote-milestone:
     needs: [releaseVersion, staging, verify-staged]
