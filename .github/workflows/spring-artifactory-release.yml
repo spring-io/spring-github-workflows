@@ -79,10 +79,15 @@ jobs:
 
   verify-staged:
     needs: [releaseVersion, staging]
-    uses: ${{ github.repository }}/.github/workflows/verify-staged-artifacts.yml@main
-    with:
-      releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - name: Call smoke tests workflow
+        run: gh workflow run verify-staged-artifacts.yml -f releaseVersion=${{ needs.releaseVersion.outputs.releaseVersion }}
 
   promote-milestone:
     needs: [releaseVersion, staging, verify-staged]
