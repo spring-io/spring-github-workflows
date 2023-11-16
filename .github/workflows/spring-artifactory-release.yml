@@ -71,6 +71,7 @@ jobs:
 
   staging:
     needs: releaseVersion
+    name: Stage ${{ needs.releaseVersion.outputs.releaseVersion }}
     uses: ./.github/workflows/spring-stage-release.yml
     with:
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
@@ -79,6 +80,7 @@ jobs:
 
   verify-staged:
     needs: [releaseVersion, staging]
+    name: Verify ${{ needs.releaseVersion.outputs.releaseVersion }}
     runs-on: ubuntu-latest
     steps:
 
@@ -87,10 +89,11 @@ jobs:
           show-progress: false
 
       - name: Call smoke tests workflow
-        run: gh workflow run verify-staged-artifacts.yml -f releaseVersion=${{ needs.releaseVersion.outputs.releaseVersion }}
+        run: gh workflow run verify-staged-artifacts.yml -r ${{ github.ref_name }} -f releaseVersion=${{ needs.releaseVersion.outputs.releaseVersion }}
 
   promote-milestone:
     needs: [releaseVersion, staging, verify-staged]
+    name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
     if: ${{ (contains(needs.releaseVersion.outputs.releaseVersion, '-M') || contains(needs.releaseVersion.outputs.releaseVersion, '-RC')) }}
     uses: ./.github/workflows/spring-artifactory-promote-milestone.yml
     with:
@@ -100,6 +103,7 @@ jobs:
 
   promote-ga:
     needs: [releaseVersion, staging, verify-staged]
+    name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
     if: ${{ !contains(needs.releaseVersion.outputs.releaseVersion, '-') }}
     uses: ./.github/workflows/spring-artifactory-promote-central.yml
     with:
@@ -110,6 +114,7 @@ jobs:
   finalize:
     if: ${{ !(failure() || cancelled()) }}
     needs: [releaseVersion, promote-milestone, promote-ga]
+    name: Finalize ${{ needs.releaseVersion.outputs.releaseVersion }}
     uses: ./.github/workflows/spring-finalize-release.yml
     with:
       milestone: ${{ needs.releaseVersion.outputs.releaseVersion }}
