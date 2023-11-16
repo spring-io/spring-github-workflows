@@ -12,6 +12,13 @@ on:
         required: true
         type: string
 
+    secrets:
+      JF_ARTIFACTORY_SPRING:
+        required: true
+
+env:
+  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+
 jobs:
   promote-milestone-with-jfrog:
     runs-on: ubuntu-latest
@@ -19,9 +26,7 @@ jobs:
 
       - uses: jfrog/setup-jfrog-cli@v3
         with:
-          version: 2.50.4
-        env:
-          JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+          version: 2.51.1
 
       - name: Promote Build
         run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} libs-milestone-local

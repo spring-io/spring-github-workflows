@@ -8,6 +8,12 @@ on:
         required: true
         type: string
 
+    secrets:
+      SPRING_RELEASE_SLACK_WEBHOOK_URL:
+        required: true
+      GH_ACTIONS_REPO_TOKEN:
+        required: true
+
 env:
   MILESTONE: ${{ inputs.milestone }}
   GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}

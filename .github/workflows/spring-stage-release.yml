@@ -20,6 +20,18 @@ on:
         description: 'Artifactory Build Number'
         value: ${{ jobs.build-info.outputs.buildNumber }}
 
+    secrets:
+      GH_ACTIONS_REPO_TOKEN:
+        required: true
+      GRADLE_ENTERPRISE_CACHE_USER:
+        required: true
+      GRADLE_ENTERPRISE_CACHE_PASSWORD:
+        required: true
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+        required: true
+      JF_ARTIFACTORY_SPRING:
+        required: true
+
 jobs:
   maven-or-gradle:
     runs-on: ubuntu-latest

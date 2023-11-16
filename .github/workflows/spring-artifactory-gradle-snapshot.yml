@@ -6,13 +6,23 @@ on:
       gradleTasks:
         description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
         required: false
-        default: 'dist'
         type: string
+
+    secrets:
+      GRADLE_ENTERPRISE_CACHE_USER:
+        required: true
+      GRADLE_ENTERPRISE_CACHE_PASSWORD:
+        required: true
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+        required: true
+      JF_ARTIFACTORY_SPRING:
+        required: true
 
 env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
 
 jobs:
   build-snapshot-with-gradle:
@@ -39,9 +49,7 @@ jobs:
 
       - uses: jfrog/setup-jfrog-cli@v3
         with:
-          version: 2.50.4
-        env:
-          JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+          version: 2.51.1
 
       - name: Configure JFrog Cli
         run: |

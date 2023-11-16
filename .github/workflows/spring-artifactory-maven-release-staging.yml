@@ -20,6 +20,15 @@ on:
         description: 'Artifactory Build Number'
         value: ${{ jobs.staging-to-artifactory-with-maven.outputs.buildNumber }}
 
+    secrets:
+      GH_ACTIONS_REPO_TOKEN:
+        required: true
+      JF_ARTIFACTORY_SPRING:
+        required: true
+
+env:
+  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+
 jobs:
   staging-to-artifactory-with-maven:
     runs-on: ubuntu-latest
@@ -42,9 +51,7 @@ jobs:
 
       - uses: jfrog/setup-jfrog-cli@v3
         with:
-          version: 2.50.4
-        env:
-          JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+          version: 2.51.1
 
       - name: Configure JFrog Cli
         id: configure-jfrog
