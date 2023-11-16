@@ -20,9 +20,6 @@ on:
         description: 'Artifactory Build Number'
         value: ${{ jobs.build-info.outputs.buildNumber }}
 
-env:
-  BUILD_TOOLS_REPO: artembilan/spring-messaging-build-tools
-
 jobs:
   maven-or-gradle:
     runs-on: ubuntu-latest
@@ -47,7 +44,7 @@ jobs:
   staging-with-gradle:
     needs: maven-or-gradle
     if: ${{ needs.maven-or-gradle.outputs.isMaven == 'false' }}
-    uses: ${{ env.BUILD_TOOLS_REPO }}/.github/workflows/spring-artifactory-gradle-release-staging.yml@main
+    uses: artembilan/spring-messaging-build-tools/.github/workflows/spring-artifactory-gradle-release-staging.yml@main
     with:
       releaseVersion: ${{ inputs.releaseVersion }}
       gradleTasks: ${{ inputs.buildToolArgs }}
@@ -57,7 +54,7 @@ jobs:
   staging-with-maven:
     needs: maven-or-gradle
     if: ${{ needs.maven-or-gradle.outputs.isMaven == 'true' }}
-    uses: ${{ env.BUILD_TOOLS_REPO }}/.github/workflows/spring-artifactory-maven-release-staging.yml@main
+    uses: artembilan/spring-messaging-build-tools/.github/workflows/spring-artifactory-maven-release-staging.yml@main
     with:
       releaseVersion: ${{ inputs.releaseVersion }}
       mavenArgs: ${{ inputs.buildToolArgs }}
