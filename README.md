@@ -34,8 +34,8 @@ Other projects may checkout their samples repository and setup release version t
 
 The next job in the workflow is to promote release from staging either to `libs-milestone-local` or `libs-release-local`(and Maven Central) according to the releasing version schema.
 
-After promotion, the `finalize` job is executed, which generates release notes using [spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) exluding repository admins from `Contributors` section.
-Then the `gh release create` command is performed on a tag for jsut released version.
+After promotion, the `finalize` job is executed, which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) exluding repository admins from `Contributors` section.
+Then the `gh release create` command is performed on a tag for just released version.
 And in the end the milestone is closed and specific Slack channel is notifed about release.
 
 Gradle projects must not manage `com.jfrog.artifactory` plugin anymore: the `jf gradlec` command sets up this plugin and respective tasks into a project using JFrog specific Gradle init script.
