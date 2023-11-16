@@ -88,7 +88,8 @@ jobs:
         uses: aurelien-baudet/workflow-dispatch@v2
         with:
           workflow: verify-staged-artifacts.yml
-          workflow-logs: print
+          wait-for-completion-interval: 30s
+          display-workflow-run-url-interval: 5s
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
 

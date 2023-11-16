@@ -48,8 +48,6 @@ jobs:
         run: rsync build/spring-project-init.gradle ~/.gradle/init.d/
 
       - uses: jfrog/setup-jfrog-cli@v3
-        with:
-          version: 2.51.1
 
       - name: Configure JFrog Cli
         run: |

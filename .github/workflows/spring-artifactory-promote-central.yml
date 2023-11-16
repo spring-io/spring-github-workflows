@@ -42,8 +42,6 @@ jobs:
           show-progress: false
 
       - uses: jfrog/setup-jfrog-cli@v3
-        with:
-          version: 2.51.1
 
       - name: Promote Build
         run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} libs-release-local
