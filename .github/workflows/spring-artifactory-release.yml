@@ -46,7 +46,7 @@ jobs:
 
   staging:
     needs: releaseVersion
-    uses: $BUILD_TOOLS_REPO/.github/workflows/spring-stage-release.yml@main
+    uses: ${{ env.BUILD_TOOLS_REPO }}/.github/workflows/spring-stage-release.yml@main
     with:
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
       buildToolArgs: ${{ inputs.buildToolArgs }}
@@ -62,7 +62,7 @@ jobs:
   promote-milestone:
     needs: [releaseVersion, staging, verify-staged]
     if: ${{ (contains(needs.releaseVersion.outputs.releaseVersion, '-M') || contains(needs.releaseVersion.outputs.releaseVersion, '-RC')) }}
-    uses: $BUILD_TOOLS_REPO/.github/workflows/spring-artifactory-promote-milestone.yml@main
+    uses: ${{ env.BUILD_TOOLS_REPO }}/.github/workflows/spring-artifactory-promote-milestone.yml@main
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
@@ -71,7 +71,7 @@ jobs:
   promote-ga:
     needs: [releaseVersion, staging, verify-staged]
     if: ${{ !contains(needs.releaseVersion.outputs.releaseVersion, '-') }}
-    uses: $BUILD_TOOLS_REPO/.github/workflows/spring-artifactory-promote-central.yml@main
+    uses: ${{ env.BUILD_TOOLS_REPO }}/.github/workflows/spring-artifactory-promote-central.yml@main
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
@@ -80,7 +80,7 @@ jobs:
   finalize:
     if: ${{ !(failure() || cancelled()) }}
     needs: [releaseVersion, promote-milestone, promote-ga]
-    uses: $BUILD_TOOLS_REPO/.github/workflows/spring-finalize-release.yml@main
+    uses: ${{ env.BUILD_TOOLS_REPO }}/.github/workflows/spring-finalize-release.yml@main
     with:
       milestone: ${{ needs.releaseVersion.outputs.releaseVersion }}
     secrets: inherit
