@@ -84,8 +84,10 @@ For example, the mentioned `dist` value is a Gradle task in the project.
 Can be any Maven goal or other command line arguments.
 
 In the end you just need to go to the `Actions` tab on your project, press `Run workflow` on your release workflow and choose a branch from drop-down list to release currently scheduled Milestone against. 
-Such a release workflow can also be scheduled (`cron`, fo example) against branches matrix:
+Such a release workflow can also be scheduled (`cron`, fo example) against branches matrix.
 
+#### Scheduler workflow example:
+https://github.com/artembilan/spring-messaging-build-tools/blob/3231d7b9b4fcd05afff3db32d34aa37565535ccb/samples/schedule-releases.yml#L1-L19
 
 > **Warning**
 > The [spring-artifactory-release.yml](.github/workflows/spring-artifactory-release.yml) already uses 3 of 4 levels of nested reusable workflows.
