@@ -55,7 +55,7 @@ jobs:
 
   staging-with-gradle:
     needs: maven-or-gradle
-    if: ${{ needs.maven-or-gradle.outputs.isMaven == 'false' }}
+    if: needs.maven-or-gradle.outputs.isMaven == 'false'
     uses: ./.github/workflows/spring-artifactory-gradle-release-staging.yml
     with:
       releaseVersion: ${{ inputs.releaseVersion }}
@@ -65,7 +65,7 @@ jobs:
 
   staging-with-maven:
     needs: maven-or-gradle
-    if: ${{ needs.maven-or-gradle.outputs.isMaven == 'true' }}
+    if: needs.maven-or-gradle.outputs.isMaven == 'true'
     uses: ./.github/workflows/spring-artifactory-maven-release-staging.yml
     with:
       releaseVersion: ${{ inputs.releaseVersion }}

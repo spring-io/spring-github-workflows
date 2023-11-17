@@ -1,0 +1,19 @@
+name: Release Scheduler
+on:
+  schedule:
+    - cron: '15 15 * * MON' # Every Monday at 3:15pm UTC
+
+jobs:
+  dispatch_scheduled_releases:
+    strategy:
+      matrix:
+        # List of active maintenance branches.
+        branch: [ main, 6.1.x, 6.0.x, 5.8.x ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Dispatch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+        run: gh workflow run release.yml -r ${{ matrix.branch }}

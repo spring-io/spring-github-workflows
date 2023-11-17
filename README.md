@@ -20,6 +20,7 @@ GPG_PRIVATE_KEY
 ```
 
 The Gradle Enterprise secrets are optional: not used by Maven and Gradle project might not be enrolled for the service.  
+The `SPRING_RELEASE_SLACK_WEBHOOK_URL` secret is also optional: probably you don't want to notify Slack about your release.
 
 The mentioned secrets must be passed explicitly since these reusable workflows might be in different GitHub org than target project.
 
@@ -71,7 +72,7 @@ This job stages released artifacts using JFrog CLI into `libs-staging-local` rep
 - When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local`(and Maven Central) according to the releasing version schema
 - Then [spring-finalize-release.yml](.github/workflows/spring-finalize-release.yml) job is executed, which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from `Contributors` section.
 The `gh release create` command is performed on a tag for just released version.
-And in the end the milestone is closed and specific Slack channel is notified about release.
+And in the end the milestone is closed and specific Slack channel is notified about release (if `SPRING_RELEASE_SLACK_WEBHOOK_URL` secret is present in the repository).
 
 #### Example of Release caller workflow:
 https://github.com/artembilan/spring-messaging-build-tools/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/release.yml#L1-L25
@@ -81,6 +82,15 @@ Such a workflow must be on every branch which is supposed to be released via Git
 The `buildToolArgs` parameter for this job means extra build tool arguments.
 For example, the mentioned `dist` value is a Gradle task in the project.
 Can be any Maven goal or other command line arguments.
+
+In the end you just need to go to the `Actions` tab on your project, press `Run workflow` on your release workflow and choose a branch from drop-down list to release currently scheduled Milestone against. 
+Such a release workflow can also be scheduled (`cron`, fo example) against branches matrix:
+
+
+> **Warning**
+> The [spring-artifactory-release.yml](.github/workflows/spring-artifactory-release.yml) already uses 3 of 4 levels of nested reusable workflows.
+> Where the caller workflow is the last one.
+> Therefore don't try to reuse your caller workflow. 
 
 ## Verify Staged Artifacts
 
@@ -96,3 +106,5 @@ https://github.com/artembilan/spring-messaging-build-tools/blob/dbd138bf504abec5
 Gradle projects must not manage `com.jfrog.artifactory` plugin anymore: the `jf gradlec` command sets up this plugin and respective tasks into a project using JFrog specific Gradle init script.
 In addition, the [spring-artifactory-gradle-snapshot.yml](.github/workflows/spring-artifactory-gradle-snapshot.yml) and [spring-artifactory-gradle-release-staging.yml](.github/workflows/spring-artifactory-gradle-release-staging.yml) add `spring-project-init.gradle` script to provide an `artifactory` plugin settings for artifacts publications.
 This script also adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
+
+See more information in the [Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows). 
