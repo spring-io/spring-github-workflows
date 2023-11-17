@@ -84,13 +84,12 @@ Can be any Maven goal or other command line arguments.
 
 ## Verify Staged Artifacts
 
-Then `staging` job uses the `releaseVersion` output from the previous `releaseVersion` job and dispatch the work to Gradle or Maven jobs according to the project build tool.
-The `verify-staged` expects an optional `verifyStagedWorkflow` input (the `verify-staged-artifacts.yml`, by default) workflow supplied from the target project.
-For example, [Spring Integration for AWS](https://github.com/spring-projects/spring-integration-aws) use `jfrog rt download` command to verify that released `spring-integration-aws-${{ inputs.releaseVersion }}.jar` is valid.
+The `verify-staged` job expects an optional `verifyStagedWorkflow` input (the `verify-staged-artifacts.yml`, by default) workflow supplied from the target project.
+For example, [Spring Integration for AWS](https://github.com/spring-projects/spring-integration-aws) uses `jfrog rt download` command to verify that released `spring-integration-aws-${{ inputs.releaseVersion }}.jar` is valid.
 Other projects may check out their samples repository and setup release version to perform smoke tests against just staged artifacts.
 
-Verify staged workflow sample:
-./samples/verify-staged-artifacts.yml
+#### Verify staged workflow sample:
+https://github.com/artembilan/spring-messaging-build-tools/blob/dbd138bf504abec593bdadd882cc7a450d8eb0df/samples/verify-staged-artifacts.yml#L1-L28
 
 ## Gradle and Artifactory
 
