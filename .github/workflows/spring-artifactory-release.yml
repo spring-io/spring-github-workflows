@@ -69,7 +69,7 @@ jobs:
             CURRENT_VERSION=$(gradle properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')
           fi
           export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
-          RELEASE_VERSION=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.title | startswith(env.CANDIDATE_VERSION))) | .[0] | .title')
+          RELEASE_VERSION=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.due_on != null and (.title | startswith(env.CANDIDATE_VERSION)))) | .[0] | .title')
           if [ -z $RELEASE_VERSION ]
           then
             gh run cancel ${{ github.run_id }}

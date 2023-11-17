@@ -21,13 +21,13 @@ on:
         value: ${{ jobs.staging-to-artifactory-with-gradle.outputs.buildNumber }}
 
     secrets:
-      GH_ACTIONS_REPO_TOKEN:
-        required: true
       GRADLE_ENTERPRISE_CACHE_USER:
-        required: true
+        required: false
       GRADLE_ENTERPRISE_CACHE_PASSWORD:
-        required: true
+        required: false
       GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+        required: false
+      GH_ACTIONS_REPO_TOKEN:
         required: true
       JF_ARTIFACTORY_SPRING:
         required: true

@@ -10,11 +10,11 @@ on:
 
     secrets:
       GRADLE_ENTERPRISE_CACHE_USER:
-        required: true
+        required: false
       GRADLE_ENTERPRISE_CACHE_PASSWORD:
-        required: true
+        required: false
       GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
-        required: true
+        required: false
       JF_ARTIFACTORY_SPRING:
         required: true
 
