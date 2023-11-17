@@ -95,12 +95,12 @@ jobs:
     steps:
 
       - name: Call smoke tests workflow
-        uses: aurelien-baudet/workflow-dispatch@main
+        uses: aurelien-baudet/workflow-dispatch@v2
         with:
           workflow: ${{ inputs.verifyStagedWorkflow }}
           wait-for-completion-interval: 30s
           display-workflow-run-url-interval: 5s
-          workflow-logs: print
+#          workflow-logs: print - uncomment when v3 for action is released
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
 
