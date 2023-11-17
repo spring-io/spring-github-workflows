@@ -69,7 +69,7 @@ The logic of this release workflow:
 This job stages released artifacts using JFrog CLI into `libs-staging-local` repository on Spring Artifactory and commits `Next development version` to the branch we are releasing against
 - The next job is to [verify staged artifacts](#verify-staged-artifacts)
 - When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local`(and Maven Central) according to the releasing version schema
-- Then `[spring-finalize-release.yml](.github%2Fworkflows%2Fspring-finalize-release.yml)` job is executed, which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from `Contributors` section.
+- Then [spring-finalize-release.yml](.github/workflows/spring-finalize-release.yml) job is executed, which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from `Contributors` section.
 The `gh release create` command is performed on a tag for just released version.
 And in the end the milestone is closed and specific Slack channel is notified about release.
 
