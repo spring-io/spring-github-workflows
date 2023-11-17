@@ -27,31 +27,31 @@ The SNAPSHOT and Release workflows uses JFrog CLI to publish artifacts into Arti
 
 ## Build SNAPSHOT and Pull Request Workflows
 
-The `[spring-gradle-pull-request-build.yml](.github%2Fworkflows%2Fspring-gradle-pull-request-build.yml)` and `[spring-maven-pull-request-build.yml](.github%2Fworkflows%2Fspring-maven-pull-request-build.yml)` are straight forward, single job reusable workflows.
+The [spring-gradle-pull-request-build.yml](.github/workflows/spring-gradle-pull-request-build.yml) and [spring-maven-pull-request-build.yml](.github/workflows/spring-maven-pull-request-build.yml) are straight forward, single job reusable workflows.
 They perform Gradle `check` task and Maven `verify` goal, respectively.
 The caller workflow is as simple as follows.
 
-Gradle Pull Request caller workflow:
-./samples/pr-build-gradle.yml
+#### Gradle Pull Request caller workflow:
+https://github.com/artembilan/spring-messaging-build-tools/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/pr-build-gradle.yml#L1-L10
 
-Maven Pull Request caller workflow:
-./samples/pr-build-maven.yml
+#### Maven Pull Request caller workflow:
+https://github.com/artembilan/spring-messaging-build-tools/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/pr-build-maven.yml#L1-L10
 
 You can add more branches to react for pull request events.
 
-The SNAPSHOT workflows (`[spring-artifactory-gradle-snapshot.yml](.github%2Fworkflows%2Fspring-artifactory-gradle-snapshot.yml)` and `[spring-artifactory-maven-snapshot.yml](.github%2Fworkflows%2Fspring-artifactory-maven-snapshot.yml)`, respectively) are also that simple.
+The SNAPSHOT workflows ([spring-artifactory-gradle-snapshot.yml](.github/workflows/spring-artifactory-gradle-snapshot.yml) and [spring-artifactory-maven-snapshot.yml](.github/workflows/spring-artifactory-maven-snapshot.yml), respectively) are also that simple.
 They use JFrog CLI action to be able to publish artifacts into `libs-snapshot-local` repository.
 The Gradle workflow can be supplied with Gradle Enterprise secrets.
 
-Gradle SNAPSHOT caller workflow:
-./samples/ci-snapshot-gradle.yml
+#### Gradle SNAPSHOT caller workflow:
+https://github.com/artembilan/spring-messaging-build-tools/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/ci-snapshot-gradle.yml#L1-L18
 
-Maven SNAPSHOT caller workflow:
-./samples/ci-snapshot-maven.yml
+#### Maven SNAPSHOT caller workflow:
+https://github.com/artembilan/spring-messaging-build-tools/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/ci-snapshot-maven.yml#L1-L13
 
 ## Release Workflow
 
-The `[spring-artifactory-release.yml](.github%2Fworkflows%2Fspring-artifactory-release.yml)` workflow is complex enough, has some branching jobs and makes some assumptions and expects particular conditions on your repository:
+The [spring-artifactory-release.yml](.github/workflows/spring-artifactory-release.yml) workflow is complex enough, has some branching jobs and makes some assumptions and expects particular conditions on your repository:
 
 - The versioning schema must follow these rules: 3-digit-dotted number for `major`, `minor` and `patch` parts, snapshot is suffixed with `-SNAPSHOT`, milestones are with `-M{number}` and `-RC{number}` suffix, the GA release is without any suffix.
 For example: `0.0.1-SNAPSHOT`, `1.0.0-M1`, `2.1.0-RC2`, `3.3.3`.
@@ -73,8 +73,8 @@ This job stages released artifacts using JFrog CLI into `libs-staging-local` rep
 The `gh release create` command is performed on a tag for just released version.
 And in the end the milestone is closed and specific Slack channel is notified about release.
 
-Example of Release caller workflow:
-./samples/release.yml
+#### Example of Release caller workflow:
+https://github.com/artembilan/spring-messaging-build-tools/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/release.yml#L1-L25
 
 Such a workflow must be on every branch which is supposed to be released via GitHub actions.
 
@@ -95,5 +95,5 @@ Verify staged workflow sample:
 ## Gradle and Artifactory
 
 Gradle projects must not manage `com.jfrog.artifactory` plugin anymore: the `jf gradlec` command sets up this plugin and respective tasks into a project using JFrog specific Gradle init script.
-In addition, the `[spring-artifactory-gradle-snapshot.yml](.github%2Fworkflows%2Fspring-artifactory-gradle-snapshot.yml)` and `[spring-artifactory-gradle-release-staging.yml](.github%2Fworkflows%2Fspring-artifactory-gradle-release-staging.yml)` add `spring-project-init.gradle` script to provide an `artifactory` plugin settings for artifacts publications.
+In addition, the [spring-artifactory-gradle-snapshot.yml](.github/workflows/spring-artifactory-gradle-snapshot.yml) and [spring-artifactory-gradle-release-staging.yml](.github/workflows/spring-artifactory-gradle-release-staging.yml) add `spring-project-init.gradle` script to provide an `artifactory` plugin settings for artifacts publications.
 This script also adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
