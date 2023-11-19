@@ -38,7 +38,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: artembilan/spring-messaging-build-tools
+          repository: artembilan/spring-github-workflows
           show-progress: false
 
       - uses: jfrog/setup-jfrog-cli@v3
@@ -50,7 +50,7 @@ jobs:
       - name: Download Release Files
         run: |
           jfrog rt download \
-            --spec release-files-spec.json \
+            --spec utils/release-files-spec.json \
             --spec-vars "buildname=${{ inputs.buildName }};buildnumber=${{ inputs.buildNumber }}"
 
       # Create checksums, signatures and create staging repo on central and upload

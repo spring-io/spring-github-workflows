@@ -40,12 +40,12 @@ jobs:
       - name: Checkout Common Repo
         uses: actions/checkout@v4
         with:
-          repository: artembilan/spring-messaging-build-tools
+          repository: artembilan/spring-github-workflows
           path: build
           show-progress: false
 
       - name: Copy the spring-project-init.gradle
-        run: rsync build/spring-project-init.gradle ~/.gradle/init.d/
+        run: rsync build/utils/spring-project-init.gradle ~/.gradle/init.d/
 
       - uses: jfrog/setup-jfrog-cli@v3
 
