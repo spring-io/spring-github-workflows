@@ -10,7 +10,7 @@ on:
       - '*.x'
 
 jobs:
-  build_snapshot:
+  backport-issue:
     uses: artembilan/spring-github-workflows/.github/workflows/spring-backport-issue.yml@main
     secrets:
       GH_ACTIONS_REPO_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
