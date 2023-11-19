@@ -33,10 +33,10 @@ They perform Gradle `check` task and Maven `verify` goal, respectively.
 The caller workflow is as simple as follows.
 
 #### Gradle Pull Request caller workflow:
-https://github.com/artembilan/spring-github-workflows/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/pr-build-gradle.yml#L1-L10
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/pr-build-gradle.yml#L1-L10
 
 #### Maven Pull Request caller workflow:
-https://github.com/artembilan/spring-github-workflows/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/pr-build-maven.yml#L1-L10
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/pr-build-maven.yml#L1-L10
 
 You can add more branches to react for pull request events.
 
@@ -45,10 +45,10 @@ They use JFrog CLI action to be able to publish artifacts into `libs-snapshot-lo
 The Gradle workflow can be supplied with Gradle Enterprise secrets.
 
 #### Gradle SNAPSHOT caller workflow:
-https://github.com/artembilan/spring-github-workflows/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/ci-snapshot-gradle.yml#L1-L18
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/ci-snapshot-gradle.yml#L1-L18
 
 #### Maven SNAPSHOT caller workflow:
-https://github.com/artembilan/spring-github-workflows/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/ci-snapshot-maven.yml#L1-L13
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/ci-snapshot-maven.yml#L1-L13
 
 ## Release Workflow
 
@@ -75,7 +75,7 @@ The `gh release create` command is performed on a tag for just released version.
 And in the end the milestone is closed and specific Slack channel is notified about release (if `SPRING_RELEASE_SLACK_WEBHOOK_URL` secret is present in the repository).
 
 #### Example of Release caller workflow:
-https://github.com/artembilan/spring-github-workflows/blob/decee2963c926c34f1f52bf373a3bc1dc09f1724/samples/release.yml#L1-L25
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/release.yml#L1-L25
 
 Such a workflow must be on every branch which is supposed to be released via GitHub actions.
 
@@ -87,7 +87,7 @@ In the end you just need to go to the `Actions` tab on your project, press `Run 
 Such a release workflow can also be scheduled (`cron`, fo example) against branches matrix.
 
 #### Scheduler workflow example:
-https://github.com/artembilan/spring-github-workflows/blob/3231d7b9b4fcd05afff3db32d34aa37565535ccb/samples/schedule-releases.yml#L1-L19
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/schedule-releases.yml#L1-L19
 
 > **Warning**
 > The [spring-artifactory-release.yml](.github/workflows/spring-artifactory-release.yml) already uses 3 of 4 levels of nested reusable workflows.
@@ -101,7 +101,7 @@ For example, [Spring Integration for AWS](https://github.com/spring-projects/spr
 Other projects may check out their samples repository and setup release version to perform smoke tests against just staged artifacts.
 
 #### Verify staged workflow sample:
-https://github.com/artembilan/spring-github-workflows/blob/dbd138bf504abec593bdadd882cc7a450d8eb0df/samples/verify-staged-artifacts.yml#L1-L28
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/verify-staged-artifacts.yml#L1-L28
 
 ## Backport GitHub Issue Workflow
 
@@ -109,7 +109,7 @@ The [spring-backport-issue.yml](.github/workflows/spring-backport-issue.yml) use
 See its documentation for labeling convention and respective GitHub events for calling this workflow.
 
 #### Backport Issue caller workflow example:
-
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/backport-issue.yml#L1-L16
 
 ## Gradle and Artifactory
 
