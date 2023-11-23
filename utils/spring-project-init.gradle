@@ -24,7 +24,7 @@ gradle.projectsLoaded {
         }
     }
 
-    rootProject.allProjects {
+    rootProject.allprojects {
         // JFrog's build-info-extractor-gradle adds Gradle init script which does `apply plugin: ArtifactoryPlugin`
         artifactory {
             publish {
