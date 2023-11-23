@@ -1,26 +1,5 @@
 gradle.projectsLoaded {
     rootProject {
-        // JFrog's build-info-extractor-gradle adds Gradle init script which does `apply plugin: ArtifactoryPlugin`
-        artifactory {
-            publish {
-                defaults {
-                    def  zipArtifactProps =
-                            ['zip.name': project.name,
-                             'zip.displayname': project.description,
-                             'zip.deployed': 'false']
-                    properties {
-                        mavenJava zipArtifactProps, '*:*:*:*@zip'
-                        mavenJava  'zip.type': 'docs', '*:*:*:docs@zip'
-                        mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-                    }
-
-                    publications('mavenJava')
-                }
-                forkCount = 10
-            }
-            clientConfig.setConnectionRetries(4)
-        }
-
         // No need to have this task in project: only when we perform GHA
         tasks.register('nextDevelopmentVersion') {
             doLast {
@@ -42,6 +21,29 @@ gradle.projectsLoaded {
                     gradleProperties.text = newProps
                 }
             }
+        }
+    }
+
+    rootProject.allProjects {
+        // JFrog's build-info-extractor-gradle adds Gradle init script which does `apply plugin: ArtifactoryPlugin`
+        artifactory {
+            publish {
+                defaults {
+                    def  zipArtifactProps =
+                            ['zip.name': project.name,
+                             'zip.displayname': project.description,
+                             'zip.deployed': 'false']
+                    properties {
+                        mavenJava zipArtifactProps, '*:*:*:*@zip'
+                        mavenJava  'zip.type': 'docs', '*:*:*:docs@zip'
+                        mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+                    }
+
+                    publications('mavenJava')
+                }
+                forkCount = 10
+            }
+            clientConfig.setConnectionRetries(4)
         }
     }
 }
