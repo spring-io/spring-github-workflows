@@ -115,6 +115,14 @@ https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d80
 
 Gradle projects must not manage `com.jfrog.artifactory` plugin anymore: the `jf gradlec` command sets up this plugin and respective tasks into a project using JFrog specific Gradle init script.
 In addition, the [spring-artifactory-gradle-snapshot.yml](.github/workflows/spring-artifactory-gradle-snapshot.yml) and [spring-artifactory-gradle-release-staging.yml](.github/workflows/spring-artifactory-gradle-release-staging.yml) add `spring-project-init.gradle` script to provide an `artifactory` plugin settings for artifacts publications.
-This script also adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
+If some module does not produce artifacts (typically root project), this config has to be added into that module (Gradle project) to skip Artifactory publish:
+
+```groovy
+if (tasks.findByName('artifactoryPublish')) {
+	artifactoryPublish.skip = true
+}
+```
+
+The `spring-project-init.gradle` script also adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
 
 See more information in the [Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows). 
