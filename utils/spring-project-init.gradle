@@ -1,5 +1,27 @@
 gradle.projectsLoaded {
     rootProject {
+        allprojects {
+            artifactory {
+                publish {
+                    defaults {
+                        def zipArtifactProps =
+                                ['zip.name'       : project.name,
+                                 'zip.displayname': project.description,
+                                 'zip.deployed'   : 'false']
+                        properties {
+                            mavenJava zipArtifactProps, '*:*:*:*@zip'
+                            mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+                            mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+                        }
+
+                        publications('mavenJava')
+                    }
+                    forkCount = 10
+                }
+                clientConfig.setConnectionRetries(4)
+            }
+        }
+
         // No need to have this task in project: only when we perform GHA
         tasks.register('nextDevelopmentVersion') {
             doLast {
@@ -7,13 +29,12 @@ gradle.projectsLoaded {
                     String nextDevelopmentVersion
                     if (project.version.contains('-M') || project.version.contains('-RC')) {
                         nextDevelopmentVersion = project.version - ~/(M|RC)\d+/ + 'SNAPSHOT'
-                    }
-                    else {
+                    } else {
                         def versionParts = project.version.tokenize('.')
                         def major = versionParts[0]
                         def minor = versionParts[1]
                         def patch = versionParts[2] as int
-                        nextDevelopmentVersion = major + '.' + minor + '.' + (++patch)+ '-SNAPSHOT'
+                        nextDevelopmentVersion = major + '.' + minor + '.' + (++patch) + '-SNAPSHOT'
                     }
 
                     def gradleProperties = file('gradle.properties')
@@ -21,29 +42,6 @@ gradle.projectsLoaded {
                     gradleProperties.text = newProps
                 }
             }
-        }
-    }
-
-    rootProject.allprojects {
-        // JFrog's build-info-extractor-gradle adds Gradle init script which does `apply plugin: ArtifactoryPlugin`
-        artifactory {
-            publish {
-                defaults {
-                    def  zipArtifactProps =
-                            ['zip.name': project.name,
-                             'zip.displayname': project.description,
-                             'zip.deployed': 'false']
-                    properties {
-                        mavenJava zipArtifactProps, '*:*:*:*@zip'
-                        mavenJava  'zip.type': 'docs', '*:*:*:docs@zip'
-                        mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-                    }
-
-                    publications('mavenJava')
-                }
-                forkCount = 10
-            }
-            clientConfig.setConnectionRetries(4)
         }
     }
 }
