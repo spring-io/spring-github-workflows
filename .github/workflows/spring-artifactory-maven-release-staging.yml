@@ -55,13 +55,13 @@ jobs:
         id: configure-jfrog
         run: |
           jf mvnc \
-            --use-wrapper=true \
             --repo-resolve-releases=libs-milestone \
             --repo-resolve-snapshots=snapshot \
             --repo-deploy-releases=libs-staging-local \
             --repo-deploy-snapshots=libs-snapshot-local
           
           buildName=${{ github.event.repository.name }}-${{ inputs.releaseVersion }}
+          
           echo JFROG_CLI_BUILD_NAME=$buildName >> $GITHUB_ENV
           echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
           echo buildName=$buildName >> $GITHUB_OUTPUT

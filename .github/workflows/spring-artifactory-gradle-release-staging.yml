@@ -70,11 +70,10 @@ jobs:
       - name: Configure JFrog Cli
         id: configure-jfrog
         run: |
-          jf gradlec \
-            --use-wrapper \
-            --repo-deploy libs-staging-local
+          jf gradlec --repo-deploy libs-staging-local
           
           buildName=${{ github.event.repository.name }}-${{ inputs.releaseVersion }}
+          
           echo JFROG_CLI_BUILD_NAME=$buildName >> $GITHUB_ENV
           echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
           echo buildName=$buildName >> $GITHUB_OUTPUT
