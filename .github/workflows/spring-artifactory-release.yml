@@ -41,6 +41,7 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   releaseVersion:
@@ -101,7 +102,7 @@ jobs:
           wait-for-completion-interval: 30s
           display-workflow-run-url-interval: 5s
 #          workflow-logs: print - uncomment when v3 for action is released
-          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          token: ${{ env.GH_TOKEN }}
           inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
 
   promote-milestone:
