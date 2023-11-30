@@ -2,6 +2,9 @@ name: Backport GH Issue
 
 on:
   workflow_call:
+    secrets:
+      GH_ACTIONS_REPO_TOKEN:
+        required: true
 
 jobs:
   build:
@@ -14,7 +17,7 @@ jobs:
 
       - name: Create Backport Issue
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           GITHUB_EVENT: ${{ toJSON(github.event) }}
         run: |
           wget https://github.com/spring-io/backport-bot/releases/download/latest/backport-bot-0.0.1-SNAPSHOT.jar
