@@ -39,14 +39,7 @@ env:
 
 jobs:
   releaseVersion:
-    outputs:
-      releaseVersion: ${{ steps.release-version.outputs.releaseVersion }}
-
-    runs-on: ubuntu-latest
-    steps:
-
-      - id: release-version
-        uses: ./../action/.github/actions/extract-release-version
+    uses: ./.github/workflows/spring-find-release-version.yml
 
   staging:
     needs: releaseVersion
