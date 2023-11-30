@@ -21,6 +21,8 @@ env:
 
 jobs:
   finalize-releae:
+    permissions:
+      actions: write
     runs-on: ubuntu-latest
     steps:
 
