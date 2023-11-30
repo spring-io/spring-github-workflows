@@ -5,7 +5,7 @@ on:
     outputs:
       releaseVersion:
         description: Current Milestone to release
-        value: ${{ steps.release-version.outputs.releaseVersion }}
+        value: ${{ jobs.version.outputs.releaseVersion }}
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -13,6 +13,9 @@ env:
 jobs:
   find-release-version:
     runs-on: ubuntu-latest
+    outputs:
+      releaseVersion: ${{ steps.release-version.outputs.releaseVersion }}
+
     steps:
       - uses: actions/checkout@v4
         with:
