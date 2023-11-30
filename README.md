@@ -52,7 +52,7 @@ https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d80
 
 ## Release Workflow
 
-The [spring-artifactory-release.yml](.github/workflows/spring-artifactory-release.yml) workflow is complex enough, has some branching jobs and makes some assumptions and expects particular conditions on your repository:
+The [spring-artifactory-gradle-release.yml](.github/workflows/spring-artifactory-gradle-release.yml) (and therefore [spring-artifactory-maven-release.yml](.github/workflows/spring-artifactory-maven-release.yml)) workflow is complex enough, has some branching jobs and makes some assumptions and expects particular conditions on your repository:
 
 - The versioning schema must follow these rules: 3-digit-dotted number for `major`, `minor` and `patch` parts, snapshot is suffixed with `-SNAPSHOT`, milestones are with `-M{number}` and `-RC{number}` suffix, the GA release is without any suffix.
 For example: `0.0.1-SNAPSHOT`, `1.0.0-M1`, `2.1.0-RC2`, `3.3.3`.
@@ -63,10 +63,11 @@ Otherwise, release workflow will be cancelled with a warning that nothing to rel
 
 The logic of this release workflow:
 
-- Take a SNAPSHOT version from a dispatched branch (Maven `help:evaluate -Dexpression="project.version"` and Gradle `gradle properties | grep "^version:"`, respectively)
+- Take a SNAPSHOT version from a dispatched branch (Maven `help:evaluate -Dexpression="project.version"` and Gradle `gradle properties | grep "^version:"`, respectively).
+The composite internal [extract-release-version](.github/actions/extract-release-version/action.yml) action is implemented for this goal 
 - List GitHub milestones matching the candidate version and select the closest one by due on date
 - Cancel workflow if no scheduled Milestone
-- Call Maven or Gradle according to the project (essentially, it tests for `pom.xml` file presence) with the release version extracted from the previous job.
+- Call Maven or Gradle (according to the workflow choice for the project in the repository) with the release version extracted from the previous job.
 This job stages released artifacts using JFrog CLI into `libs-staging-local` repository on Spring Artifactory and commits `Next development version` to the branch we are releasing against
 - The next job is to [verify staged artifacts](#verify-staged-artifacts)
 - When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local`(and Maven Central) according to the releasing version schema
@@ -90,7 +91,7 @@ Such a release workflow can also be scheduled (`cron`, fo example) against branc
 https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/schedule-releases.yml#L1-L19
 
 > **Warning**
-> The [spring-artifactory-release.yml](.github/workflows/spring-artifactory-release.yml) already uses 3 of 4 levels of nested reusable workflows.
+> The [spring-artifactory-gradle-release.yml](.github/workflows/spring-artifactory-gradle-release.yml) (and [spring-artifactory-maven-release.yml](.github/workflows/spring-artifactory-maven-release.yml)) already uses 3 of 4 levels of nested reusable workflows.
 > Where the caller workflow is the last one.
 > Therefore don't try to reuse your caller workflow. 
 

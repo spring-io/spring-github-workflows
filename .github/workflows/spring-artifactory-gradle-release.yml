@@ -1,0 +1,109 @@
+name: Perform Release with Gradle and Artifactory
+
+on:
+  workflow_call:
+    inputs:
+      buildToolArgs:
+        description: 'Additional Gradle command arguments: tasks, options etc. The `build` and `artifactoryPublish` for Gradle are included.'
+        required: false
+        type: string
+      verifyStagedWorkflow:
+        description: 'A workflow name in the target project to dispatch against staged artifacts. The `releaseVersion` must be a workflow input.'
+        required: false
+        type: string
+        default: verify-staged-artifacts.yml
+
+    secrets:
+      GRADLE_ENTERPRISE_CACHE_USER:
+        required: false
+      GRADLE_ENTERPRISE_CACHE_PASSWORD:
+        required: false
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+        required: false
+      SPRING_RELEASE_SLACK_WEBHOOK_URL:
+        required: false
+      GH_ACTIONS_REPO_TOKEN:
+        required: true
+      OSSRH_URL:
+        required: true
+      OSSRH_S01_TOKEN_USERNAME:
+        required: true
+      OSSRH_S01_TOKEN_PASSWORD:
+        required: true
+      OSSRH_STAGING_PROFILE_NAME:
+        required: true
+      GPG_PASSPHRASE:
+        required: true
+      GPG_PRIVATE_KEY:
+        required: true
+      JF_ARTIFACTORY_SPRING:
+        required: true
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  releaseVersion:
+    outputs:
+      releaseVersion: ${{ steps.release-version.outputs.releaseVersion }}
+
+    runs-on: ubuntu-latest
+    steps:
+
+      - id: release-version
+        uses: ./../action/.github/actions/extract-release-version
+
+  staging:
+    needs: releaseVersion
+    name: Stage ${{ needs.releaseVersion.outputs.releaseVersion }}
+    uses: ./.github/workflows/spring-artifactory-gradle-release-staging.yml
+    with:
+      releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
+      buildToolArgs: ${{ inputs.buildToolArgs }}
+    secrets: inherit
+
+  verify-staged:
+    needs: [releaseVersion, staging]
+    name: Verify ${{ needs.releaseVersion.outputs.releaseVersion }}
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Call smoke tests workflow
+        uses: aurelien-baudet/workflow-dispatch@v2
+        with:
+          workflow: ${{ inputs.verifyStagedWorkflow }}
+          wait-for-completion-interval: 30s
+          display-workflow-run-url-interval: 5s
+#          workflow-logs: print - uncomment when v3 for action is released
+          token: ${{ env.GH_TOKEN }}
+          inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
+
+  promote-milestone:
+    needs: [releaseVersion, staging, verify-staged]
+    name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
+    if: ${{ (contains(needs.releaseVersion.outputs.releaseVersion, '-M') || contains(needs.releaseVersion.outputs.releaseVersion, '-RC')) }}
+    uses: ./.github/workflows/spring-artifactory-promote-milestone.yml
+    with:
+      buildName: ${{ needs.staging.outputs.buildName }}
+      buildNumber: ${{ needs.staging.outputs.buildNumber }}
+    secrets: inherit
+
+  promote-ga:
+    needs: [releaseVersion, staging, verify-staged]
+    name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
+    if: ${{ !contains(needs.releaseVersion.outputs.releaseVersion, '-') }}
+    uses: ./.github/workflows/spring-artifactory-promote-central.yml
+    with:
+      buildName: ${{ needs.staging.outputs.buildName }}
+      buildNumber: ${{ needs.staging.outputs.buildNumber }}
+    secrets: inherit
+
+  finalize:
+    if: ${{ !(failure() || cancelled()) }}
+    needs: [releaseVersion, promote-milestone, promote-ga]
+    name: Finalize ${{ needs.releaseVersion.outputs.releaseVersion }}
+    uses: ./.github/workflows/spring-finalize-release.yml
+    with:
+      milestone: ${{ needs.releaseVersion.outputs.releaseVersion }}
+    secrets: inherit

@@ -1,10 +1,10 @@
-name: Perform Release with Artifactory
+name: Perform Release with Maven and Artifactory
 
 on:
   workflow_call:
     inputs:
       buildToolArgs:
-        description: 'Additional Maven or Gradle command arguments: tasks, goals, plugins etc. The `install` for Maven is included. The `build` and `artifactoryPublish` for Gradle are included.'
+        description: 'Additional Maven command arguments: tasks, goals, plugins etc. The `install` for Maven is included.'
         required: false
         type: string
       verifyStagedWorkflow:
@@ -14,12 +14,6 @@ on:
         default: verify-staged-artifacts.yml
 
     secrets:
-      GRADLE_ENTERPRISE_CACHE_USER:
-        required: false
-      GRADLE_ENTERPRISE_CACHE_PASSWORD:
-        required: false
-      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
-        required: false
       SPRING_RELEASE_SLACK_WEBHOOK_URL:
         required: false
       GH_ACTIONS_REPO_TOKEN:
@@ -45,45 +39,19 @@ env:
 
 jobs:
   releaseVersion:
-    runs-on: ubuntu-latest
     outputs:
       releaseVersion: ${{ steps.release-version.outputs.releaseVersion }}
 
+    runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v4
-        with:
-          show-progress: false
-
-      - uses: actions/setup-java@v3
-        with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Find Current Version to Release
-        id: release-version
-        run: |
-          if test -f pom.xml
-          then
-            CURRENT_VERSION=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
-          else
-            CURRENT_VERSION=$(gradle properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')
-          fi
-          export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
-          RELEASE_VERSION=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.due_on != null and (.title | startswith(env.CANDIDATE_VERSION)))) | .[0] | .title')
-          if [ -z $RELEASE_VERSION ]
-          then
-            gh run cancel ${{ github.run_id }}
-            echo "::warning title=Nothing to release::No scheduled milestone for $CURRENT_VERSION version"
-          else
-            echo releaseVersion=$RELEASE_VERSION >> $GITHUB_OUTPUT
-            echo "::notice title=RELEASE VERSION::$RELEASE_VERSION"
-          fi
+      - id: release-version
+        uses: ./../action/.github/actions/extract-release-version
 
   staging:
     needs: releaseVersion
     name: Stage ${{ needs.releaseVersion.outputs.releaseVersion }}
-    uses: ./.github/workflows/spring-stage-release.yml
+    uses: ./.github/workflows/spring-artifactory-maven-release-staging.yml
     with:
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
       buildToolArgs: ${{ inputs.buildToolArgs }}
