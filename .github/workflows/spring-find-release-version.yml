@@ -12,8 +12,6 @@ env:
 
 jobs:
   find-release-version:
-    permissions:
-      actions: write
     runs-on: ubuntu-latest
     outputs:
       releaseVersion: ${{ steps.release-version.outputs.releaseVersion }}
