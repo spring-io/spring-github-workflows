@@ -60,7 +60,7 @@ jobs:
     uses: ./.github/workflows/spring-artifactory-gradle-release-staging.yml
     with:
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
-      buildToolArgs: ${{ inputs.buildToolArgs }}
+      gradleTasks: ${{ inputs.buildToolArgs }}
     secrets: inherit
 
   verify-staged:
