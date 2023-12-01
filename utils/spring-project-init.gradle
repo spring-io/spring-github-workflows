@@ -2,32 +2,31 @@ gradle.projectsLoaded {
     rootProject {
         allprojects {
             afterEvaluate {
-                pluginManager.withPlugin('com.jfrog.artifactory') {
-                    tasks.extractModuleInfo.enabled(false)
-                    tasks.artifactoryPublish.enabled(false)
-                    pluginManager.withPlugin('maven-publish') {
-                        artifactory {
-                            publish {
-                                defaults {
-                                    def zipArtifactProps =
-                                            ['zip.name'       : project.name,
-                                             'zip.displayname': project.description,
-                                             'zip.deployed'   : 'false']
-                                    properties {
-                                        mavenJava zipArtifactProps, '*:*:*:*@zip'
-                                        mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-                                        mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-                                    }
-
-                                    publications('mavenJava')
+                tasks.extractModuleInfo.enabled(false)
+                tasks.artifactoryPublish.enabled(false)
+                pluginManager.withPlugin('maven-publish') {
+                    artifactory {
+                        publish {
+                            defaults {
+                                def zipArtifactProps =
+                                        ['zip.name'       : project.name,
+                                         'zip.displayname': project.description,
+                                         'zip.deployed'   : 'false']
+                                properties {
+                                    mavenJava zipArtifactProps, '*:*:*:*@zip'
+                                    mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+                                    mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
                                 }
-                                forkCount = 10
                             }
-                            clientConfig.setConnectionRetries(4)
+                            forkCount = 10
                         }
+                        clientConfig.setConnectionRetries(4)
+                    }
 
-                        tasks.extractModuleInfo.enabled(true)
-                        tasks.artifactoryPublish.enabled(true)
+                    tasks.extractModuleInfo.enabled(true)
+                    tasks.artifactoryPublish{
+                        enabled(true)
+                        publications(publishing.publications.mavenJava)
                     }
                 }
             }
