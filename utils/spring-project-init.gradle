@@ -23,6 +23,7 @@ gradle.projectsLoaded {
                     }
 
                     tasks.artifactoryPublish{
+                        enabled(true)
                         publications(publishing.publications.mavenJava)
                     }
                 }
