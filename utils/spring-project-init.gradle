@@ -1,28 +1,27 @@
 gradle.projectsLoaded {
     rootProject {
         allprojects {
-            pluginManager.withPlugin('com.jfrog.artifactory') {
-                artifactory {
-                    publish {
-                        defaults {
-                            def zipArtifactProps =
-                                    ['zip.name'       : project.name,
-                                     'zip.displayname': project.description,
-                                     'zip.deployed'   : 'false']
-                            properties {
-                                mavenJava zipArtifactProps, '*:*:*:*@zip'
-                                mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-                                mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-                            }
-                        }
-                        forkCount = 10
-                    }
-                    clientConfig.setConnectionRetries(4)
-                }
-            }
             pluginManager.withPlugin('maven-publish') {
-                tasks.named('artifactoryPublish') {
-                    publications('mavenJava')
+                pluginManager.withPlugin('com.jfrog.artifactory') {
+                    artifactory {
+                        publish {
+                            defaults {
+                                def zipArtifactProps =
+                                        ['zip.name'       : project.name,
+                                         'zip.displayname': project.description,
+                                         'zip.deployed'   : 'false']
+                                properties {
+                                    mavenJava zipArtifactProps, '*:*:*:*@zip'
+                                    mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+                                    mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+                                }
+
+                                publications('mavenJava')
+                            }
+                            forkCount = 10
+                        }
+                        clientConfig.setConnectionRetries(4)
+                    }
                 }
             }
         }
