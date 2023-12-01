@@ -1,24 +1,26 @@
 gradle.projectsLoaded {
     rootProject {
         allprojects {
-            artifactory {
-                publish {
-                    defaults {
-                        def zipArtifactProps =
-                                ['zip.name'       : project.name,
-                                 'zip.displayname': project.description,
-                                 'zip.deployed'   : 'false']
-                        properties {
-                            mavenJava zipArtifactProps, '*:*:*:*@zip'
-                            mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-                            mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-                        }
+            pluginManager.withPlugin('com.jfrog.artifactory') {
+                artifactory {
+                    publish {
+                        defaults {
+                            def zipArtifactProps =
+                                    ['zip.name'       : project.name,
+                                     'zip.displayname': project.description,
+                                     'zip.deployed'   : 'false']
+                            properties {
+                                mavenJava zipArtifactProps, '*:*:*:*@zip'
+                                mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+                                mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+                            }
 
-                        publications('mavenJava')
+                            publications('mavenJava')
+                        }
+                        forkCount = 10
                     }
-                    forkCount = 10
+                    clientConfig.setConnectionRetries(4)
                 }
-                clientConfig.setConnectionRetries(4)
             }
         }
 
