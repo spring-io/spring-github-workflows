@@ -62,9 +62,6 @@ jobs:
           path: build
           show-progress: false
 
-      - name: Copy the spring-project-init.gradle
-        run: rsync build/utils/spring-project-init.gradle ~/.gradle/init.d/
-
       - uses: jfrog/setup-jfrog-cli@v3
 
       - name: Configure JFrog Cli
@@ -85,7 +82,7 @@ jobs:
 
       - name: Build and Publish
         run: |
-          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish --init-script build/utils/spring-project-init.gradle
           jf rt build-publish
 
       - name: Tag Release and Next Development Version
