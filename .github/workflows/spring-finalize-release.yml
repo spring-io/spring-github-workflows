@@ -45,6 +45,7 @@ jobs:
             --github.username=spring-builds \
             --github.password=$GITHUB_TOKEN \
             --changelog.contributors.exclude.names=$repositoryTeam
+            --spring.main.banner-mode=off
 
       - name: GitHub Release
         run: | 

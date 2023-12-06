@@ -26,4 +26,8 @@ jobs:
           GITHUB_EVENT: ${{ toJSON(github.event) }}
         run: |
           wget -q https://github.com/spring-io/backport-bot/releases/download/latest/backport-bot-0.0.1-SNAPSHOT.jar
-          java -jar backport-bot-0.0.1-SNAPSHOT.jar --github.accessToken="$GITHUB_TOKEN" --github.event_name "$GITHUB_EVENT_NAME" --github.event "$GITHUB_EVENT"
+          java -jar backport-bot-0.0.1-SNAPSHOT.jar \
+            --github.accessToken="$GITHUB_TOKEN" \
+            --github.event_name "$GITHUB_EVENT_NAME" \
+            --github.event "$GITHUB_EVENT" \
+            --spring.main.banner-mode=off
