@@ -16,14 +16,16 @@ gradle.projectsLoaded {
                                     mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
                                     mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
                                 }
-                                publications('mavenJava')
                             }
                             forkCount = 10
                         }
                         clientConfig.setConnectionRetries(4)
                     }
 
-                    tasks.artifactoryPublish.enabled(true)
+                    tasks.artifactoryPublish {
+                        enabled(true)
+                        publications(publishing.publications.mavenJava)
+                    }
                 }
             }
         }
