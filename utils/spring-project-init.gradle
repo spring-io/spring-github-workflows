@@ -22,7 +22,7 @@ gradle.projectsLoaded {
                         clientConfig.setConnectionRetries(4)
                     }
 
-                    tasks.artifactoryPublish{
+                    tasks.artifactoryPublish {
                         enabled(true)
                         publications(publishing.publications.mavenJava)
                     }
