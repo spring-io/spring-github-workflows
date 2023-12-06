@@ -4,27 +4,20 @@ gradle.projectsLoaded {
             afterEvaluate {
                 tasks.artifactoryPublish.enabled(false)
                 pluginManager.withPlugin('maven-publish') {
-                    artifactory {
-                        publish {
-                            defaults {
-                                def zipArtifactProps =
-                                        ['zip.name'       : project.name,
-                                         'zip.displayname': project.description,
-                                         'zip.deployed'   : 'false']
-                                properties {
-                                    mavenJava zipArtifactProps, '*:*:*:*@zip'
-                                    mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-                                    mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-                                }
-                            }
-                            forkCount = 10
-                        }
-                        clientConfig.setConnectionRetries(4)
-                    }
-
                     tasks.artifactoryPublish {
                         enabled(true)
+                        def zipArtifactProps =
+                                ['zip.name'       : project.name,
+                                 'zip.displayname': project.description,
+                                 'zip.deployed'   : 'false']
+                        properties {
+                            mavenJava '*:*:*:*@zip', zipArtifactProps
+                            mavenJava '*:*:*:docs@zip', 'zip.type': 'docs'
+                            mavenJava '*:*:*:dist@zip', 'zip.type': 'dist'
+                        }
                         publications(publishing.publications.mavenJava)
+                        forkCount = 10
+                        clientConfig.setConnectionRetries(4)
                     }
                 }
             }
