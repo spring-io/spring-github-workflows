@@ -6,12 +6,8 @@ gradle.projectsLoaded {
                 pluginManager.withPlugin('maven-publish') {
                     tasks.artifactoryPublish {
                         enabled(true)
-                        def zipArtifactProps =
-                                ['zip.name'       : project.name,
-                                 'zip.displayname': project.description,
-                                 'zip.deployed'   : 'false']
                         properties {
-                            mavenJava '*:*:*:*@zip', zipArtifactProps
+                            mavenJava '*:*:*:*@zip', 'zip.name': project.name, 'zip.displayname': project.description, 'zip.deployed': 'false'
                             mavenJava '*:*:*:docs@zip', 'zip.type': 'docs'
                             mavenJava '*:*:*:dist@zip', 'zip.type': 'dist'
                         }
