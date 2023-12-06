@@ -12,8 +12,8 @@ gradle.projectsLoaded {
                             mavenJava '*:*:*:dist@zip', 'zip.type': 'dist'
                         }
                         publications(publishing.publications.mavenJava)
-                        forkCount = 10
-                        clientConfig.setConnectionRetries(4)
+                        clientConfig.publisher.forkCount = 10
+                        clientConfig.connectionRetries = 4
                     }
                 }
             }
