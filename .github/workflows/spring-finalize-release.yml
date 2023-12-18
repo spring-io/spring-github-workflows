@@ -20,7 +20,7 @@ env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  finalize-releae:
+  finalize-release:
     runs-on: ubuntu-latest
     steps:
 
@@ -40,12 +40,13 @@ jobs:
           
           wget -q https://github.com/spring-io/github-changelog-generator/releases/download/v0.0.8/github-changelog-generator.jar
           
+          export SPRING_MAIN_BANNERMODE=off
+          
           java -jar github-changelog-generator.jar $MILESTONE changelog.md \
             --changelog.repository=$GITHUB_REPOSITORY \
             --github.username=spring-builds \
             --github.password=$GITHUB_TOKEN \
             --changelog.contributors.exclude.names=$repositoryTeam
-            --spring.main.banner-mode=off
 
       - name: GitHub Release
         run: | 
