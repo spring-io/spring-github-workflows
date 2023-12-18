@@ -36,7 +36,7 @@ jobs:
       - name: Generate Changelog
         run: |
           repositoryTeam=$(gh api repos/$GITHUB_REPOSITORY/collaborators --jq 'map(select(.role_name == "admin") | .login) | tostring')
-          repositoryTeam=$(sed 's/"//g' <<< ${repositoryTeam:1:-1}),dependabot
+          repositoryTeam=$(sed 's/"//g' <<< ${repositoryTeam:1:-1}),dependabot[bot]
           
           wget -q https://github.com/spring-io/github-changelog-generator/releases/download/v0.0.8/github-changelog-generator.jar
           
