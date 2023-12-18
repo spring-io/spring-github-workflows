@@ -42,7 +42,7 @@ jobs:
           
           export SPRING_MAIN_BANNERMODE=off
           
-          java -jar github-changelog-generator.jar $MILESTONE changelog.md \
+          java -jar github-changelog-generator.jar ${{ env.MILESTONE }} changelog.md \
             --changelog.repository=$GITHUB_REPOSITORY \
             --github.username=spring-builds \
             --github.password=$GITHUB_TOKEN \
