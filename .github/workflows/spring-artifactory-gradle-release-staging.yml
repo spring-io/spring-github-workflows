@@ -74,7 +74,7 @@ jobs:
           echo JFROG_CLI_BUILD_NAME=$buildName >> $GITHUB_ENV
           echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
           echo buildName=$buildName >> $GITHUB_OUTPUT
-          echo buildNumber=$JFROG_CLI_BUILD_NUMBER >> $GITHUB_OUTPUT
+          echo buildNumber=$GITHUB_RUN_NUMBER >> $GITHUB_OUTPUT
           echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
 
       - name: Set Release Version

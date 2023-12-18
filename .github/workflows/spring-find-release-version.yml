@@ -5,7 +5,7 @@ on:
     outputs:
       releaseVersion:
         description: Current Milestone to release
-        value: ${{ jobs.version.outputs.releaseVersion }}
+        value: ${{ jobs.find-release-version.outputs.releaseVersion }}
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
