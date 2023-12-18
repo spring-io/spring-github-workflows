@@ -70,11 +70,12 @@ jobs:
           jf gradlec --repo-deploy libs-staging-local
           
           buildName=${{ github.event.repository.name }}-${{ inputs.releaseVersion }}
+          buildNumber=${{ github.run_number }}
           
           echo JFROG_CLI_BUILD_NAME=$buildName >> $GITHUB_ENV
-          echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
+          echo JFROG_CLI_BUILD_NUMBER=$buildNumber >> $GITHUB_ENV
           echo buildName=$buildName >> $GITHUB_OUTPUT
-          echo buildNumber=$GITHUB_RUN_NUMBER >> $GITHUB_OUTPUT
+          echo buildNumber=$buildNumber >> $GITHUB_OUTPUT
           echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
 
       - name: Set Release Version
@@ -92,6 +93,6 @@ jobs:
           git commit -a -m "[artifactory-release] Release version ${{ inputs.releaseVersion }}"
           git tag "v${{ inputs.releaseVersion }}"
           git push --tags origin
-          jf gradle nextDevelopmentVersion 
+          jf gradle nextDevelopmentVersion --init-script build/utils/spring-project-init.gradle
           git commit -a -m "[artifactory-release] Next development version"
           git push origin
