@@ -3,7 +3,9 @@ gradle.projectsLoaded {
         allprojects {
             afterEvaluate {
                 if (tasks.findByName('artifactoryPublish')) {
-                    tasks.named('artifactoryPublish').enabled(false)
+                    tasks.named('artifactoryPublish') {
+                        enabled(false)
+                    }
                     pluginManager.withPlugin('maven-publish') {
                         artifactory {
                             publish {
