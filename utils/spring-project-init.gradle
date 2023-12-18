@@ -2,29 +2,32 @@ gradle.projectsLoaded {
     rootProject {
         allprojects {
             afterEvaluate {
-                tasks.artifactoryPublish.enabled(false)
-                pluginManager.withPlugin('maven-publish') {
-                    artifactory {
-                        publish {
-                            defaults {
-                                def zipArtifactProps =
-                                        ['zip.name'       : project.name,
-                                         'zip.displayname': project.description,
-                                         'zip.deployed'   : 'false']
-                                properties {
-                                    mavenJava zipArtifactProps, '*:*:*:*@zip'
-                                    mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-                                    mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+                artifactoryPublishTask = tasks.findByName('artifactoryPublish')
+                if (artifactoryPublishTask) {
+                    artifactoryPublishTask.enabled(false)
+                    pluginManager.withPlugin('maven-publish') {
+                        artifactory {
+                            publish {
+                                defaults {
+                                    def zipArtifactProps =
+                                            ['zip.name'       : project.name,
+                                             'zip.displayname': project.description,
+                                             'zip.deployed'   : 'false']
+                                    properties {
+                                        mavenJava zipArtifactProps, '*:*:*:*@zip'
+                                        mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+                                        mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+                                    }
                                 }
+                                forkCount = 10
                             }
-                            forkCount = 10
+                            clientConfig.setConnectionRetries(4)
                         }
-                        clientConfig.setConnectionRetries(4)
-                    }
 
-                    tasks.artifactoryPublish {
-                        enabled(true)
-                        publications(publishing.publications.mavenJava)
+                        artifactoryPublishTask {
+                            enabled(true)
+                            publications(publishing.publications.mavenJava)
+                        }
                     }
                 }
             }
