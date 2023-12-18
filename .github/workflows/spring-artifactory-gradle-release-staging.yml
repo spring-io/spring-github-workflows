@@ -69,6 +69,8 @@ jobs:
         run: |
           jf gradlec --repo-deploy libs-staging-local
           
+          cp build/utils/spring-project-init.gradle $HOME/.gradle/init.d
+          
           buildName=${{ github.event.repository.name }}-${{ inputs.releaseVersion }}
           buildNumber=${{ github.run_number }}
           
@@ -83,7 +85,7 @@ jobs:
 
       - name: Build and Publish
         run: |
-          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish --init-script build/utils/spring-project-init.gradle
+          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
           jf rt build-publish
 
       - name: Tag Release and Next Development Version
@@ -93,6 +95,6 @@ jobs:
           git commit -a -m "[artifactory-release] Release version ${{ inputs.releaseVersion }}"
           git tag "v${{ inputs.releaseVersion }}"
           git push --tags origin
-          jf gradle nextDevelopmentVersion --init-script build/utils/spring-project-init.gradle
+          jf gradle nextDevelopmentVersion
           git commit -a -m "[artifactory-release] Next development version"
           git push origin
