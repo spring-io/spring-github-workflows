@@ -2,9 +2,8 @@ gradle.projectsLoaded {
     rootProject {
         allprojects {
             afterEvaluate {
-                def artifactoryPublishTask = tasks.findByName('artifactoryPublish')
-                if (artifactoryPublishTask) {
-                    artifactoryPublishTask.enabled(false)
+                if (tasks.findByName('artifactoryPublish')) {
+                    tasks.named('artifactoryPublish').enabled(false)
                     pluginManager.withPlugin('maven-publish') {
                         artifactory {
                             publish {
@@ -24,7 +23,7 @@ gradle.projectsLoaded {
                             clientConfig.setConnectionRetries(4)
                         }
 
-                        artifactoryPublishTask {
+                        tasks.named('artifactoryPublish') {
                             enabled(true)
                             publications(publishing.publications.mavenJava)
                         }
