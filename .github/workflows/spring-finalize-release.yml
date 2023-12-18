@@ -46,10 +46,13 @@ jobs:
             --changelog.repository=$GITHUB_REPOSITORY \
             --github.username=spring-builds \
             --github.password=${{ env.GITHUB_TOKEN }} \
-            --changelog.contributors.exclude.names=$repositoryTeam --debug
+            --changelog.contributors.exclude.names=$repositoryTeam
+          
+          echo "$(<changelog.md)"
 
       - name: GitHub Release
-        run: | 
+        run: |
+          echo "$(<changelog.md)"
           RELEASE_URL=$(gh release create v${{ env.MILESTONE }} -F changelog.md ${{ (contains(env.MILESTONE, '-M') || contains(env.MILESTONE, '-RC')) && '--prerelease' }})
           echo "::notice title=Release Page::$RELEASE_URL"
 
