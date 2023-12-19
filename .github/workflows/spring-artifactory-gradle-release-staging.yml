@@ -69,7 +69,7 @@ jobs:
         run: |
           jf gradlec --repo-deploy libs-staging-local
           
-          cp build/utils/spring-project-init.gradle $HOME/.gradle/init.d
+          cp build/utils/*.gradle $HOME/.gradle/init.d
           
           buildName=${{ github.event.repository.name }}-${{ inputs.releaseVersion }}
           buildNumber=${{ github.run_number }}
