@@ -112,6 +112,25 @@ See its documentation for labeling convention and respective GitHub events for c
 #### Backport Issue caller workflow example:
 https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/backport-issue.yml#L1-L16
 
+## Dependabot Support
+
+If [Dependabot](https://github.com/dependabot) is enabled for repository, its config should set a label compatible with [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator).
+Typically, it is `type: dependency-upgrade`.
+It is also a good practice to group all the development dependencies into a single pull request from Dependabot.
+This includes all the Gradle and Maven plugins and those dependencies which are used only for testing in the project.
+This projects provides a [spring-merge-dependabot-pr.yml](.github/workflows/spring-merge-dependabot-pr.yml) reusable workflow to make modifications to the Dependabot pull requests.
+However, there are some prerequisites to use this workflow in your project:
+- Pull requests must be protected by some check to pass, usually a workflow to build the project with this pull request changes;
+- The [auto-merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-auto-merge-for-pull-requests-in-your-repository) must be enabled in the repository;
+
+The `spring-merge-dependabot-pr` workflow does these modifications to the Dependabot pull requests:
+- Modify label from `dependency-upgrade` to the `task` for the development dependencies group update to skip them from release notes by Spring Changelog Generator;
+- Adds a currently scheduled milestone to the pull request against a snapshot version extracted from the target branch;
+- And if milestone is scheduled, the pull request is queued for auto-merging after required checks have passed.
+
+#### Dependabot merge pull request workflow example:
+https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/backport-issue.yml#L1-L16
+
 ## Gradle and Artifactory
 
 Gradle projects must not manage `com.jfrog.artifactory` plugin anymore: the `jf gradlec` command sets up this plugin and respective tasks into a project using JFrog specific Gradle init script.
