@@ -95,6 +95,6 @@ jobs:
           git commit -a -m "[artifactory-release] Release version ${{ inputs.releaseVersion }}"
           git tag "v${{ inputs.releaseVersion }}"
           git push --tags origin
-          jf gradle nextDevelopmentVersion
+          gradle nextDevelopmentVersion
           git commit -a -m "[artifactory-release] Next development version"
           git push origin
