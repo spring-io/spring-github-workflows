@@ -1,0 +1,66 @@
+name: Edit & Merge Dependabot PR
+
+on:
+  workflow_call:
+    inputs:
+      developmentGroup:
+        description: 'The Dependabot update group for development dependencies'
+        default: 'development-dependencies'
+        required: false
+        type: string
+      developmentLabel:
+        description: 'The issue label for this development dependencies pull request'
+        default: 'type: task'
+        required: false
+        type: string
+      dependenciesLabel:
+        description: 'The issue label for regular dependency upgrade pull request'
+        default: 'type: dependency-upgrade'
+        required: false
+        type: string
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  merge-dependabot-pr:
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Dependabot metadata
+        id: metadata
+        uses: dependabot/fetch-metadata@v1
+        with:
+         github-token: ${{ env.GH_TOKEN }}
+
+      - name: Add a label for development dependencies pull request
+        if: steps.metadata.outputs.dependency-group == ${{ inputs.developmentGroup }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label ${{ inputs.developmentLabel }}
+          gh pr edit ${{ github.event.pull_request.number }} --remove-label ${{ inputs.dependenciesLabel }}
+
+      - name: Set Milestone to Dependabot pull request
+        run: |
+          if test -f pom.xml
+          then
+            CURRENT_VERSION=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
+          else
+            CURRENT_VERSION=$(gradle properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')
+          fi
+          export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
+          MILESTONE=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.due_on != null and (.title | startswith(env.CANDIDATE_VERSION)))) | .[0] | .title')
+          
+          gh pr edit ${{ github.event.pull_request.number }} --milestone $MILESTONE
+
+      - name: Merge Dependabot pull request
+        run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash --rebase
