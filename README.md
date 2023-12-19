@@ -129,7 +129,7 @@ The `spring-merge-dependabot-pr` workflow does these modifications to the Depend
 - And if milestone is scheduled, the pull request is queued for auto-merging after required checks have passed.
 
 #### Dependabot merge pull request workflow example:
-https://github.com/artembilan/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/backport-issue.yml#L1-L16
+https://github.com/artembilan/spring-github-workflows/blob/710bf1214450ffb9a4d3a1cfbe12755ed2d59edc/samples/merge-dependabot-pr.yml#L1-L14
 
 ## Gradle and Artifactory
 
