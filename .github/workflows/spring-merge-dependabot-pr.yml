@@ -46,8 +46,8 @@ jobs:
       - name: Add a label for development dependencies pull request
         if: steps.metadata.outputs.dependency-group == ${{ inputs.developmentGroup }}
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label ${{ inputs.developmentLabel }}
-          gh pr edit ${{ github.event.pull_request.number }} --remove-label ${{ inputs.dependenciesLabel }}
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ inputs.developmentLabel }}"
+          gh pr edit ${{ github.event.pull_request.number }} --remove-label "${{ inputs.dependenciesLabel }}"
 
       - name: Set Milestone to Dependabot pull request
         run: |
