@@ -72,4 +72,4 @@ jobs:
 
       - name: Merge Dependabot pull request
         if: steps.set-milestone.outputs.mergeEnabled
-        run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash --rebase
+        run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash
