@@ -30,6 +30,7 @@ on:
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  WORKFLOWS_REF: main
 
 jobs:
   release-to-central:
@@ -40,6 +41,7 @@ jobs:
         with:
           repository: spring-io/spring-github-workflows
           show-progress: false
+          ref: $WORKFLOWS_REF
 
       - uses: jfrog/setup-jfrog-cli@v3
 

@@ -1,0 +1,49 @@
+name: Release Reusable Workflows
+
+on:
+  workflow_dispatch:
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  verify-staged-with-jfrog:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout Common Repo
+        uses: actions/checkout@v4
+        with:
+          show-progress: false
+          fetch-tags: true
+
+      - name: Tag and Release
+        run: |
+          git config --global user.name 'Spring Builds'
+          git config --global user.email 'builds@springframework.org'
+          
+          latestRelease=$(git tag --sort=creatordate | tail -1 | tail -c+2)
+          if [ -z $latestRelease ]
+          then
+            latestRelease=0
+          fi
+          
+          releaseVersion=v$(($latestRelease + 1))
+          
+          for file in ./.github/workflows/spring-*; do 
+            sed -i "1,/WORKFLOWS_REF:.*/s/WORKFLOWS_REF:.*/WORKFLOWS_REF: $releaseVersion/" $file
+          done
+          
+          git commit -a -m "Release version $releaseVersion"
+          git tag $releaseVersion
+          git push --tags origin
+          
+          for file in ./.github/workflows/spring-*; do 
+            sed -i "1,/WORKFLOWS_REF:.*/s/WORKFLOWS_REF:.*/WORKFLOWS_REF: main/" $file
+          done
+          
+          git commit -a -m "Next development version"
+          git push origin
+          
+          RELEASE_URL=$(gh release create $releaseVersion)
+          echo "::notice title=Release Page::$RELEASE_URL"
