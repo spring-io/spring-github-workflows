@@ -9,8 +9,7 @@ run-name: Merge Dependabot PR ${{ github.ref_name }}
 
 jobs:
   merge-dependabot-pr:
-    permissions:
-      pull-requests: write
+    permissions: write-all
 
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
