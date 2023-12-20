@@ -1,0 +1,23 @@
+name: Merge Dependabot PR
+
+on:
+  pull_request:
+    branches:
+      - main
+
+run-name: Merge Dependabot PR ${{ github.ref_name }}
+
+jobs:
+  merge-dependabot-pr:
+    permissions:
+      pull-requests: write
+
+    runs-on: ubuntu-latest
+    if: github.actor == 'dependabot[bot]'
+    steps:
+
+      - name: Merge Dependabot pull request
+        run: gh pr merge ${{ github.event.pull_request.number }} --squash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
