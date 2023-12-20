@@ -17,7 +17,7 @@ jobs:
     steps:
 
       - name: Merge Dependabot pull request
-        run: gh pr merge ${{ github.event.pull_request.number }} --squash
+        run: gh api -X PUT repos/$GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/merge
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
