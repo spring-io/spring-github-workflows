@@ -9,14 +9,18 @@ run-name: Merge Dependabot PR ${{ github.ref_name }}
 
 jobs:
   merge-dependabot-pr:
-    permissions: write-all
+    permissions:
+      pull-requests: write
 
     runs-on: ubuntu-latest
     if: github.actor == 'dependabot[bot]'
     steps:
 
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
       - name: Merge Dependabot pull request
-        run: gh api -X PUT repos/$GITHUB_REPOSITORY/pulls/${{ github.event.pull_request.number }}/merge
+        run: gh pr merge ${{ github.event.pull_request.number }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
