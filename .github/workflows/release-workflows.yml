@@ -14,9 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout Common Repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           show-progress: false
           fetch-tags: true
 
