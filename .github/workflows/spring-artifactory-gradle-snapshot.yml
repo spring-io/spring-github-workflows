@@ -40,7 +40,7 @@ jobs:
       - name: Checkout Common Repo
         uses: actions/checkout@v4
         with:
-          repository: artembilan/spring-github-workflows
+          repository: spring-io/spring-github-workflows
           path: build
           show-progress: false
 

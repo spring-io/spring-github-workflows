@@ -38,7 +38,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          repository: artembilan/spring-github-workflows
+          repository: spring-io/spring-github-workflows
           show-progress: false
 
       - uses: jfrog/setup-jfrog-cli@v3
