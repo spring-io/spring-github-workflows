@@ -41,8 +41,7 @@ jobs:
         with:
           repository: spring-io/spring-github-workflows
           show-progress: false
-          fetch-tags: true
-          ref: $WORKFLOWS_REF
+          ref: ${{ env.WORKFLOWS_REF }}
 
       - uses: jfrog/setup-jfrog-cli@v3
 
