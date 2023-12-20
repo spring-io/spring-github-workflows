@@ -21,6 +21,6 @@ jobs:
           show-progress: false
 
       - name: Merge Dependabot pull request
-        run: gh pr merge ${{ github.event.pull_request.number }}
+        run: gh pr merge ${{ github.event.pull_request.number }} --squash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
