@@ -1,0 +1,66 @@
+name: Build and Deploy Docs
+
+on:
+  workflow_call:
+    inputs:
+      build-refname:
+        description: Enter git refname to build (e.g., 5.7.x).
+        required: false
+        type: string
+
+    secrets:
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+        required: false
+      DOCS_USERNAME:
+        required: true
+      DOCS_HOST:
+        required: true
+      DOCS_SSH_KEY:
+        required: true
+      DOCS_SSH_HOST_KEY:
+        required: true
+      CLOUDFLARE_ZONE_ID:
+        required: true
+      CLOUDFLARE_CACHE_TOKEN:
+        required: true
+
+env:
+  GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+
+jobs:
+  docs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          show-progress: false
+
+      - uses: spring-io/spring-gradle-build-action@v2
+
+      - name: Set up refname build
+        if: inputs.build-refname
+        run: |
+          git fetch --depth 1 https://github.com/$GITHUB_REPOSITORY ${{ inputs.build-refname }}
+          echo BUILD_REFNAME=${{ inputs.build-refname }} >> $GITHUB_ENV
+          echo BUILD_VERSION=$(git cat-file --textconv FETCH_HEAD:gradle.properties | sed -n '/^version=/ { s/^version=//;p }') >> $GITHUB_ENV
+
+      - name: Run Antora
+        run: ./gradlew antora
+
+      - name: Copy the cache to be included in the site
+        run: cp -rf build/antora/inject-collector-cache-config-extension/.cache build/site/
+
+      - name: Publish Docs
+        uses: spring-io/spring-doc-actions/rsync-antora-reference@v0.0.11
+        with:
+          docs-username: ${{ secrets.DOCS_USERNAME }}
+          docs-host: ${{ secrets.DOCS_HOST }}
+          docs-ssh-key: ${{ secrets.DOCS_SSH_KEY }}
+          docs-ssh-host-key: ${{ secrets.DOCS_SSH_HOST_KEY }}
+
+      - name: Bust Cloudflare Cache
+        uses: spring-io/spring-doc-actions/bust-cloudflare-antora-cache@v0.0.11
+        with:
+          context-root: ${{ github.event.repository.name }}
+          cloudflare-zone-id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+          cloudflare-cache-token: ${{ secrets.CLOUDFLARE_CACHE_TOKEN }}

@@ -33,7 +33,7 @@ jobs:
           then
             CURRENT_VERSION=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
           else
-            CURRENT_VERSION=$(gradle properties --no-daemon --console=plain -q | grep "^version:" | awk '{printf $2}')
+            CURRENT_VERSION=$(cat gradle.properties | sed -n '/^version=/ { s/^version=//;p }')
           fi
           export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
           RELEASE_VERSION=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.due_on != null and (.title | startswith(env.CANDIDATE_VERSION)))) | .[0] | .title')

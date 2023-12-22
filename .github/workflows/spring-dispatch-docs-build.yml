@@ -1,4 +1,4 @@
-name: Deploy Docs
+name: Dispatch Docs Deploy
 
 on:
   workflow_call:
