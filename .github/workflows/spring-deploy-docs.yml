@@ -1,0 +1,26 @@
+name: Deploy Docs
+
+on:
+  workflow_call:
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  dispatch-docs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: docs-build
+          fetch-depth: 1
+          show-progress: false
+
+      - name: Dispatch (partial build)
+        if: github.ref_type == 'branch'
+        run: gh workflow run deploy-docs.yml -r $(git rev-parse --abbrev-ref HEAD) -f build-refname=${{ github.ref_name }}
+
+      - name: Dispatch (full build)
+        if: github.ref_type == 'tag'
+        run: gh workflow run deploy-docs.yml -r $(git rev-parse --abbrev-ref HEAD)
