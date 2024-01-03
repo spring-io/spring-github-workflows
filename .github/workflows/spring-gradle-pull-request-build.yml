@@ -4,7 +4,7 @@ on:
   workflow_call:
 
 jobs:
-  build:
+  build-pr:
     runs-on: ubuntu-latest
     steps:
 
@@ -12,20 +12,10 @@ jobs:
         with:
           show-progress: false
 
-      - name: Set up JDK
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: gradle
+      - uses: spring-io/spring-gradle-build-action@v2
 
-      - name: Run Gradle
-        uses: burrunan/gradle-cache-action@v1
-        with:
-          debug: false
-          concurrent: true
-          gradle-build-scan-report: false
-          arguments: check
+      - name: Run Pull Request Build
+        run: gradlew check
 
       - name: Capture Test Results
         if: failure()
