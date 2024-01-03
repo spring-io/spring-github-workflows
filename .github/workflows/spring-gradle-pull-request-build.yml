@@ -15,7 +15,7 @@ jobs:
       - uses: spring-io/spring-gradle-build-action@v2
 
       - name: Run Pull Request Build
-        run: gradlew check
+        run: gradle check
 
       - name: Capture Test Results
         if: failure()
