@@ -18,6 +18,7 @@ jobs:
         with:
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           show-progress: false
+          fetch-depth: 0
           fetch-tags: true
 
       - name: Tag and Release
@@ -31,11 +32,7 @@ jobs:
             latestRelease=0
           fi
           
-          echo $latestRelease
-          
           releaseVersion=v$(($latestRelease + 1))
-          
-          echo $releaseVersion
           
           for file in ./.github/workflows/spring-*; do 
             sed -i "1,/WORKFLOWS_REF:.*/s/WORKFLOWS_REF:.*/WORKFLOWS_REF: $releaseVersion/" $file
