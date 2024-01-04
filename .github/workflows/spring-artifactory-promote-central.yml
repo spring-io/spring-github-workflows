@@ -30,7 +30,7 @@ on:
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
-  WORKFLOWS_REF: v2
+  WORKFLOWS_REF: main
 
 jobs:
   release-to-central:
