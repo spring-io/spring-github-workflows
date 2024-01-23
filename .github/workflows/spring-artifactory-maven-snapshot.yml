@@ -7,6 +7,15 @@ on:
         description: 'Additional mvn command arguments: goals, plugins etc. The `install` is included.'
         required: false
         type: string
+      targetRepository:
+        description: 'The Artifactory Repository to upload snapshot artifacts to'
+        required: false
+        type: string
+        default: libs-snapshot-local
+      artifactoryProjectKey:
+        description: 'The Artifactory project key'
+        required: false
+        type: string
 
     secrets:
       JF_ARTIFACTORY_SPRING:
@@ -14,6 +23,7 @@ on:
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
 
 jobs:
   build_snapshot:
@@ -40,7 +50,7 @@ jobs:
             --repo-resolve-releases=libs-milestone \
             --repo-resolve-snapshots=snapshot \
             --repo-deploy-releases=libs-milestone-local \
-            --repo-deploy-snapshots=libs-snapshot-local
+            --repo-deploy-snapshots=${{ inputs.targetRepository }}
           
           echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}-${{ github.ref_name }} >> $GITHUB_ENV
           echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV

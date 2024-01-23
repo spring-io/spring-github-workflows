@@ -7,6 +7,14 @@ on:
         description: 'Additional Maven command arguments: tasks, goals, plugins etc. The `install` for Maven is included.'
         required: false
         type: string
+      targetMilestoneRepository:
+        description: 'The Artifactory Repository to promote the milestone build to'
+        required: false
+        type: string
+      targetReleaseRepository:
+        description: 'The Artifactory Repository to promote the release build to'
+        required: false
+        type: string
       verifyStagedWorkflow:
         description: 'A workflow name in the target project to dispatch against staged artifacts. The `releaseVersion` must be a workflow input.'
         required: false
@@ -19,13 +27,13 @@ on:
       GH_ACTIONS_REPO_TOKEN:
         required: true
       OSSRH_URL:
-        required: true
+        required: false
       OSSRH_S01_TOKEN_USERNAME:
-        required: true
+        required: false
       OSSRH_S01_TOKEN_PASSWORD:
-        required: true
+        required: false
       OSSRH_STAGING_PROFILE_NAME:
-        required: true
+        required: false
       GPG_PASSPHRASE:
         required: true
       GPG_PRIVATE_KEY:
@@ -74,6 +82,7 @@ jobs:
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
+      targetRepository: ${{ inputs.targetMilestoneRepository }}
     secrets: inherit
 
   promote-ga:
@@ -84,6 +93,7 @@ jobs:
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
+      targetRepository: ${{ inputs.targetReleaseRepository }}
     secrets: inherit
 
   finalize:

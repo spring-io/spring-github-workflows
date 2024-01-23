@@ -11,6 +11,15 @@ on:
         description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
         required: false
         type: string
+      stagingRepository:
+        description: 'The Artifactory Repository to stage artifacts to'
+        required: false
+        type: string
+        default: libs-staging-local
+      artifactoryProjectKey:
+        description: 'The Artifactory project key'
+        required: false
+        type: string
 
     outputs:
       buildName:
@@ -31,12 +40,22 @@ on:
         required: true
       JF_ARTIFACTORY_SPRING:
         required: true
+      OSSRH_URL: # If provided then signature is done in the Maven Central workflow. Otherwise, the GPG_PASSPHRASE & GPG_PRIVATE_KEY (if provided) use by Gradle 'signing' plugin
+        required: false
+      GPG_PASSPHRASE:
+        required: false
+      GPG_PRIVATE_KEY:
+        required: false
 
 env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
+  OSSRH_URL: ${{ secrets.OSSRH_URL }}
+  GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -69,7 +88,7 @@ jobs:
       - name: Configure JFrog Cli
         id: configure-jfrog
         run: |
-          jf gradlec --repo-deploy libs-staging-local
+          jf gradlec --repo-deploy ${{ inputs.stagingRepository }}
           
           cp build/utils/*.gradle $HOME/.gradle/init.d
           

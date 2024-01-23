@@ -7,6 +7,15 @@ on:
         description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
         required: false
         type: string
+      targetRepository:
+        description: 'The Artifactory Repository to upload snapshot artifacts to'
+        required: false
+        type: string
+        default: libs-snapshot-local
+      artifactoryProjectKey:
+        description: 'The Artifactory project key'
+        required: false
+        type: string
 
     secrets:
       GRADLE_ENTERPRISE_CACHE_USER:
@@ -23,6 +32,7 @@ env:
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -50,7 +60,7 @@ jobs:
 
       - name: Configure JFrog Cli
         run: |
-          jf gradlec --repo-deploy libs-snapshot-local
+          jf gradlec --repo-deploy ${{ inputs.targetRepository }}
           
           echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}-${{ github.ref_name }} >> $GITHUB_ENV
           echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV

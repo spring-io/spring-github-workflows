@@ -11,6 +11,15 @@ on:
         description: 'Additional mvn command arguments: goals, plugins etc. The `install` is included.'
         required: false
         type: string
+      stagingRepository:
+        description: 'The Artifactory Repository to stage artifacts to'
+        required: false
+        type: string
+        default: libs-staging-local
+      artifactoryProjectKey:
+        description: 'The Artifactory project key'
+        required: false
+        type: string
 
     outputs:
       buildName:
@@ -25,9 +34,19 @@ on:
         required: true
       JF_ARTIFACTORY_SPRING:
         required: true
+      OSSRH_URL: # If provided then signature is done in the Maven Central workflow. Otherwise, the GPG_PASSPHRASE & GPG_PRIVATE_KEY (if provided) use by Gradle 'signing' plugin
+        required: false
+      GPG_PASSPHRASE:
+        required: false
+      GPG_PRIVATE_KEY:
+        required: false
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
+  OSSRH_URL: ${{ secrets.OSSRH_URL }}
+  GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
 jobs:
   staging-to-artifactory-with-maven:
@@ -57,7 +76,7 @@ jobs:
           jf mvnc \
             --repo-resolve-releases=libs-milestone \
             --repo-resolve-snapshots=snapshot \
-            --repo-deploy-releases=libs-staging-local \
+            --repo-deploy-releases=${{ inputs.stagingRepository }} \
             --repo-deploy-snapshots=libs-snapshot-local
           
           buildName=${{ github.event.repository.name }}-${{ inputs.releaseVersion }}

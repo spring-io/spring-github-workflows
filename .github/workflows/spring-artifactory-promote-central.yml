@@ -11,16 +11,21 @@ on:
         description: 'The Artifactory Build Number'
         required: true
         type: string
+      targetRepository:
+        description: 'The Artifactory Repository to promote the build to'
+        required: false
+        type: string
+        default: libs-release-local
 
     secrets:
       OSSRH_URL:
-        required: true
+        required: false
       OSSRH_S01_TOKEN_USERNAME:
-        required: true
+        required: false
       OSSRH_S01_TOKEN_PASSWORD:
-        required: true
+        required: false
       OSSRH_STAGING_PROFILE_NAME:
-        required: true
+        required: false
       GPG_PASSPHRASE:
         required: true
       GPG_PRIVATE_KEY:
@@ -30,6 +35,7 @@ on:
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  OSSRH_URL: ${{ secrets.OSSRH_URL }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -46,10 +52,11 @@ jobs:
       - uses: jfrog/setup-jfrog-cli@v3
 
       - name: Promote Build
-        run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} libs-release-local
+        run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }}
 
       # Download released files
       - name: Download Release Files
+        if: env.OSSRH_URL
         run: |
           jfrog rt download \
             --spec utils/release-files-spec.json \
@@ -58,6 +65,7 @@ jobs:
       # Create checksums, signatures and create staging repo on central and upload
       - uses: jvalkeal/nexus-sync@v0.0.2
         id: nexus
+        if: env.OSSRH_URL
         with:
           url: ${{ secrets.OSSRH_URL }}
           username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
