@@ -40,6 +40,10 @@ on:
         required: true
       JF_ARTIFACTORY_SPRING:
         required: true
+      ARTIFACTORY_USERNAME:
+        required: false
+      ARTIFACTORY_PASSWORD:
+        required: false
       OSSRH_URL: # If provided then signature is done in the Maven Central workflow. Otherwise, the GPG_PASSPHRASE & GPG_PRIVATE_KEY (if provided) use by Gradle 'signing' plugin
         required: false
       GPG_PASSPHRASE:
@@ -51,6 +55,8 @@ env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
   OSSRH_URL: ${{ secrets.OSSRH_URL }}
