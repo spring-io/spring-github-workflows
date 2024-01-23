@@ -7,12 +7,20 @@ on:
         description: 'Additional Gradle command arguments: tasks, options etc. The `build` and `artifactoryPublish` for Gradle are included.'
         required: false
         type: string
+      stagingRepository:
+        description: 'The Artifactory Repository to stage artifacts to'
+        required: false
+        type: string
       targetMilestoneRepository:
         description: 'The Artifactory Repository to promote the milestone build to'
         required: false
         type: string
       targetReleaseRepository:
         description: 'The Artifactory Repository to promote the release build to'
+        required: false
+        type: string
+      artifactoryProjectKey:
+        description: 'The Artifactory project key'
         required: false
         type: string
       verifyStagedWorkflow:
@@ -62,6 +70,8 @@ jobs:
     with:
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
       gradleTasks: ${{ inputs.buildToolArgs }}
+      stagingRepository: ${{ inputs.stagingRepository }}
+      artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
     secrets: inherit
 
   verify-staged:
