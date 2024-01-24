@@ -1,56 +1,38 @@
 gradle.projectsLoaded {
-	rootProject {
-		allprojects {
-			def ossrhUrl = System.getenv('OSSRH_URL')
-			def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
-			def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
-			boolean sing = !ossrhUrl && gpgPassphrase && gpgPrivateKey
-			if (sing) {
-				apply plugin: 'signing'
-			}
+    rootProject {
+        allprojects {
+            afterEvaluate {
+                // The artifactoryPublish task is added by the Gradle init script from JFrog CLI
+                if (tasks.findByName('artifactoryPublish')) {
+                    tasks.named('artifactoryPublish') {
+                        enabled(false)
+                    }
+                    pluginManager.withPlugin('maven-publish') {
+                        artifactory {
+                            publish {
+                                defaults {
+                                    def zipArtifactProps =
+                                            ['zip.name'       : project.name,
+                                             'zip.displayname': project.description,
+                                             'zip.deployed'   : 'false']
+                                    properties {
+                                        mavenJava zipArtifactProps, '*:*:*:*@zip'
+                                        mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+                                        mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+                                    }
+                                }
+                                forkCount = 10
+                            }
+                            clientConfig.setConnectionRetries(4)
+                        }
 
-			afterEvaluate {
-				// The artifactoryPublish task is added by the Gradle init script from JFrog CLI
-				if (tasks.findByName('artifactoryPublish')) {
-					tasks.named('artifactoryPublish') {
-						enabled(false)
-					}
-					pluginManager.withPlugin('maven-publish') {
-						artifactory {
-							publish {
-								defaults {
-									def zipArtifactProps =
-											['zip.name'       : project.name,
-											 'zip.displayname': project.description,
-											 'zip.deployed'   : 'false']
-									properties {
-										mavenJava zipArtifactProps, '*:*:*:*@zip'
-										mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-										mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-									}
-								}
-								forkCount = 10
-							}
-							clientConfig.setConnectionRetries(4)
-						}
-
-						if (sing) {
-							signing {
-								useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
-								sign publishing.publications.mavenJava
-							}
-						}
-
-						tasks.named('artifactoryPublish') {
-							if (sing) {
-								dependsOn tasks.withType(Sign)
-							}
-							enabled(true)
-							publications(publishing.publications.mavenJava)
-						}
-					}
-				}
-			}
-		}
-	}
+                        tasks.named('artifactoryPublish') {
+                            enabled(true)
+                            publications(publishing.publications.mavenJava)
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
