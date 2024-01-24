@@ -1,6 +1,14 @@
 gradle.projectsLoaded {
 	rootProject {
 		allprojects {
+			def ossrhUrl = System.getenv('OSSRH_URL')
+			def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
+			def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
+			boolean sing = !ossrhUrl && gpgPassphrase && gpgPrivateKey
+			if (sing) {
+				apply plugin: 'signing'
+			}
+
 			afterEvaluate {
 				// The artifactoryPublish task is added by the Gradle init script from JFrog CLI
 				if (tasks.findByName('artifactoryPublish')) {
@@ -30,20 +38,14 @@ gradle.projectsLoaded {
 							enabled(true)
 							publications(publishing.publications.mavenJava)
 						}
+
+						if (sing) {
+							signing {
+								useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
+								sign publishing.publications.mavenJava
+							}
+						}
 					}
-				}
-			}
-
-			def ossrhUrl = System.getenv('OSSRH_URL')
-			def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
-			def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
-
-			if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
-				apply plugin: 'signing'
-
-				signing {
-					useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
-					sign publishing.publications.mavenJava
 				}
 			}
 		}
