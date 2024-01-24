@@ -43,7 +43,7 @@ gradle.projectsLoaded {
 
 						tasks.named('artifactoryPublish') {
 							if (sing) {
-								dependsOn('signMavenJavaPublication')
+								dependsOn tasks.withType(Sign)
 							}
 							enabled(true)
 							publications(publishing.publications.mavenJava)
