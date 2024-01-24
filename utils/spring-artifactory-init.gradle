@@ -5,7 +5,7 @@ gradle.projectsLoaded {
                 // The artifactoryPublish task is added by the Gradle init script from JFrog CLI
                 if (tasks.findByName('artifactoryPublish')) {
                     tasks.named('artifactoryPublish') {
-                        enabled(false)
+                        publications('mavenJava')
                     }
                     pluginManager.withPlugin('maven-publish') {
                         artifactory {
@@ -24,11 +24,6 @@ gradle.projectsLoaded {
                                 forkCount = 10
                             }
                             clientConfig.setConnectionRetries(4)
-                        }
-
-                        tasks.named('artifactoryPublish') {
-                            enabled(true)
-                            publications(publishing.publications.mavenJava)
                         }
                     }
                 }
