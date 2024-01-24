@@ -34,16 +34,19 @@ gradle.projectsLoaded {
 							clientConfig.setConnectionRetries(4)
 						}
 
-						tasks.named('artifactoryPublish') {
-							enabled(true)
-							publications(publishing.publications.mavenJava)
-						}
-
 						if (sing) {
 							signing {
 								useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
 								sign publishing.publications.mavenJava
 							}
+						}
+
+						tasks.named('artifactoryPublish') {
+							if (sing) {
+								dependsOn('signMavenJavaPublication')
+							}
+							enabled(true)
+							publications(publishing.publications.mavenJava)
 						}
 					}
 				}
