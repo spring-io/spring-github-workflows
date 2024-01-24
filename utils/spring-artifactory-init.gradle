@@ -31,18 +31,19 @@ gradle.projectsLoaded {
 							publications(publishing.publications.mavenJava)
 						}
 					}
-					def ossrhUrl = System.getenv('OSSRH_URL')
-					def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
-					def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
+				}
+			}
 
-					if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
-						apply plugin: 'signing'
+			def ossrhUrl = System.getenv('OSSRH_URL')
+			def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
+			def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
 
-						signing {
-							useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
-							sign publishing.publications.mavenJava
-						}
-					}
+			if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
+				apply plugin: 'signing'
+
+				signing {
+					useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
+					sign publishing.publications.mavenJava
 				}
 			}
 		}
