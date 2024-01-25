@@ -94,7 +94,9 @@ jobs:
       - name: Configure JFrog Cli
         id: configure-jfrog
         run: |
-          jf gradlec --repo-deploy ${{ inputs.stagingRepository }}
+          jf gradlec \
+            --uses-plugin true \
+            --repo-deploy ${{ inputs.stagingRepository }}
           
           cp build/utils/*.gradle $HOME/.gradle/init.d
           
