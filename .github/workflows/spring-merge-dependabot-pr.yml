@@ -18,6 +18,11 @@ on:
         default: 'type: dependency-upgrade'
         required: false
         type: string
+      mergeArguments:
+        description: 'The arguments to pass to the gh pr merge command'
+        default: '--auto --squash'
+        required: false
+        type: string
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -72,4 +77,4 @@ jobs:
 
       - name: Merge Dependabot pull request
         if: steps.set-milestone.outputs.mergeEnabled
-        run: gh pr merge ${{ github.event.pull_request.number }} --auto --squash
+        run: gh pr merge ${{ github.event.pull_request.number }} ${{ inputs.mergeArguments }}
