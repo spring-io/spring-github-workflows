@@ -133,9 +133,39 @@ https://github.com/spring-io/spring-github-workflows/blob/710bf1214450ffb9a4d3a1
 
 ## Gradle and Artifactory
 
-Gradle projects must not manage `com.jfrog.artifactory` plugin anymore: the `jf gradlec` command sets up this plugin and respective tasks into a project using JFrog specific Gradle init script.
-In addition, the [spring-artifactory-gradle-snapshot.yml](.github/workflows/spring-artifactory-gradle-snapshot.yml) and [spring-artifactory-gradle-release-staging.yml](.github/workflows/spring-artifactory-gradle-release-staging.yml) add `spring-artifactory-init.gradle` script to provide an `artifactory` plugin settings for artifacts publications.
+Gradle projects must not manage `com.jfrog.artifactory` plugin anymore: the `jf gradlec` command sets this plugin up and respective tasks into a project using JFrog specific Gradle init script.
+The `artifactory` plugin settings and respective `tasks.named('artifactoryPublish')` task still have to be present in the project, but with `try..catch`.
+For example:
+```groovy
+try {
+		artifactory {
+			publish {
+				defaults {
+					def zipArtifactProps =
+							['zip.name'       : project.name,
+							 'zip.displayname': project.description,
+							 'zip.deployed'   : 'false']
+					properties {
+						mavenJava zipArtifactProps, '*:*:*:*@zip'
+						mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+						mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+					}
+				}
+				forkCount = 10
+			}
+			clientConfig.setConnectionRetries(4)
+		}
 
-The `next-dev-version-init.gradle` script also adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
+		tasks.named('artifactoryPublish') {
+			publications(publishing.publications.mavenJava)
+		}
+	}
+	catch (exception) {
+		logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception)
+	}
+```
+This way we add extra properties to zip artifacts to upload, some other Artifactory client options, and also specify what to publish via `artifactoryPublish` task
+
+The `next-dev-version-init.gradle` script adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
 
 See more information in the [Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows). 
