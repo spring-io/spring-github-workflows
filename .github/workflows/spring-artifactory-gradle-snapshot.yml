@@ -75,6 +75,6 @@ jobs:
 
       - name: Build and Publish
         run: |
-          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish --init-script build/utils/spring-artifactory-init.gradle
+          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
           jf rt build-publish
 
