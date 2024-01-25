@@ -67,8 +67,8 @@ jobs:
       - name: Configure JFrog Cli
         run: |
           jf gradlec \
-            --uses-plugin true \
-            --repo-deploy ${{ inputs.targetRepository }}
+            --uses-plugin=true \
+            --repo-deploy=${{ inputs.targetRepository }}
           
           echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}-${{ github.ref_name }} >> $GITHUB_ENV
           echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
