@@ -1,27 +1,40 @@
-//allprojects {
-//	try {
-//		artifactory {
-//			publish {
-//				defaults {
-//					def zipArtifactProps =
-//							['zip.name'       : project.name,
-//							 'zip.displayname': project.description,
-//							 'zip.deployed'   : 'false']
-//					properties {
-//						mavenJava zipArtifactProps, '*:*:*:*@zip'
-//						mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-//						mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-//					}
-//				}
-//				forkCount = 10
-//			}
-//			clientConfig.setConnectionRetries(4)
-//		}
-//		tasks.named('artifactoryPublish') {
-//			publications(publishing.publications.mavenJava)
-//		}
-//	}
-//	catch (exception) {
-//		it.logger.warn('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
-//	}
-//}
+allprojects {
+	def ossrhUrl = System.getenv('OSSRH_URL')
+	def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
+	def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
+	if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
+		apply plugin: 'signing'
+
+		signing {
+			useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
+			sign publishing.publications.mavenJava
+		}
+	}
+
+	try {
+		artifactory {
+			publish {
+				defaults {
+					def zipArtifactProps =
+							['zip.name'       : project.name,
+							 'zip.displayname': project.description,
+							 'zip.deployed'   : 'false']
+					properties {
+						mavenJava zipArtifactProps, '*:*:*:*@zip'
+						mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+						mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+					}
+				}
+				forkCount = 10
+			}
+			clientConfig.setConnectionRetries(4)
+		}
+
+		tasks.named('artifactoryPublish') {
+			publications(publishing.publications.mavenJava)
+		}
+	}
+	catch (exception) {
+		logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
+	}
+}

@@ -64,7 +64,7 @@ jobs:
 
       - uses: jfrog/setup-jfrog-cli@v3
         with:
-          version: latest
+          version: 2.52.10
 
       - name: Configure JFrog Cli
         run: |
