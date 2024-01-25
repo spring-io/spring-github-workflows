@@ -1,4 +1,7 @@
 initscript {
+	repositories {
+		mavenCentral()
+	}
 	dependencies {
 		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:5.+'
 	}
