@@ -5,11 +5,12 @@ def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
 allprojects {
 	if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
 		apply plugin: 'signing'
-
-		pluginManager.withPlugin('maven-publish') {
-			signing {
-				useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
-				sign publishing.publications.mavenJava
+		afterEvaluate {
+			pluginManager.withPlugin('maven-publish') {
+				signing {
+					useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
+					sign publishing.publications.mavenJava
+				}
 			}
 		}
 	}
