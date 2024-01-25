@@ -1,39 +1,25 @@
 allprojects {
 	try {
-		tasks.named('artifactoryPublish') {
-			publications('mavenJava')
+		artifactory {
+			publish {
+				defaults {
+					publications ('mavenJava')
+					def zipArtifactProps =
+							['zip.name'       : project.name,
+							 'zip.displayname': project.description,
+							 'zip.deployed'   : 'false']
+					properties {
+						mavenJava zipArtifactProps, '*:*:*:*@zip'
+						mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+						mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+					}
+				}
+				forkCount = 10
+			}
+			clientConfig.setConnectionRetries(4)
 		}
 	}
 	catch (exception) {
-		it.logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
-	}
-}
-
-gradle.projectsLoaded {
-	rootProject {
-		allprojects {
-			try {
-				artifactory {
-					publish {
-						defaults {
-							def zipArtifactProps =
-									['zip.name'       : project.name,
-									 'zip.displayname': project.description,
-									 'zip.deployed'   : 'false']
-							properties {
-								mavenJava zipArtifactProps, '*:*:*:*@zip'
-								mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-								mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-							}
-						}
-						forkCount = 10
-					}
-					clientConfig.setConnectionRetries(4)
-				}
-			}
-			catch (exception) {
-				it.logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
-			}
-		}
+		it.logger.warn('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
 	}
 }
