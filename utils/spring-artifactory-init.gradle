@@ -5,12 +5,12 @@ allprojects {
 		}
 	}
 	catch (exception) {
-		root.logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
+		it.logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
 	}
 }
 
 gradle.projectsLoaded {
-	rootProject { root ->
+	rootProject {
 		allprojects {
 			try {
 				artifactory {
@@ -32,7 +32,7 @@ gradle.projectsLoaded {
 				}
 			}
 			catch (exception) {
-				root.logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
+				it.logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
 			}
 		}
 	}
