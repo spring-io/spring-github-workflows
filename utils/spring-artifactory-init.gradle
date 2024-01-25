@@ -8,7 +8,9 @@ initscript {
 }
 
 allprojects {
-	tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
+	tasks.register(org.jfrog.gradle.plugin.artifactory.Constant.ARTIFACTORY_PUBLISH_TASK_NAME,
+			org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
+
 		publications('mavenJava')
 	}
 }

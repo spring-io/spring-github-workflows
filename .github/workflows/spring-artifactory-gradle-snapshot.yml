@@ -63,6 +63,8 @@ jobs:
           ref: ${{ env.WORKFLOWS_REF }}
 
       - uses: jfrog/setup-jfrog-cli@v3
+        with:
+          version: latest
 
       - name: Configure JFrog Cli
         run: |
