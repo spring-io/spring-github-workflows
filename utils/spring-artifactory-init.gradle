@@ -1,11 +1,13 @@
+allprojects {
+	tasks.register('artifactoryPublish') {
+		publications('mavenJava')
+	}
+}
+
 gradle.projectsLoaded {
 	rootProject { root ->
 		allprojects {
 			try {
-				tasks.named('artifactoryPublish') {
-					publications('mavenJava')
-				}
-
 				artifactory {
 					publish {
 						defaults {
