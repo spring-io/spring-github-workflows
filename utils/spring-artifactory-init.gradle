@@ -1,5 +1,11 @@
+initscript {
+	dependencies {
+		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:5.+'
+	}
+}
+
 allprojects {
-	tasks.register('artifactoryPublish') {
+	tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
 		publications('mavenJava')
 	}
 }
