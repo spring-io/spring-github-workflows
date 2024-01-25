@@ -1,17 +1,11 @@
-initscript {
-	repositories {
-		mavenCentral()
-	}
-	dependencies {
-		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:5.+'
-	}
-}
-
 allprojects {
-	apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
-
-	tasks.register(org.jfrog.gradle.plugin.artifactory.Constant.ARTIFACTORY_PUBLISH_TASK_NAME) {
-		publications('mavenJava')
+	try {
+		tasks.named('artifactoryPublish') {
+			publications('mavenJava')
+		}
+	}
+	catch (exception) {
+		root.logger.debug('Ignore `artifactory` configuration. Probably no `ArtifactoryPlugin` provided', exception);
 	}
 }
 
