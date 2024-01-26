@@ -114,7 +114,7 @@ jobs:
 
       - name: Build and Publish
         run: |
-          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
           jf rt build-publish
 
       - name: Tag Release and Next Development Version

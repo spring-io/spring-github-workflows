@@ -75,6 +75,6 @@ jobs:
 
       - name: Build and Publish
         run: |
-          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
           jf rt build-publish
 
