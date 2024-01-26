@@ -42,7 +42,6 @@ env:
   JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
   JFROG_CLI_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
   JFROG_CLI_BUILD_NUMBER: ${{ github.run_number }}
-  WORKFLOWS_REF: main
 
 jobs:
   build-snapshot-with-gradle:
@@ -57,14 +56,6 @@ jobs:
       - name: Set up Gradle
         uses: spring-io/spring-gradle-build-action@v2
 
-      - name: Checkout Common Repo
-        uses: actions/checkout@v4
-        with:
-          repository: spring-io/spring-github-workflows
-          path: build
-          show-progress: false
-          ref: ${{ env.WORKFLOWS_REF }}
-
       - uses: jfrog/setup-jfrog-cli@v3
 
       - name: Configure Artifactory Environment
@@ -74,7 +65,5 @@ jobs:
           echo ARTIFACTORY_URL=$ARTIFACTORY_URL >> $GITHUB_ENV
 
       - name: Build and Publish
-        run: |
-          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
-          jf rt build-publish
+        run: gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
 
