@@ -37,8 +37,11 @@ env:
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
   ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
   ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+  ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository }}
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
+  JFROG_CLI_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
+  JFROG_CLI_BUILD_NUMBER: ${{ env.GITHUB_RUN_NUMBER }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -64,17 +67,14 @@ jobs:
 
       - uses: jfrog/setup-jfrog-cli@v3
 
-      - name: Configure JFrog Cli
+      - name: Configure Artifactory Environment
         run: |
-          jf gradlec \
-            --uses-plugin=true \
-            --repo-deploy=${{ inputs.targetRepository }}
-          
-          echo JFROG_CLI_BUILD_NAME=${{ github.event.repository.name }}-${{ github.ref_name }} >> $GITHUB_ENV
-          echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
+          jf gradlec --uses-plugin=true --repo-deploy=$ARTIFACTORY_REPOSITORY
+          ARTIFACTORY_URL=$(jf c show | sed -n '/^Artifactory URL:/ { s/^Artifactory URL://;p }' | awk '{$1=$1};1')
+          echo ARTIFACTORY_URL=$ARTIFACTORY_URL >> $GITHUB_ENV
 
       - name: Build and Publish
         run: |
-          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
           jf rt build-publish
 
