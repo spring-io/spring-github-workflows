@@ -114,7 +114,7 @@ jobs:
 
       - name: Build and Publish
         run: |
-          jf gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
           jf rt build-publish
 
       - name: Tag Release and Next Development Version
@@ -124,6 +124,6 @@ jobs:
           git commit -a -m "[artifactory-release] Release version ${{ inputs.releaseVersion }}"
           git tag "v${{ inputs.releaseVersion }}"
           git push --tags origin
-          gradle nextDevelopmentVersion
+          gradle nextDevelopmentVersion --no-scan -q
           git commit -a -m "[artifactory-release] Next development version"
           git push origin
