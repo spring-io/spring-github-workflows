@@ -41,7 +41,7 @@ env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
   JFROG_CLI_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
-  JFROG_CLI_BUILD_NUMBER: ${{ env.GITHUB_RUN_NUMBER }}
+  JFROG_CLI_BUILD_NUMBER: $GITHUB_RUN_NUMBER
   WORKFLOWS_REF: main
 
 jobs:
