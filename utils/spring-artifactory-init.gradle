@@ -12,10 +12,10 @@ def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
 def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
 
 allprojects {
-	afterEvaluate {
-		pluginManager.withPlugin('maven-publish') {
+	afterEvaluate { project ->
+		project.pluginManager.withPlugin('maven-publish') {
 			if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
-				apply plugin: 'signing'
+				project.apply plugin: 'signing'
 
 				signing {
 					useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
@@ -23,7 +23,7 @@ allprojects {
 				}
 			}
 
-			apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
+			project.apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
 
 			task artifactoryPublish {
 				if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
