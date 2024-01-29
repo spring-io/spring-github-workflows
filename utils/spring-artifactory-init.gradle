@@ -11,61 +11,65 @@ def ossrhUrl = System.getenv('OSSRH_URL')
 def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
 def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
 
-allprojects {
-	afterEvaluate { project ->
-		project.pluginManager.withPlugin('maven-publish') {
-			if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
-				project.apply plugin: 'signing'
+gradle.projectsLoaded {
+	rootProject { root ->
+		allprojects { project ->
+			afterEvaluate {
+				project.pluginManager.withPlugin('maven-publish') {
+					if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
+						project.apply plugin: 'signing'
 
-				signing {
-					useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
-					sign publishing.publications.mavenJava
-				}
-			}
-
-			tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
-				if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
-					dependsOn 'signMavenJavaPublication'
-				}
-				setCiServerBuild()
-			}
-
-			project.apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
-
-			artifactory {
-				publish {
-					contextUrl = System.getenv('ARTIFACTORY_URL')
-					repository {
-						repoKey = System.getenv('ARTIFACTORY_REPOSITORY')
-						username = System.getenv('ARTIFACTORY_USERNAME')
-						password = System.getenv('ARTIFACTORY_PASSWORD')
-					}
-					defaults {
-						publications 'mavenJava'
-						def zipArtifactProps =
-								['zip.name'       : project.name,
-								 'zip.displayname': project.description,
-								 'zip.deployed'   : 'false']
-						properties {
-							mavenJava zipArtifactProps, '*:*:*:*@zip'
-							mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-							mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+						signing {
+							useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
+							sign publishing.publications.mavenJava
 						}
 					}
-					forkCount = 10
-				}
 
-				buildInfo {
-					project = System.getenv('ARTIFACTORY_BUILD_PROJECT')
-					buildName = System.getenv('ARTIFACTORY_BUILD_NAME')
-					buildNumber = System.getenv('ARTIFACTORY_BUILD_NUMBER')
-					buildUrl = System.getenv('ARTIFACTORY_BUILD_URL')
-					agentName = System.getenv('ARTIFACTORY_USER_AGENT_NAME')
-					agentVersion = System.getenv('ARTIFACTORY_USER_AGENT_VERSION')
-				}
+					project.tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
+						if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
+							dependsOn 'signMavenJavaPublication'
+						}
+						setCiServerBuild()
+					}
 
-				clientConfig.connectionRetries = 4
-				clientConfig.insecureTls = false
+					project.apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
+
+					artifactory {
+						publish {
+							contextUrl = System.getenv('ARTIFACTORY_URL')
+							repository {
+								repoKey = System.getenv('ARTIFACTORY_REPOSITORY')
+								username = System.getenv('ARTIFACTORY_USERNAME')
+								password = System.getenv('ARTIFACTORY_PASSWORD')
+							}
+							defaults {
+								publications 'mavenJava'
+								def zipArtifactProps =
+										['zip.name'       : root.name,
+										 'zip.displayname': root.description,
+										 'zip.deployed'   : 'false']
+								properties {
+									mavenJava zipArtifactProps, '*:*:*:*@zip'
+									mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+									mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+								}
+							}
+							forkCount = 10
+						}
+
+						buildInfo {
+							project = System.getenv('ARTIFACTORY_BUILD_PROJECT')
+							buildName = System.getenv('ARTIFACTORY_BUILD_NAME')
+							buildNumber = System.getenv('ARTIFACTORY_BUILD_NUMBER')
+							buildUrl = System.getenv('ARTIFACTORY_BUILD_URL')
+							agentName = System.getenv('ARTIFACTORY_USER_AGENT_NAME')
+							agentVersion = System.getenv('ARTIFACTORY_USER_AGENT_VERSION')
+						}
+
+						clientConfig.connectionRetries = 4
+						clientConfig.insecureTls = false
+					}
+				}
 			}
 		}
 	}
