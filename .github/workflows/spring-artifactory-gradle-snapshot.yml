@@ -38,14 +38,6 @@ env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
-  ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
-  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-  ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository }}
-  ARTIFACTORY_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
-  ARTIFACTORY_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
-  ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
-  ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -71,8 +63,17 @@ jobs:
 
       - name: Build and Publish
         run: |
-          echo ARTIFACTORY_USER_AGENT_NAME=$RUNNER_NAME >> $GITHUB_ENV
-          echo ARTIFACTORY_USER_AGENT_VERSION=2.312.0 >> $GITHUB_ENV
           cp build/utils/*.gradle $HOME/.gradle/init.d
           gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+        env:
+          ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
+          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository }}
+          ARTIFACTORY_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
+          ARTIFACTORY_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
+          ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
+          ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ARTIFACTORY_USER_AGENT_NAME: ${{ runner.name }}
+          ARTIFACTORY_USER_AGENT_VERSION: 2.312.0
 

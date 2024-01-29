@@ -1,0 +1,55 @@
+initscript {
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:5.+'
+	}
+}
+
+allprojects {
+	apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
+
+	artifactory {
+		publish {
+			contextUrl = System.getenv('ARTIFACTORY_URL')
+			repository {
+				repoKey = System.getenv('ARTIFACTORY_REPOSITORY')
+				username = System.getenv('ARTIFACTORY_USERNAME')
+				password = System.getenv('ARTIFACTORY_PASSWORD')
+			}
+			defaults {
+				def zipArtifactProps =
+						['zip.name'       : project.name,
+						 'zip.displayname': project.description,
+						 'zip.deployed'   : 'false']
+				properties {
+					mavenJava zipArtifactProps, '*:*:*:*@zip'
+					mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+					mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+				}
+			}
+			forkCount = 10
+		}
+
+		buildInfo {
+			project = System.getenv('ARTIFACTORY_BUILD_PROJECT')
+			buildName = System.getenv('ARTIFACTORY_BUILD_NAME')
+			buildNumber = System.getenv('ARTIFACTORY_BUILD_NUMBER')
+			buildUrl = System.getenv('ARTIFACTORY_BUILD_URL')
+			agentName = System.getenv('ARTIFACTORY_USER_AGENT_NAME')
+			agentVersion = System.getenv('ARTIFACTORY_USER_AGENT_VERSION')
+		}
+
+		clientConfig.connectionRetries = 4
+		clientConfig.insecureTls = false
+	}
+
+	plugins.withType(MavenPublishPlugin) {
+		tasks.named('artifactoryPublish') {
+			setCiServerBuild()
+			publications publishing.publications.mavenJava
+		}
+	}
+
+}
