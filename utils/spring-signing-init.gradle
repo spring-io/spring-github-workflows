@@ -6,10 +6,12 @@ if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
 	allprojects {
 		apply plugin: 'signing'
 
-		plugins.withType(MavenPublishPlugin) {
-			signing {
-				useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
-				sign publishing.publications.mavenJava
+		afterEvaluate {
+			pluginManager.withPlugin('maven-publish') {
+				signing {
+					useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
+					sign publishing.publications.mavenJava
+				}
 			}
 		}
 	}
