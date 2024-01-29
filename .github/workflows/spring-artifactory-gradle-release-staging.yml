@@ -109,7 +109,7 @@ jobs:
           ARTIFACTORY_BUILD_NAME: ${{ github.event.repository.name }}-${{ inputs.releaseVersion }}
           ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
           ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          ARTIFACTORY_USER_AGENT_NAME: ${{ runner.name }}
+          ARTIFACTORY_USER_AGENT_NAME: GitHub Actions
           ARTIFACTORY_USER_AGENT_VERSION: 2.312.0
 
       - name: Tag Release and Next Development Version

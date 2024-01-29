@@ -12,6 +12,10 @@ if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
 					useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
 					sign publishing.publications.mavenJava
 				}
+
+				tasks.named('artifactoryPublish') {
+					dependsOn tasks.withType(Sign)
+				}
 			}
 		}
 	}
