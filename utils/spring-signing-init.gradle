@@ -1,0 +1,16 @@
+def ossrhUrl = System.getenv('OSSRH_URL')
+def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
+def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
+
+if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
+	allprojects {
+		apply plugin: 'signing'
+
+		plugins.withType(MavenPublishPlugin) {
+			signing {
+				useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
+				sign publishing.publications.mavenJava
+			}
+		}
+	}
+}

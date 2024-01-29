@@ -3,6 +3,15 @@ name: Promote Staged GA release from Artifactory to Maven Central
 on:
   workflow_call:
     inputs:
+      artifactoryUrl:
+        description: 'The Artifactory Server'
+        required: false
+        type: string
+        default: https://repo.spring.io
+      artifactoryProjectKey:
+        description: 'The Artifactory project key'
+        required: false
+        type: string
       buildName:
         description: 'The Artifactory Build Name'
         required: true
@@ -30,11 +39,12 @@ on:
         required: true
       GPG_PRIVATE_KEY:
         required: true
-      JF_ARTIFACTORY_SPRING:
+      ARTIFACTORY_USERNAME:
+        required: true
+      ARTIFACTORY_PASSWORD:
         required: true
 
 env:
-  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   OSSRH_URL: ${{ secrets.OSSRH_URL }}
   WORKFLOWS_REF: main
 
@@ -50,9 +60,13 @@ jobs:
           ref: ${{ env.WORKFLOWS_REF }}
 
       - uses: jfrog/setup-jfrog-cli@v3
+        env:
+          JF_URL: ${{ inputs.artifactoryUrl }}
+          JF_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
+          JF_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
       - name: Promote Build
-        run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }}
+        run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }} --project=${{ inputs.artifactoryProjectKey }}
 
       # Download released files
       - name: Download Release Files

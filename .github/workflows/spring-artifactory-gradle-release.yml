@@ -7,6 +7,10 @@ on:
         description: 'Additional Gradle command arguments: tasks, options etc. The `build` and `artifactoryPublish` for Gradle are included.'
         required: false
         type: string
+      artifactoryUrl:
+        description: 'The Artifactory Server'
+        required: false
+        type: string
       stagingRepository:
         description: 'The Artifactory Repository to stage artifacts to'
         required: false
@@ -49,15 +53,13 @@ on:
       OSSRH_STAGING_PROFILE_NAME:
         required: false
       GPG_PASSPHRASE:
-        required: true
+        required: false
       GPG_PRIVATE_KEY:
-        required: true
-      JF_ARTIFACTORY_SPRING:
-        required: true
+        required: false
       ARTIFACTORY_USERNAME:
-        required: false
+        required: true
       ARTIFACTORY_PASSWORD:
-        required: false
+        required: true
 
 env:
   GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
@@ -74,6 +76,7 @@ jobs:
     with:
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
       gradleTasks: ${{ inputs.buildToolArgs }}
+      artifactoryUrl: ${{ inputs.artifactoryUrl }}
       stagingRepository: ${{ inputs.stagingRepository }}
       artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
     secrets: inherit
@@ -111,6 +114,7 @@ jobs:
     if: ${{ !contains(needs.releaseVersion.outputs.releaseVersion, '-') }}
     uses: ./.github/workflows/spring-artifactory-promote-central.yml
     with:
+      artifactoryUrl: ${{ inputs.artifactoryUrl }}
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
       targetRepository: ${{ inputs.targetReleaseRepository }}
