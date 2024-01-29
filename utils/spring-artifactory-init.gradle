@@ -23,15 +23,14 @@ allprojects {
 				}
 			}
 
-			project.apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
-
-			task artifactoryPublish {
+			tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
 				if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
 					dependsOn 'signMavenJavaPublication'
 				}
 				setCiServerBuild()
-				publications 'mavenJava'
 			}
+
+			project.apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
 
 			artifactory {
 				publish {
@@ -42,6 +41,7 @@ allprojects {
 						password = System.getenv('ARTIFACTORY_PASSWORD')
 					}
 					defaults {
+						publications 'mavenJava'
 						def zipArtifactProps =
 								['zip.name'       : project.name,
 								 'zip.displayname': project.description,
