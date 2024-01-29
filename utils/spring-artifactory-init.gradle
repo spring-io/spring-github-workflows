@@ -45,13 +45,10 @@ allprojects {
 		clientConfig.insecureTls = false
 	}
 
-	afterEvaluate {
-		pluginManager.withPlugin('maven-publish') {
-			tasks.named('artifactoryPublish') {
-				setCiServerBuild()
-				publications publishing.publications.mavenJava
-			}
-		}
+
+	tasks.named('artifactoryPublish') {
+		setCiServerBuild()
+		publications 'mavenJava'
 	}
 
 }
