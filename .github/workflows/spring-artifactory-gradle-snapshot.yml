@@ -46,7 +46,6 @@ env:
   ARTIFACTORY_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
   ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
   ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-  ARTIFACTORY_USER_AGENT_NAME: ${{ runner.name }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -72,8 +71,8 @@ jobs:
 
       - name: Build and Publish
         run: |
-          agentVersion=$(./run.sh --version)
-          echo ARTIFACTORY_USER_AGENT_VERSION=$agentVersion >> $GITHUB_ENV
+          echoARTIFACTORY_USER_AGENT_NAME=$RUNNER_NAME >> $GITHUB_ENV
+          echo ARTIFACTORY_USER_AGENT_VERSION=$(./run.sh --version) >> $GITHUB_ENV
           cp build/utils/*.gradle $HOME/.gradle/init.d
           gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
 
