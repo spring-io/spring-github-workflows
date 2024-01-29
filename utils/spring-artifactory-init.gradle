@@ -7,7 +7,14 @@ initscript {
 	}
 }
 
+def ossrhUrl = System.getenv('OSSRH_URL')
+def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
+def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
+
 allprojects {
+	if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
+		apply plugin: 'signing'
+	}
 	apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
 
 	artifactory {
@@ -45,10 +52,20 @@ allprojects {
 		clientConfig.insecureTls = false
 	}
 
+	afterEvaluate {
+		if (pluginManager.hasPlugin('signing')) {
+			signing {
+				useInMemoryPgpKeys(gpgPrivateKey, gpgPassphrase)
+				sign publishing.publications.mavenJava
+			}
+		}
 
-	tasks.named('artifactoryPublish') {
-		setCiServerBuild()
-		publications 'mavenJava'
+		pluginManager.withPlugin('maven-publish') {
+			tasks.named('artifactoryPublish') {
+				setCiServerBuild()
+				publications 'mavenJava'
+			}
+		}
 	}
 
 }
