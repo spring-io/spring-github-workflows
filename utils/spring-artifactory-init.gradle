@@ -19,6 +19,7 @@ allprojects {
 		if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
 			dependsOn 'signMavenJavaPublication'
 		}
+		group = 'Publishing'
 		setCiServerBuild()
 	}
 
