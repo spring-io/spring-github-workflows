@@ -7,6 +7,11 @@ on:
         description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
         required: false
         type: string
+      artifactoryUrl:
+        description: 'The Artifactory Server'
+        required: false
+        type: string
+        default: https://repo.spring.io
       targetRepository:
         description: 'The Artifactory Repository to upload snapshot artifacts to'
         required: false
@@ -28,20 +33,21 @@ on:
         required: false
       ARTIFACTORY_PASSWORD:
         required: false
-      JF_ARTIFACTORY_SPRING:
-        required: true
 
 env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+  ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
   ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
   ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
   ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository }}
-  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
-  JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
-  JFROG_CLI_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
-  JFROG_CLI_BUILD_NUMBER: ${{ github.run_number }}
+  ARTIFACTORY_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
+  ARTIFACTORY_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
+  ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
+  ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+  ARTIFACTORY_USER_AGENT_NAME: ${{ runner.name }}
+  WORKFLOWS_REF: main
 
 jobs:
   build-snapshot-with-gradle:
@@ -53,17 +59,21 @@ jobs:
         with:
           show-progress: false
 
+      - name: Checkout Common Repo
+        uses: actions/checkout@v4
+        with:
+          repository: spring-io/spring-github-workflows
+          path: build
+          show-progress: false
+          ref: ${{ env.WORKFLOWS_REF }}
+
       - name: Set up Gradle
         uses: spring-io/spring-gradle-build-action@v2
 
-      - uses: jfrog/setup-jfrog-cli@v3
-
-      - name: Configure Artifactory Environment
-        run: |
-          jf gradlec --uses-plugin=true --repo-deploy=$ARTIFACTORY_REPOSITORY
-          ARTIFACTORY_URL=$(jf c show | sed -n '/^Artifactory URL:/ { s/^Artifactory URL://;p }' | awk '{$1=$1};1')
-          echo ARTIFACTORY_URL=$ARTIFACTORY_URL >> $GITHUB_ENV
-
       - name: Build and Publish
-        run: gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+        run: |
+          agentVersion=$(./run.sh --version)
+          echo ARTIFACTORY_USER_AGENT_VERSION=$agentVersion >> $GITHUB_ENV
+          cp build/utils/*.gradle $HOME/.gradle/init.d
+          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
 
