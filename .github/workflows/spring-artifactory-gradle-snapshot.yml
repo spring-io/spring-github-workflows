@@ -71,8 +71,8 @@ jobs:
 
       - name: Build and Publish
         run: |
-          echoARTIFACTORY_USER_AGENT_NAME=$RUNNER_NAME >> $GITHUB_ENV
-          echo ARTIFACTORY_USER_AGENT_VERSION=$(./run.sh --version) >> $GITHUB_ENV
+          echo ARTIFACTORY_USER_AGENT_NAME=$RUNNER_NAME >> $GITHUB_ENV
+          echo ARTIFACTORY_USER_AGENT_VERSION=2.312.0 >> $GITHUB_ENV
           cp build/utils/*.gradle $HOME/.gradle/init.d
           gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
 
