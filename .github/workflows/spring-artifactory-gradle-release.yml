@@ -56,6 +56,8 @@ on:
         required: false
       GPG_PRIVATE_KEY:
         required: false
+      JF_ARTIFACTORY_SPRING:
+        required: true
       ARTIFACTORY_USERNAME:
         required: true
       ARTIFACTORY_PASSWORD:

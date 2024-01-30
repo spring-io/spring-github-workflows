@@ -27,10 +27,12 @@ on:
         default: libs-milestone-local
 
     secrets:
-      ARTIFACTORY_USERNAME:
+      JF_ARTIFACTORY_SPRING:
         required: true
-      ARTIFACTORY_PASSWORD:
-        required: true
+
+env:
+  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  WORKFLOWS_REF: main
 
 jobs:
   promote-milestone-with-jfrog:

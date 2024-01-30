@@ -39,13 +39,11 @@ on:
         required: true
       GPG_PRIVATE_KEY:
         required: true
-      ARTIFACTORY_USERNAME:
-        required: true
-      ARTIFACTORY_PASSWORD:
+      JF_ARTIFACTORY_SPRING:
         required: true
 
 env:
-  OSSRH_URL: ${{ secrets.OSSRH_URL }}
+  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -60,10 +58,6 @@ jobs:
           ref: ${{ env.WORKFLOWS_REF }}
 
       - uses: jfrog/setup-jfrog-cli@v3
-        env:
-          JF_URL: ${{ inputs.artifactoryUrl }}
-          JF_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
-          JF_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
       - name: Promote Build
         run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }} --project=${{ inputs.artifactoryProjectKey }}
