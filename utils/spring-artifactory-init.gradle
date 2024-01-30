@@ -44,7 +44,7 @@ allprojects {
 					mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
 				}
 			}
-			forkCount = 10
+//			forkCount = 10
 		}
 
 		buildInfo {
