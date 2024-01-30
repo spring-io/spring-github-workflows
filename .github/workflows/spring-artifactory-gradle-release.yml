@@ -108,6 +108,7 @@ jobs:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
       targetRepository: ${{ inputs.targetMilestoneRepository }}
+      artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
     secrets: inherit
 
   promote-ga:
@@ -120,6 +121,7 @@ jobs:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
       targetRepository: ${{ inputs.targetReleaseRepository }}
+      artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
     secrets: inherit
 
   finalize:
