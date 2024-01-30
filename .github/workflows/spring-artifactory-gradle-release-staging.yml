@@ -99,7 +99,7 @@ jobs:
           
           echo buildName=$ARTIFACTORY_BUILD_NAME >> $GITHUB_OUTPUT
           echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT
-          echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
+          echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
         env:
           ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
