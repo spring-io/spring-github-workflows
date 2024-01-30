@@ -95,7 +95,7 @@ jobs:
         id: build-and-publish
         run: |
           cp build/utils/*.gradle $HOME/.gradle/init.d
-          gradle clean build ${{ inputs.gradleTasks }} publishArtifacts
+          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
           
           echo buildName=$ARTIFACTORY_BUILD_NAME >> $GITHUB_OUTPUT
           echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT

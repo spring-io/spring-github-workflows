@@ -3,7 +3,7 @@ initscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:5.+'
+		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.+'
 	}
 }
 
@@ -15,14 +15,11 @@ allprojects {
 
 	apply plugin: 'signing'
 
-
 	tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
+		if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
+			dependsOn 'signMavenJavaPublication'
+		}
 		setCiServerBuild()
-	}
-
-	tasks.register('publishArtifacts') {
-		dependsOn 'artifactoryPublish'
-		group = 'Publishing'
 	}
 
 	apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
