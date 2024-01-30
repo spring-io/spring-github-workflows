@@ -37,8 +37,10 @@ jobs:
         run: |
           repositoryTeam=$(gh api repos/$GITHUB_REPOSITORY/collaborators --jq 'map(select(.role_name == "admin") | .login) | tostring')
           repositoryTeam=$(sed 's/"//g' <<< ${repositoryTeam:1:-1}),dependabot[bot]
+          repositoryVisibility=$(gh repo view --json visibility --jq .[])
+          repositoryVisibility=$([[ $repositoryVisibility = 'PUBLIC' ]] && echo 'true' || echo 'false')
           
-          wget -q https://github.com/spring-io/github-changelog-generator/releases/download/v0.0.8/github-changelog-generator.jar
+          wget -q https://github.com/spring-io/github-changelog-generator/releases/download/v0.0.9/github-changelog-generator.jar
           
           export SPRING_MAIN_BANNERMODE=off
           
@@ -46,7 +48,8 @@ jobs:
             --changelog.repository=$GITHUB_REPOSITORY \
             --github.username=spring-builds \
             --github.password=$GITHUB_TOKEN \
-            --changelog.contributors.exclude.names=$repositoryTeam
+            --changelog.contributors.exclude.names=$repositoryTeam \
+            --changelog.issues.generate.links=$repositoryVisibility
 
       - name: GitHub Release
         run: |
