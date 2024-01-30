@@ -16,9 +16,6 @@ allprojects {
 	apply plugin: 'signing'
 
 	tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
-		if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
-			dependsOn 'signMavenJavaPublication'
-		}
 		setCiServerBuild()
 	}
 
