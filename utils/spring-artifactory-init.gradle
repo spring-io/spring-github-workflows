@@ -44,16 +44,16 @@ allprojects {
 					mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
 				}
 			}
-//			forkCount = 10
+			publishForkCount = 10
 		}
 
 		buildInfo {
-			project = System.getenv('ARTIFACTORY_BUILD_PROJECT')
-			buildName = System.getenv('ARTIFACTORY_BUILD_NAME')
-			buildNumber = System.getenv('ARTIFACTORY_BUILD_NUMBER')
-			buildUrl = System.getenv('ARTIFACTORY_BUILD_URL')
-			agentName = System.getenv('ARTIFACTORY_USER_AGENT_NAME')
-			agentVersion = System.getenv('ARTIFACTORY_USER_AGENT_VERSION')
+			setProject(System.getenv('ARTIFACTORY_BUILD_PROJECT'))
+			setBuildName(System.getenv('ARTIFACTORY_BUILD_NAME'))
+			setBuildNumber(System.getenv('ARTIFACTORY_BUILD_NUMBER'))
+			setBuildUrl(System.getenv('ARTIFACTORY_BUILD_URL'))
+			setAgentName(System.getenv('ARTIFACTORY_USER_AGENT_NAME'))
+			setAgentVersion(System.getenv('ARTIFACTORY_USER_AGENT_VERSION'))
 		}
 
 		clientConfig.connectionRetries = 4
