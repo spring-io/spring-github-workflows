@@ -58,7 +58,7 @@ jobs:
           ref: ${{ env.WORKFLOWS_REF }}
 
       - name: Build and Publish
-        uses: build/.github/actions/spring-artifactory-gradle-build
+        uses: ./build/.github/actions/spring-artifactory-gradle-build
         env:
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
