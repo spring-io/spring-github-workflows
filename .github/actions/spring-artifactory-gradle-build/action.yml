@@ -5,28 +5,32 @@ inputs:
     description: 'The Artifactory project key'
     required: true
     type: string
-  gradleTasks:
-    description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
-    required: false
-    type: string
   artifactoryUrl:
     description: 'The Artifactory Server'
-    required: false
+    required: true
     type: string
     default: https://repo.spring.io
   targetRepository:
     description: 'The Artifactory Repository to upload artifacts to'
-    required: false
+    required: true
     type: string
     default: libs-snapshot-local
   artifactoryProjectKey:
     description: 'The Artifactory project key'
     required: false
     type: string
+  gradleTasks:
+    description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
+    required: false
+    type: string
 
 outputs:
-  buildName: ${{ steps.build-and-publish.outputs.buildName }}
-  buildNumber: ${{ steps.build-and-publish.outputs.buildNumber }}
+  buildName:
+    description: "The name of the build for Artifactory"
+    value: ${{ steps.build-and-publish.outputs.buildName }}
+  buildNumber:
+    description: "The number of the build for Artifactory"
+    value: ${{ steps.build-and-publish.outputs.buildNumber }}
 
 runs:
   using: composite
@@ -43,6 +47,7 @@ runs:
         echo buildName=$ARTIFACTORY_BUILD_NAME >> $GITHUB_OUTPUT
         echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT
         echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
+      shell: bash
       env:
         ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
         ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository }}

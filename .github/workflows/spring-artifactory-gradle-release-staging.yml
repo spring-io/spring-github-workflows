@@ -58,6 +58,8 @@ env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
   OSSRH_URL: ${{ secrets.OSSRH_URL }}
   GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
   GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -102,8 +104,6 @@ jobs:
           echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
         env:
           ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
-          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
           ARTIFACTORY_REPOSITORY: ${{ inputs.stagingRepository }}
           ARTIFACTORY_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
           ARTIFACTORY_BUILD_NAME: ${{ github.event.repository.name }}-${{ inputs.releaseVersion }}

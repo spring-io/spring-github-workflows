@@ -15,7 +15,6 @@ on:
         description: 'The Artifactory Repository to upload snapshot artifacts to'
         required: false
         type: string
-        default: libs-snapshot-local
       artifactoryProjectKey:
         description: 'The Artifactory project key'
         required: false
@@ -37,6 +36,8 @@ env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -59,9 +60,6 @@ jobs:
 
       - name: Build and Publish
         uses: ./build/.github/actions/spring-artifactory-gradle-build
-        env:
-          ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-          ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
         with:
           artifactoryUrl: ${{ inputs.artifactoryUrl }}
           targetRepository: ${{ inputs.targetRepository }}
