@@ -11,7 +11,6 @@ on:
         description: 'The Artifactory Server'
         required: false
         type: string
-        default: https://repo.spring.io
       targetRepository:
         description: 'The Artifactory Repository to upload snapshot artifacts to'
         required: false
@@ -58,22 +57,14 @@ jobs:
           show-progress: false
           ref: ${{ env.WORKFLOWS_REF }}
 
-      - name: Set up Gradle
-        uses: spring-io/spring-gradle-build-action@v2
-
       - name: Build and Publish
-        run: |
-          cp build/utils/*.gradle $HOME/.gradle/init.d
-          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+        uses: build/.github/actions/spring-artifactory-gradle-build
         env:
-          ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
           ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
           ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository }}
-          ARTIFACTORY_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
-          ARTIFACTORY_BUILD_NAME: ${{ github.event.repository.name }}-${{ github.ref_name }}
-          ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
-          ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          ARTIFACTORY_USER_AGENT_NAME: GitHub Actions
-          ARTIFACTORY_USER_AGENT_VERSION: 2.312.0
+        with:
+          artifactoryUrl: ${{ inputs.artifactoryUrl }}
+          targetRepository: ${{ inputs.targetRepository }}
+          artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
+          artifactoryBuildName: ${{ github.event.repository.name }}-${{ github.ref_name }}
 

@@ -1,0 +1,55 @@
+name: CI Artifactory Build for Gradle
+
+inputs:
+  artifactoryBuildName:
+    description: 'The Artifactory project key'
+    required: true
+    type: string
+  gradleTasks:
+    description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
+    required: false
+    type: string
+  artifactoryUrl:
+    description: 'The Artifactory Server'
+    required: false
+    type: string
+    default: https://repo.spring.io
+  targetRepository:
+    description: 'The Artifactory Repository to upload artifacts to'
+    required: false
+    type: string
+    default: libs-snapshot-local
+  artifactoryProjectKey:
+    description: 'The Artifactory project key'
+    required: false
+    type: string
+
+outputs:
+  buildName: ${{ steps.build-and-publish.outputs.buildName }}
+  buildNumber: ${{ steps.build-and-publish.outputs.buildNumber }}
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Gradle
+      uses: spring-io/spring-gradle-build-action@v2
+
+    - name: Build and Publish
+      id: build-and-publish
+      run: |
+        cp build/utils/*.gradle $HOME/.gradle/init.d
+        gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+        
+        echo buildName=$ARTIFACTORY_BUILD_NAME >> $GITHUB_OUTPUT
+        echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT
+        echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
+      env:
+        ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
+        ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository }}
+        ARTIFACTORY_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
+        ARTIFACTORY_BUILD_NAME: ${{ inputs.artifactoryBuildName }}
+        ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
+        ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        ARTIFACTORY_USER_AGENT_NAME: GitHub Actions
+        ARTIFACTORY_USER_AGENT_VERSION: 2.312.0
+
