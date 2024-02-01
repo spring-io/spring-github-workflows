@@ -45,24 +45,18 @@ jobs:
     runs-on: ubuntu-latest
     name: CI Build SNAPSHOT for ${{ github.ref_name }}
     steps:
-
-      - uses: actions/checkout@v4
-        with:
-          show-progress: false
-
       - name: Checkout Common Repo
         uses: actions/checkout@v4
         with:
           repository: spring-io/spring-github-workflows
-          path: build
+          path: spring-github-workflows
           show-progress: false
           ref: ${{ env.WORKFLOWS_REF }}
 
       - name: Build and Publish
-        uses: ./build/.github/actions/spring-artifactory-gradle-build
+        uses: ./spring-github-workflows/.github/actions/spring-artifactory-gradle-build
         with:
           artifactoryUrl: ${{ inputs.artifactoryUrl }}
           targetRepository: ${{ inputs.targetRepository }}
           artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
-          artifactoryBuildName: ${{ github.event.repository.name }}-${{ github.ref_name }}
 
