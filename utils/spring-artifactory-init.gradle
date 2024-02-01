@@ -5,7 +5,7 @@ initscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactoryPluginVersion"
+		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:' + artifactoryPluginVersion
 	}
 }
 
