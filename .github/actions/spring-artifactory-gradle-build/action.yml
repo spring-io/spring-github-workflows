@@ -5,8 +5,7 @@ If `releaseVersion` input is not provided, the SNAPSHOT is uploaded.
 The buildName for build-info is based on the repository name and `releaseVersion` input if provided.
 Otherwise the `github.ref_name` is used if it is not `main`.
 When `github.ref_name` is `main`, the `version` is read from gradle.properties and last number is replaced with `x`.
-The `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` environment variables must be before using this action.
-The `GITHUB_TOKEN` environment variable is optional for SNAPSHOT builds, but must be set for releases.'
+The `GITHUB_TOKEN`, `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` environment variables must be before using this action.'
 
 inputs:
   artifactoryBuildName:
