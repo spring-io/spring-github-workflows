@@ -63,10 +63,6 @@ on:
       ARTIFACTORY_PASSWORD:
         required: true
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
   releaseVersion:
     uses: ./.github/workflows/spring-find-release-version.yml
@@ -98,6 +94,8 @@ jobs:
 #          workflow-logs: print - uncomment when v3 for action is released
           token: ${{ env.GH_TOKEN }}
           inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   promote-milestone:
     needs: [releaseVersion, staging, verify-staged]

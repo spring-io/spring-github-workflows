@@ -8,9 +8,6 @@ When `github.ref_name` is `main`, the `version` is read from gradle.properties a
 The `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` environment variables must be before using this action.'
 
 inputs:
-  artifactoryBuildName:
-    description: 'The Artifactory project key'
-    required: true
   artifactoryUrl:
     description: 'The Artifactory Server'
     required: true
@@ -47,6 +44,8 @@ runs:
     - name: Evaluate Build Name
       id: build-name
       run: |
+        echo Evaluate Build Name
+        
         branchVersion=${{ github.ref_name }}
         
         if [ $branchVersion = 'main' ]; then
@@ -60,12 +59,17 @@ runs:
 
     - name: Set Release Version
       if: inputs.releaseVersion
-      run: sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
+      run: |
+        echo Set Release Version
+        
+        sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
       shell: bash
 
     - name: Build and Publish
       id: build-and-publish
       run: |
+        echo Build and Publish
+        
         cp spring-github-workflows/utils/*.gradle $HOME/.gradle/init.d
         gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
         

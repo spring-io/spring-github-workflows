@@ -15,7 +15,6 @@ on:
         description: 'The Artifactory Server'
         required: false
         type: string
-        default: https://repo.spring.io
       stagingRepository:
         description: 'The Artifactory Repository to stage artifacts to'
         required: false
@@ -35,18 +34,18 @@ on:
         value: ${{ jobs.staging-to-artifactory-with-gradle.outputs.buildNumber }}
 
     secrets:
-      GRADLE_ENTERPRISE_CACHE_USER:
-        required: false
-      GRADLE_ENTERPRISE_CACHE_PASSWORD:
-        required: false
-      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
-        required: false
       GH_ACTIONS_REPO_TOKEN:
         required: true
       ARTIFACTORY_USERNAME:
         required: true
       ARTIFACTORY_PASSWORD:
         required: true
+      GRADLE_ENTERPRISE_CACHE_USER:
+        required: false
+      GRADLE_ENTERPRISE_CACHE_PASSWORD:
+        required: false
+      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+        required: false
       OSSRH_URL: # If provided then signature is done in the Maven Central workflow. Otherwise, the GPG_PASSPHRASE & GPG_PRIVATE_KEY (if provided) are used by Gradle 'signing' plugin
         required: false
       GPG_PASSPHRASE:
@@ -56,11 +55,11 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
-  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
   OSSRH_URL: ${{ secrets.OSSRH_URL }}
   GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
   GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -80,38 +79,23 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
           show-progress: false
 
-      - name: Set up Gradle
-        uses: spring-io/spring-gradle-build-action@v2
 
       - name: Checkout Common Repo
         uses: actions/checkout@v4
         with:
           repository: spring-io/spring-github-workflows
-          path: build
+          path: spring-github-workflows
           show-progress: false
           ref: ${{ env.WORKFLOWS_REF }}
 
-      - name: Set Release Version
-        run: sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
-
       - name: Build and Publish
         id: build-and-publish
-        run: |
-          cp build/utils/*.gradle $HOME/.gradle/init.d
-          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
-          
-          echo buildName=$ARTIFACTORY_BUILD_NAME >> $GITHUB_OUTPUT
-          echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT
-          echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
-        env:
-          ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
-          ARTIFACTORY_REPOSITORY: ${{ inputs.stagingRepository }}
-          ARTIFACTORY_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
-          ARTIFACTORY_BUILD_NAME: ${{ github.event.repository.name }}-${{ inputs.releaseVersion }}
-          ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
-          ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          ARTIFACTORY_USER_AGENT_NAME: GitHub Actions
-          ARTIFACTORY_USER_AGENT_VERSION: 2.312.0
+        uses: ./spring-github-workflows/.github/actions/spring-artifactory-gradle-build
+        with:
+          artifactoryUrl: ${{ inputs.artifactoryUrl }}
+          targetRepository: ${{ inputs.stagingRepository }}
+          artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
+          releaseVersion: ${{ inputs.releaseVersion }}
 
       - name: Tag Release and Next Development Version
         run: |
