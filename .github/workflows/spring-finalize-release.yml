@@ -40,8 +40,6 @@ jobs:
           repositoryVisibility=$(gh repo view --json visibility --jq .[])
           repositoryVisibility=$([[ $repositoryVisibility = 'PUBLIC' ]] && echo 'true' || echo 'false')
           
-          echo repositoryVisibility=$repositoryVisibility
-          
           wget -q https://github.com/spring-io/github-changelog-generator/releases/download/v0.0.9/github-changelog-generator.jar
           
           export SPRING_MAIN_BANNERMODE=off
@@ -51,7 +49,7 @@ jobs:
             --github.username=spring-builds \
             --github.password=$GITHUB_TOKEN \
             --changelog.contributors.exclude.names=$repositoryTeam \
-            --changelog.issues.generate.links=false
+            --changelog.issues.generate-links=$repositoryVisibility
 
       - name: GitHub Release
         run: |
