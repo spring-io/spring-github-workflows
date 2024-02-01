@@ -1,11 +1,12 @@
-def artifactoryPluginVersion = '4.33.12'
-
 initscript {
+	ext {
+		artifactoryPluginVersion = '4.33.12'
+	}
 	repositories {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:' + artifactoryPluginVersion
+		classpath "org.jfrog.buildinfo:build-info-extractor-gradle:$artifactoryPluginVersion"
 	}
 }
 
@@ -55,7 +56,7 @@ allprojects {
 			setAgentVersion(System.getenv('ARTIFACTORY_USER_AGENT_VERSION'))
 			setVcsRevision(System.getenv('ARTIFACTORY_VCS_REVISION'))
 			setVcsUrl(System.getenv('ARTIFACTORY_VCS_URL'))
-			setArtifactoryPluginVersion(artifactoryPluginVersion)
+			setArtifactoryPluginVersion(ext.artifactoryPluginVersion)
 		}
 
 		clientConfig.connectionRetries = 4
