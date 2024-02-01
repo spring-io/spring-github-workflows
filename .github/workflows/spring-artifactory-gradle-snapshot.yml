@@ -31,11 +31,8 @@ on:
         required: true
       ARTIFACTORY_PASSWORD:
         required: true
-      GH_ACTIONS_REPO_TOKEN:
-        required: true
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
@@ -48,6 +45,11 @@ jobs:
     runs-on: ubuntu-latest
     name: CI Build SNAPSHOT for ${{ github.ref_name }}
     steps:
+
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
       - name: Checkout Common Repo
         uses: actions/checkout@v4
         with:

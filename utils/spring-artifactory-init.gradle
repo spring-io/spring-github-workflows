@@ -51,6 +51,8 @@ allprojects {
 			setBuildUrl(System.getenv('ARTIFACTORY_BUILD_URL'))
 			setAgentName(System.getenv('ARTIFACTORY_USER_AGENT_NAME'))
 			setAgentVersion(System.getenv('ARTIFACTORY_USER_AGENT_VERSION'))
+			setVcsRevision(System.getenv('ARTIFACTORY_VCS_REVISION'))
+			setVcsUrl(System.getenv('ARTIFACTORY_VCS_URL'))
 		}
 
 		clientConfig.connectionRetries = 4

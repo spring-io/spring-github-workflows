@@ -5,7 +5,7 @@ If `releaseVersion` input is not provided, the SNAPSHOT is uploaded.
 The buildName for build-info is based on the repository name and `releaseVersion` input if provided.
 Otherwise the `github.ref_name` is used if it is not `main`.
 When `github.ref_name` is `main`, the `version` is read from gradle.properties and last number is replaced with `x`.
-The `GITHUB_TOKEN`, `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` environment variables must be before using this action.'
+The `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` environment variables must be before using this action.'
 
 inputs:
   artifactoryBuildName:
@@ -41,11 +41,6 @@ runs:
   using: composite
   steps:
 
-    - uses: actions/checkout@v4
-      with:
-        token: ${{ env.GITHUB_TOKEN }}
-        show-progress: false
-
     - name: Set up Gradle
       uses: spring-io/spring-gradle-build-action@v2
 
@@ -71,7 +66,7 @@ runs:
     - name: Build and Publish
       id: build-and-publish
       run: |
-        cp build/utils/*.gradle $HOME/.gradle/init.d
+        cp spring-github-workflows/utils/*.gradle $HOME/.gradle/init.d
         gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
         
         echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT
@@ -84,6 +79,8 @@ runs:
         ARTIFACTORY_BUILD_NAME: ${{ steps.build-name.outputs.buildName }}
         ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}
         ARTIFACTORY_BUILD_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        ARTIFACTORY_VCS_REVISION: ${{ github.sha }}
+        ARTIFACTORY_VCS_URL: ${{ github.repositoryUrl }}
         ARTIFACTORY_USER_AGENT_NAME: GitHub Actions
         ARTIFACTORY_USER_AGENT_VERSION: 2.312.0
 
