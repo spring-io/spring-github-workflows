@@ -50,23 +50,23 @@ runs:
     - name: Set up Gradle
       uses: spring-io/spring-gradle-build-action@v2
 
-    - name: Set Release Version
-      if: inputs.releaseVersion
-      run: sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
-      shell: bash
-
     - name: Evaluate Build Name
       id: build-name
       run: |
-        branchVersion=${{ inputs.releaseVersion != '' && inputs.releaseVersion || github.ref_name }}
+        branchVersion=${{ github.ref_name }}
         
         if [ $branchVersion = 'main' ]; then
             snapshotVersion=$(cat gradle.properties | sed -n '/^version=/ { s/^version=//;p }')
             branchVersion=${snapshotVersion%.*}.x
         fi
         
-        buildName=${{ github.event.repository.name }}-$branchVersion
+        buildName=${{ github.event.repository.name }}-$branchVersion${{ inputs.releaseVersion != '' && '-release' || '' }} 
         echo buildName=$buildName >> $GITHUB_OUTPUT
+      shell: bash
+
+    - name: Set Release Version
+      if: inputs.releaseVersion
+      run: sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
       shell: bash
 
     - name: Build and Publish
