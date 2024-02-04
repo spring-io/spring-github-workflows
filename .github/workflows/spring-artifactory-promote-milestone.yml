@@ -39,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: jfrog/setup-jfrog-cli@v3
+      - uses: jfrog/setup-jfrog-cli@v4
         env:
           JF_URL: ${{ inputs.artifactoryUrl }}
           JF_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
