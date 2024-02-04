@@ -68,7 +68,7 @@ jobs:
           java-version: 17
           cache: 'maven'
 
-      - uses: jfrog/setup-jfrog-cli@v3
+      - uses: jfrog/setup-jfrog-cli@v4
 
       - name: Configure JFrog Cli
         id: configure-jfrog

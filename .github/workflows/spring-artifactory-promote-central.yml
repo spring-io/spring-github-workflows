@@ -57,7 +57,7 @@ jobs:
           show-progress: false
           ref: ${{ env.WORKFLOWS_REF }}
 
-      - uses: jfrog/setup-jfrog-cli@v3
+      - uses: jfrog/setup-jfrog-cli@v4
 
       - name: Promote Build
         run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }} --project=${{ inputs.artifactoryProjectKey }}
