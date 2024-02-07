@@ -20,7 +20,6 @@ on:
         type: string
       mergeArguments:
         description: 'The arguments to pass to the gh pr merge command'
-        default: '--auto --squash'
         required: false
         type: string
 
