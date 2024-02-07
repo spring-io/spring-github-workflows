@@ -18,6 +18,7 @@ env:
   MILESTONE: ${{ inputs.milestone }}
   GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  SPRING_MAIN_BANNERMODE: off
 
 jobs:
   finalize-release:
@@ -41,8 +42,6 @@ jobs:
           repositoryVisibility=$([[ $repositoryVisibility = 'PUBLIC' ]] && echo 'true' || echo 'false')
           
           wget -q https://github.com/spring-io/github-changelog-generator/releases/download/v0.0.9/github-changelog-generator.jar
-          
-          export SPRING_MAIN_BANNERMODE=off
           
           java -jar github-changelog-generator.jar $MILESTONE changelog.md \
             --changelog.repository=$GITHUB_REPOSITORY \

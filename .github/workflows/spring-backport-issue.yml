@@ -21,13 +21,14 @@ jobs:
           java-version: 17
 
       - name: Create Backport Issue
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-          GITHUB_EVENT: ${{ toJSON(github.event) }}
         run: |
           wget -q https://github.com/spring-io/backport-bot/releases/download/latest/backport-bot-0.0.1-SNAPSHOT.jar
-          export SPRING_MAIN_BANNERMODE=off
           java -jar backport-bot-0.0.1-SNAPSHOT.jar \
             --github.accessToken="$GITHUB_TOKEN" \
             --github.event_name "$GITHUB_EVENT_NAME" \
-            --github.event "$GITHUB_EVENT" 
+            --github.event "$GITHUB_EVENT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          GITHUB_EVENT: ${{ toJSON(github.event) }}
+          SPRING_MAIN_BANNERMODE: off
+
