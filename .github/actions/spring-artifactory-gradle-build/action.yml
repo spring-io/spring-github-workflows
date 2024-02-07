@@ -10,11 +10,11 @@ The `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` environment variables must
 inputs:
   artifactoryUrl:
     description: 'The Artifactory Server'
-    required: true
+    required: false
     default: https://repo.spring.io
   targetRepository:
     description: 'The Artifactory Repository to upload artifacts to'
-    required: true
+    required: false
     default: libs-snapshot-local
   artifactoryProjectKey:
     description: 'The Artifactory project key'
