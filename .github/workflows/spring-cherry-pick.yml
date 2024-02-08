@@ -34,18 +34,18 @@ jobs:
           git config --global user.email 'builds@springframework.org'
           cherryPickToken='${{ inputs.autoCherryPickToken }}'
           commitMessage='${{ github.event.head_commit.message }}'
-          branches=$(echo '$commitMessage' | grep '$cherryPickToken' | grep -o1 -E "([0-9]+\.[0-9]+\.x)")
-          branchCommitMessage=$(echo '$commitMessage' | grep -v '$cherryPickToken')
+          branches=$(echo "$commitMessage" | grep "$cherryPickToken" | grep -o1 -E "([0-9]+\.[0-9]+\.x)")
           for branch in $branches
           do 
-            git checkout $branch
-            if git cherry-pick ${{ github.sha }}
+            git checkout "$branch"
+            if git cherry-pick ${{ github.sha }} -x
             then
-              echo "::notice title=Commit cherry-picked::`${{ github.sha }}` to branch `$branch`"
+              echo "::notice title=Commit cherry-picked::${{ github.sha }} to branch $branch"
             else
-              echo "::error title=Cannot cherry-pick::`${{ github.sha }}` to branch `$branch`. Manual procedure required"
+              echo "::error title=Cannot cherry-pick::${{ github.sha }} to branch $branch. Manual procedure required"
               exit 1
             fi
-            git commit –amend -m "$branchCommitMessage"  
+            branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$cherryPickToken")
+            git commit --amend -o -m "$branchCommitMessage"  
             git push $branch
           done
