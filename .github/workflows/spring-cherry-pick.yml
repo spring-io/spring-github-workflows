@@ -47,5 +47,5 @@ jobs:
             fi
             branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$cherryPickToken")
             git commit --amend -o -m "$branchCommitMessage"  
-            git push $branch
+            git push origin $branch
           done
