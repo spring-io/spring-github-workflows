@@ -7,7 +7,7 @@ on:
         required: true
 
 jobs:
-  build:
+  backport-issue:
     runs-on: ubuntu-latest
     steps:
 

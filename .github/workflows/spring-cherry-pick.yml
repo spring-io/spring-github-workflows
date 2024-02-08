@@ -32,8 +32,8 @@ jobs:
         run: |
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
-          cherryPickToken=${{ inputs.autoCherryPickToken }}
-          commitMessage=${{ github.event.head_commit.message }}
+          cherryPickToken="${{ inputs.autoCherryPickToken }}"
+          commitMessage="${{ github.event.head_commit.message }}"
           branches=$(echo '$commitMessage' | grep '$cherryPickToken' | grep -o1 -E "([0-9]+\.[0-9]+\.x)")
           branchCommitMessage=$(echo '$commitMessage' | grep -v '$cherryPickToken')
           for branch in $branches
@@ -46,6 +46,6 @@ jobs:
               echo "::error title=Cannot cherry-pick::${{ github.sha }} to branch `$branch`. Manual procedure required"
               exit 1
             fi
-            git commit –amend -m $branchCommitMessage  
+            git commit –amend -m "$branchCommitMessage"  
             git push $branch
           done
