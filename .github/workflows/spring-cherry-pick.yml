@@ -13,7 +13,7 @@ env:
 jobs:
   cherry-pick:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'auto-cherry-pick')
+    if: contains(github.event.head_commit.message, 'Auto-cherry-pick to')
     steps:
 
       - uses: actions/checkout@v4
@@ -25,8 +25,8 @@ jobs:
         run: |
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
-          branches=$(echo '${{ github.event.head_commit.message }}' | grep -i auto-cherry-pick | grep -o1 -E "([0-9]+\.[0-9]+\.x)")
-          branchCommitMessage=$(echo '${{ github.event.head_commit.message }}' | grep -v -i auto-cherry-pick)
+          branches=$(echo '${{ github.event.head_commit.message }}' | grep 'Auto-cherry-pick to' | grep -o1 -E "([0-9]+\.[0-9]+\.x)")
+          branchCommitMessage=$(echo '${{ github.event.head_commit.message }}' | grep -v 'Auto-cherry-pick to')
           for branch in $branches
           do 
             git checkout $branch
