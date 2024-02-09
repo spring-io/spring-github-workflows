@@ -12,59 +12,58 @@ def gpgPassphrase = System.getenv('GPG_PASSPHRASE')
 def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
 
 allprojects {
-
 	apply plugin: 'signing'
-
-	tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
-		enabled(false)
-		setCiServerBuild()
-	}
 
 	apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
 
-	artifactory {
-		publish {
-			contextUrl = System.getenv('ARTIFACTORY_URL')
-			repository {
-				repoKey = System.getenv('ARTIFACTORY_REPOSITORY')
-				username = System.getenv('ARTIFACTORY_USERNAME')
-				password = System.getenv('ARTIFACTORY_PASSWORD')
-			}
-			defaults {
-				def zipArtifactProps =
-						['zip.name'       : project.name,
-						 'zip.displayname': project.description,
-						 'zip.deployed'   : 'false']
-				properties {
-					mavenJava zipArtifactProps, '*:*:*:*@zip'
-					mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
-					mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
-				}
-			}
-			publishForkCount = 10
-		}
-
-		buildInfo {
-			setProject(System.getenv('ARTIFACTORY_BUILD_PROJECT'))
-			setBuildName(System.getenv('ARTIFACTORY_BUILD_NAME'))
-			setBuildNumber(System.getenv('ARTIFACTORY_BUILD_NUMBER'))
-			setBuildUrl(System.getenv('ARTIFACTORY_BUILD_URL'))
-			setAgentName(System.getenv('ARTIFACTORY_USER_AGENT_NAME'))
-			setAgentVersion(System.getenv('ARTIFACTORY_USER_AGENT_VERSION'))
-			setVcsRevision(System.getenv('ARTIFACTORY_VCS_REVISION'))
-			setVcsUrl(System.getenv('ARTIFACTORY_VCS_URL'))
-			setArtifactoryPluginVersion('4.33.12')
-		}
-
-		clientConfig.connectionRetries = 4
-		clientConfig.insecureTls = false
+	tasks.named('artifactoryPublish') {
+		enabled = false
 	}
 
 	afterEvaluate {
 		pluginManager.withPlugin('maven-publish') {
+			artifactory {
+				publish {
+					contextUrl = System.getenv('ARTIFACTORY_URL')
+					repository {
+						repoKey = System.getenv('ARTIFACTORY_REPOSITORY')
+						username = System.getenv('ARTIFACTORY_USERNAME')
+						password = System.getenv('ARTIFACTORY_PASSWORD')
+					}
+					defaults {
+						def zipArtifactProps =
+								['zip.name'       : project.name,
+								 'zip.displayname': project.description,
+								 'zip.deployed'   : 'false']
+						properties {
+							mavenJava zipArtifactProps, '*:*:*:*@zip'
+							mavenJava 'zip.type': 'docs', '*:*:*:docs@zip'
+							mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
+						}
+					}
+					publishForkCount = 10
+				}
+
+				buildInfo {
+					setProject(System.getenv('ARTIFACTORY_BUILD_PROJECT'))
+					setBuildName(System.getenv('ARTIFACTORY_BUILD_NAME'))
+					setBuildNumber(System.getenv('ARTIFACTORY_BUILD_NUMBER'))
+					setBuildUrl(System.getenv('ARTIFACTORY_BUILD_URL'))
+					setAgentName(System.getenv('ARTIFACTORY_USER_AGENT_NAME'))
+					setAgentVersion(System.getenv('ARTIFACTORY_USER_AGENT_VERSION'))
+					setVcsRevision(System.getenv('ARTIFACTORY_VCS_REVISION'))
+					setVcsUrl(System.getenv('ARTIFACTORY_VCS_URL'))
+					setArtifactoryPluginVersion('4.33.12')
+				}
+
+				clientConfig.connectionRetries = 4
+			}
+
 			tasks.named('artifactoryPublish') {
-				enabled(true)
-				publications 'mavenJava'
+				enabled = true
+				setCiServerBuild()
+				publications publishing.publications.mavenJava
+				publishIvy = false
 			}
 
 			if (!ossrhUrl && gpgPassphrase && gpgPrivateKey) {
