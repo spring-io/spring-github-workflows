@@ -75,8 +75,8 @@ runs:
         echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
       shell: bash
       env:
-        ARTIFACTORY_URL: ${{ inputs.artifactoryUrl }}/artifactory
-        ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository }}
+        ARTIFACTORY_URL: ${{ inputs.artifactoryUrl == '' && 'https://repo.spring.io' || inputs.artifactoryUrl }}/artifactory
+        ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository == '' && 'libs-snapshot-local' || inputs.targetRepository }}
         ARTIFACTORY_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
         ARTIFACTORY_BUILD_NAME: ${{ steps.build-name.outputs.buildName }}
         ARTIFACTORY_BUILD_NUMBER: ${{ github.run_number }}

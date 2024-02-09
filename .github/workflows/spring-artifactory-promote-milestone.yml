@@ -3,11 +3,6 @@ name: Promote Staged Milestone in Artifactory
 on:
   workflow_call:
     inputs:
-      artifactoryUrl:
-        description: 'The Artifactory Server'
-        required: false
-        type: string
-        default: https://repo.spring.io
       artifactoryProjectKey:
         description: 'The Artifactory project key'
         required: false
@@ -40,10 +35,6 @@ jobs:
     steps:
 
       - uses: jfrog/setup-jfrog-cli@v4
-        env:
-          JF_URL: ${{ inputs.artifactoryUrl }}
-          JF_USER: ${{ secrets.ARTIFACTORY_USERNAME }}
-          JF_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
       - name: Promote Build
         run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }} --project=${{ inputs.artifactoryProjectKey }}

@@ -15,14 +15,17 @@ on:
         description: 'The Artifactory Repository to stage artifacts to'
         required: false
         type: string
+        default: libs-staging-local
       targetMilestoneRepository:
         description: 'The Artifactory Repository to promote the milestone build to'
         required: false
         type: string
+        default: libs-milestone-local
       targetReleaseRepository:
         description: 'The Artifactory Repository to promote the release build to'
         required: false
         type: string
+        default: libs-release-local
       artifactoryProjectKey:
         description: 'The Artifactory project key'
         required: false
@@ -115,7 +118,6 @@ jobs:
     if: ${{ !contains(needs.releaseVersion.outputs.releaseVersion, '-') }}
     uses: ./.github/workflows/spring-artifactory-promote-central.yml
     with:
-      artifactoryUrl: ${{ inputs.artifactoryUrl }}
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
       targetRepository: ${{ inputs.targetReleaseRepository }}

@@ -15,7 +15,6 @@ on:
         description: 'The Artifactory Server'
         required: false
         type: string
-        default: https://repo.spring.io
       stagingRepository:
         description: 'The Artifactory Repository to stage artifacts to'
         required: false

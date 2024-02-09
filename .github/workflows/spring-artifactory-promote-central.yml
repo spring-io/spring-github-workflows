@@ -3,11 +3,6 @@ name: Promote Staged GA release from Artifactory to Maven Central
 on:
   workflow_call:
     inputs:
-      artifactoryUrl:
-        description: 'The Artifactory Server'
-        required: false
-        type: string
-        default: https://repo.spring.io
       artifactoryProjectKey:
         description: 'The Artifactory project key'
         required: false
