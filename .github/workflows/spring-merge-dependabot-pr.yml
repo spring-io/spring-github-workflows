@@ -48,7 +48,7 @@ jobs:
          github-token: ${{ env.GH_TOKEN }}
 
       - name: Add a label for development dependencies pull request
-        if: ${{ steps.metadata.outputs.dependency-group == inputs.developmentGroup || contains(steps.dependabot-metadata.outputs.new-version, '-SNAPSHOT') }}
+        if: ${{ steps.metadata.outputs.dependency-group == inputs.developmentGroup || endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT') }}
         run: |
           gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ inputs.developmentLabel }}"
           gh pr edit ${{ github.event.pull_request.number }} --remove-label "${{ inputs.dependenciesLabel }}"
