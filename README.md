@@ -4,12 +4,15 @@ This project containers reusable GitHub Actions Workflows to build Spring projec
 The workflows are designed for specific tasks and can be reused individually or in combinations in the target projects.
 
 To use these workflows in your project a set of organization secrets must be granted to the repository:
+
 ```
 GH_ACTIONS_REPO_TOKEN
 GRADLE_ENTERPRISE_CACHE_USER
 GRADLE_ENTERPRISE_CACHE_PASSWORD
 GRADLE_ENTERPRISE_SECRET_ACCESS_KEY
 JF_ARTIFACTORY_SPRING
+ARTIFACTORY_USERNAME
+ARTIFACTORY_PASSWORD
 SPRING_RELEASE_SLACK_WEBHOOK_URL
 OSSRH_URL
 OSSRH_S01_TOKEN_USERNAME
@@ -24,7 +27,7 @@ The `SPRING_RELEASE_SLACK_WEBHOOK_URL` secret is also optional: probably you don
 
 The mentioned secrets must be passed explicitly since these reusable workflows might be in different GitHub org than target project.
 
-The SNAPSHOT and Release workflows uses JFrog CLI to publish artifacts into Artifactory.
+The SNAPSHOT and Release workflows uses JFrog Artifactory plugin to publish artifacts into Artifactory.
 
 ## Build SNAPSHOT and Pull Request Workflows
 
@@ -41,7 +44,7 @@ https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800
 You can add more branches to react for pull request events.
 
 The SNAPSHOT workflows ([spring-artifactory-gradle-snapshot.yml](.github/workflows/spring-artifactory-gradle-snapshot.yml) and [spring-artifactory-maven-snapshot.yml](.github/workflows/spring-artifactory-maven-snapshot.yml), respectively) are also that simple.
-They use JFrog CLI action to be able to publish artifacts into `libs-snapshot-local` repository.
+They use JFrog Artifactory plugin to be able to publish artifacts into `libs-snapshot-local` repository.
 The Gradle workflow can be supplied with Gradle Enterprise secrets.
 
 #### Gradle SNAPSHOT caller workflow:
@@ -68,7 +71,7 @@ The composite internal [extract-release-version](.github/actions/extract-release
 - List GitHub milestones matching the candidate version and select the closest one by due on date
 - Cancel workflow if no scheduled Milestone
 - Call Maven or Gradle (according to the workflow choice for the project in the repository) with the release version extracted from the previous job.
-This job stages released artifacts using JFrog CLI into `libs-staging-local` repository on Spring Artifactory and commits `Next development version` to the branch we are releasing against
+This job stages released artifacts using JFrog Artifactory plugin into `libs-staging-local` repository on Spring Artifactory and commits `Next development version` to the branch we are releasing against
 - The next job is to [verify staged artifacts](#verify-staged-artifacts)
 - When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local`(and Maven Central) according to the releasing version schema
 - Then [spring-finalize-release.yml](.github/workflows/spring-finalize-release.yml) job is executed, which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from `Contributors` section.
@@ -121,18 +124,54 @@ This includes all the Gradle and Maven plugins and those dependencies which are 
 This projects provides a [spring-merge-dependabot-pr.yml](.github/workflows/spring-merge-dependabot-pr.yml) reusable workflow to make modifications to the Dependabot pull requests.
 However, there are some prerequisites to use this workflow in your project:
 - Pull requests must be protected by some check to pass, usually a workflow to build the project with this pull request changes;
-- The [auto-merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-auto-merge-for-pull-requests-in-your-repository) must be enabled in the repository;
+- The [auto-merge](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-auto-merge-for-pull-requests-in-your-repository) must be enabled in the repository (if `--auto` is used);
 
 The `spring-merge-dependabot-pr` workflow does these modifications to the Dependabot pull requests:
 - Modify label from `dependency-upgrade` to the `task` for the development dependencies group update to skip them from release notes by Spring Changelog Generator;
 - Adds a currently scheduled milestone to the pull request against a snapshot version extracted from the target branch;
 - And if milestone is scheduled, the pull request is queued for auto-merging after required checks have passed.
 
+The `mergeArguments` input of this workflow is applied to the `gh pr merge` command. 
+
 #### Dependabot merge pull request workflow example:
 https://github.com/spring-io/spring-github-workflows/blob/710bf1214450ffb9a4d3a1cfbe12755ed2d59edc/samples/merge-dependabot-pr.yml#L1-L14
+
+## Automatic cherry-pick workflow
+
+The [spring-cherry-pick.yml](.github/workflows/spring-cherry-pick.yml) workflow offers a logic to cherry-pick pushed commit to branches suggested by the specific sentence in commit message.
+For example `Auto-cherry-pick to 6.2.x & 6.1.x`.
+The `Auto-cherry-pick` token is a default value for the `autoCherryPickToken` input of this workflow.
+The branches to cherry-pick to are extracted from the matching sentence.
+The "Auto-cherry-pick" sentence is remove from the target commit message.
+The `-x` option of `git cherry-pick` command adds a link back to the original commit.
 
 ## Gradle Init Scripts
 
 The `next-dev-version-init.gradle` script adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
+The `spring-artifactory-init.gradle` script adds the `org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin` and `signing` plugins.
+Configures them for those projects where the `maven-publish` plugin is applied.
+The `signing` is activated if no `OSSRH_URL` environment variable is present, but `GPG_PASSPHRASE` & `GPG_PRIVATE_KEY` are present.
+If the `OSSRH_URL` environment variable is present, then signing is done by the `jvalkeal/nexus-sync` action when artifacts are promoted to Maven Central.
+The Artifactory plugin requires these environment variables:
+
+```
+ARTIFACTORY_URL
+ARTIFACTORY_REPOSITORY
+ARTIFACTORY_USERNAME
+ARTIFACTORY_PASSWORD
+ARTIFACTORY_BUILD_PROJECT
+ARTIFACTORY_BUILD_NAME
+ARTIFACTORY_BUILD_NUMBER
+ARTIFACTORY_BUILD_URL
+ARTIFACTORY_USER_AGENT_NAME
+ARTIFACTORY_USER_AGENT_VERSION
+ARTIFACTORY_VCS_REVISION
+ARTIFACTORY_VCS_URL
+```
+
+See more information about these properties in the JFrog [documentation](https://github.com/jfrog/build-info-go/blob/main/buildinfo-schema.json).
+See also [spring-artifactory-gradle-build/action.yml](.github/actions/spring-artifactory-gradle-build/action.yml) how those environment variables are calculated.
+The `artifactoryPublish` & `signing` tasks deals with `publishing.publications.mavenJava`.
+The `artifactoryPublish` also adds `zip.*` properties into `zip` artifacts.
 
 See more information in the [Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows). 
