@@ -39,6 +39,7 @@ on:
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  OSSRH_URL: ${{ secrets.OSSRH_URL }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -70,7 +71,7 @@ jobs:
         id: nexus
         if: env.OSSRH_URL
         with:
-          url: ${{ secrets.OSSRH_URL }}
+          url: ${{ env.OSSRH_URL }}
           username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
           password: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}
           staging-profile-name: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
