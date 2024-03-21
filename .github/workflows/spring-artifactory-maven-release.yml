@@ -43,9 +43,9 @@ on:
       OSSRH_STAGING_PROFILE_NAME:
         required: false
       GPG_PASSPHRASE:
-        required: true
+        required: false
       GPG_PRIVATE_KEY:
-        required: true
+        required: false
       JF_ARTIFACTORY_SPRING:
         required: true
 

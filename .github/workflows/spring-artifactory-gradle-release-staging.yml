@@ -46,8 +46,6 @@ on:
         required: false
       GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
         required: false
-      OSSRH_URL: # If provided then signature is done in the Maven Central workflow. Otherwise, the GPG_PASSPHRASE & GPG_PRIVATE_KEY (if provided) are used by Gradle 'signing' plugin
-        required: false
       GPG_PASSPHRASE:
         required: false
       GPG_PRIVATE_KEY:
@@ -60,7 +58,6 @@ env:
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
-  OSSRH_URL: ${{ secrets.OSSRH_URL }}
   GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
   GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
   WORKFLOWS_REF: main

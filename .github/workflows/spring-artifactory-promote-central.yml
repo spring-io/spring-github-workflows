@@ -30,10 +30,6 @@ on:
         required: false
       OSSRH_STAGING_PROFILE_NAME:
         required: false
-      GPG_PASSPHRASE:
-        required: true
-      GPG_PRIVATE_KEY:
-        required: true
       JF_ARTIFACTORY_SPRING:
         required: true
 
@@ -58,7 +54,6 @@ jobs:
       - name: Promote Build
         run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }} --project=${{ inputs.artifactoryProjectKey }}
 
-      # Download released files
       - name: Download Release Files
         if: env.OSSRH_URL
         run: |
@@ -66,8 +61,7 @@ jobs:
             --spec utils/release-files-spec.json \
             --spec-vars "buildname=${{ inputs.buildName }};buildnumber=${{ inputs.buildNumber }}"
 
-      # Create checksums, signatures and create staging repo on central and upload
-      - uses: jvalkeal/nexus-sync@v0.0.2
+      - uses: spring-io/nexus-sync-action@v0.0.1
         id: nexus
         if: env.OSSRH_URL
         with:
@@ -78,9 +72,6 @@ jobs:
           create: true
           upload: true
           generate-checksums: true
-          pgp-sign: true
           upload-parallel: 10
-          pgp-sign-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-          pgp-sign-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           close: true
           release: true

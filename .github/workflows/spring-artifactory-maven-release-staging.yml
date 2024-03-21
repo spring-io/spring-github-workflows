@@ -34,8 +34,6 @@ on:
         required: true
       JF_ARTIFACTORY_SPRING:
         required: true
-      OSSRH_URL: # If provided then signature is done in the Maven Central workflow. Otherwise, the GPG_PASSPHRASE & GPG_PRIVATE_KEY (if provided) use by Gradle 'signing' plugin
-        required: false
       GPG_PASSPHRASE:
         required: false
       GPG_PRIVATE_KEY:
@@ -44,9 +42,6 @@ on:
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
-  OSSRH_URL: ${{ secrets.OSSRH_URL }}
-  GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
 
 jobs:
   staging-to-artifactory-with-maven:
@@ -92,9 +87,15 @@ jobs:
         run: |
           mvn versions:set -DnewVersion=${{ inputs.releaseVersion }} -DgenerateBackupPoms=false -DprocessAllModules=true -B -ntp
 
+      - name: Import GPG key
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+
       - name: Build and Publish
         run: |
-          jf mvn install -B -ntp ${{ inputs.mavenArgs }}
+          jf mvn install -B -ntp ${{ inputs.mavenArgs }} -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
           jf rt build-publish
 
       - name: Capture Test Results
