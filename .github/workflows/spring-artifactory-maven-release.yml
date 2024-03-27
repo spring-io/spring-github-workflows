@@ -11,14 +11,17 @@ on:
         description: 'The Artifactory Repository to stage artifacts to'
         required: false
         type: string
+        default: libs-staging-local
       targetMilestoneRepository:
         description: 'The Artifactory Repository to promote the milestone build to'
         required: false
         type: string
+        default: libs-milestone-local
       targetReleaseRepository:
         description: 'The Artifactory Repository to promote the release build to'
         required: false
         type: string
+        default: libs-release-local
       artifactoryProjectKey:
         description: 'The Artifactory project key'
         required: false
