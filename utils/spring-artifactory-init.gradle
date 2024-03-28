@@ -40,7 +40,6 @@ allprojects {
 							mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
 						}
 					}
-					publishForkCount = 1
 				}
 
 				buildInfo {
@@ -55,7 +54,10 @@ allprojects {
 					setArtifactoryPluginVersion('4.33.12')
 				}
 
-				clientConfig.connectionRetries = 4
+				clientConfig {
+					connectionRetries = 4
+					publisher.publishForkCount = 1
+				}
 			}
 
 			tasks.named('artifactoryPublish') {
