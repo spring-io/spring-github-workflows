@@ -40,6 +40,7 @@ allprojects {
 							mavenJava 'zip.type': 'dist', '*:*:*:dist@zip'
 						}
 					}
+					publishForkCount = 1
 				}
 
 				buildInfo {
