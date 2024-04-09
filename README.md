@@ -23,7 +23,7 @@ GPG_PRIVATE_KEY
 ```
 
 The Gradle Enterprise secrets are optional: not used by Maven and Gradle project might not be enrolled for the service.  
-The `SPRING_RELEASE_SLACK_WEBHOOK_URL` secret is also optional: probably you don't want to notify Slack about your release.
+The `SPRING_RELEASE_SLACK_WEBHOOK_URL` secret is also optional: probably you don't want to notify Slack about your release, or it is not available for GitHub organization.
 
 The mentioned secrets must be passed explicitly since these reusable workflows might be in different GitHub org than target project.
 
@@ -52,6 +52,8 @@ https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800
 
 #### Maven SNAPSHOT caller workflow:
 https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/ci-snapshot-maven.yml#L1-L13
+
+The Gradle SNAPSHOT build workflow requires `ARTIFACTORY_USERNAME` & `ARTIFACTORY_PASSWORD` secretes to authorise JFrog Artifactory plugin; the Maven one uses JFrog CLI action and requires a `JF_ARTIFACTORY_SPRING` instead.
 
 ## Release Workflow
 
@@ -86,6 +88,48 @@ Such a workflow must be on every branch which is supposed to be released via Git
 The `buildToolArgs` parameter for this job means extra build tool arguments.
 For example, the mentioned `dist` value is a Gradle task in the project.
 Can be any Maven goal or other command line arguments.
+
+The signing released artifacts before pushing to the repository is done now by build tool.
+The Gradle workflow is enhanced with specific init script to apply a `signing` plugin.
+There is no way to inject any goals for Maven build, so the POM file of the project must have the `maven-gpg-plugin` configuration with this profile:
+
+````xml
+		<profile>
+			<id>sign</id>
+			<activation>
+				<property>
+					<name>gpg.passphrase</name>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-gpg-plugin</artifactId>
+						<version>3.0.1</version>
+						<executions>
+							<execution>
+								<id>sign-artifacts</id>
+								<phase>verify</phase>
+								<goals>
+									<goal>sign</goal>
+								</goals>
+								<configuration>
+									<gpgArguments>
+										<arg>--pinentry-mode</arg>
+										<arg>loopback</arg>
+										<arg>--no-tty</arg>
+									</gpgArguments>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+````
+
+The Maven release workflow uses `crazy-max/ghaction-import-gpg` to export `gpg_private_key` and `passphrase` based on respective secrets.
 
 In the end you just need to go to the `Actions` tab on your project, press `Run workflow` on your release workflow and choose a branch from drop-down list to release currently scheduled Milestone against. 
 Such a release workflow can also be scheduled (`cron`, fo example) against branches matrix.
@@ -151,7 +195,6 @@ The `next-dev-version-init.gradle` script adds a `nextDevelopmentVersion` task w
 The `spring-artifactory-init.gradle` script adds the `org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin` and `signing` plugins.
 Configures them for those projects where the `maven-publish` plugin is applied.
 The `signing` is activated if no `OSSRH_URL` environment variable is present, but `GPG_PASSPHRASE` & `GPG_PRIVATE_KEY` are present.
-If the `OSSRH_URL` environment variable is present, then signing is done by the `jvalkeal/nexus-sync` action when artifacts are promoted to Maven Central.
 The Artifactory plugin requires these environment variables:
 
 ```
@@ -171,7 +214,7 @@ ARTIFACTORY_VCS_URL
 
 See more information about these properties in the JFrog [documentation](https://github.com/jfrog/build-info-go/blob/main/buildinfo-schema.json).
 See also [spring-artifactory-gradle-build/action.yml](.github/actions/spring-artifactory-gradle-build/action.yml) how those environment variables are calculated.
-The `artifactoryPublish` & `signing` tasks deals with `publishing.publications.mavenJava`.
+The `artifactoryPublish` & `signing` tasks deal with `publishing.publications.mavenJava`.
 The `artifactoryPublish` also adds `zip.*` properties into `zip` artifacts.
 
 See more information in the [Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows). 
