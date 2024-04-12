@@ -53,6 +53,14 @@ runs:
         
         buildName=${{ github.event.repository.name }}-$branchVersion${{ inputs.releaseVersion != '' && '-release' || '' }} 
         echo buildName=$buildName >> $GITHUB_OUTPUT
+        
+        runnerCacheFile=$(ls /opt/runner-cache/)
+        if [[ runnerCacheFile =~ ([0-9]+\.[0-9]+\.[0-9]+) ]]; then
+          echo gitHubRunnerVersion=${BASH_REMATCH[1]} >> $GITHUB_OUTPUT
+        else
+          echo gitHubRunnerVersion=2.312.0 >> $GITHUB_OUTPUT
+        fi
+
       shell: bash
 
     - name: Set Release Version
@@ -84,5 +92,5 @@ runs:
         ARTIFACTORY_VCS_REVISION: ${{ github.sha }}
         ARTIFACTORY_VCS_URL: ${{ github.repositoryUrl }}
         ARTIFACTORY_USER_AGENT_NAME: GitHub Actions
-        ARTIFACTORY_USER_AGENT_VERSION: 2.312.0
+        ARTIFACTORY_USER_AGENT_VERSION: ${{ steps.build-name.outputs.gitHubRunnerVersion }}
 
