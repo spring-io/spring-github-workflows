@@ -1,5 +1,7 @@
 name: Distribute Spring Enterprise Release Bundle
 
+# Intended to be used in private repositories for commercial releases where allowed ubuntu22-2-8 GH runner is available
+
 on:
   workflow_call:
 
@@ -33,7 +35,7 @@ on:
 
 jobs:
   distribute-spring-enterprise-release-bundle:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu22-2-8
     steps:
 
       - run: |
