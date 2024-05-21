@@ -39,10 +39,10 @@ jobs:
     steps:
 
       - run: |
-          curl -u${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }} \
-            "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/release_bundle?project=spring" \ 
-            -XPOST -H "X-JFrog-Signing-Key-Name: packagesKey" -H "Content-Type: application/json" \ 
-            --data '{"release_bundle_name": "${{ inputs.bundleName }}", \
+          curl -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
+            -X POST "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/release_bundle?project=spring" \ 
+            -H "X-JFrog-Signing-Key-Name: packagesKey" -H "Content-Type: application/json" \ 
+            -d '{"release_bundle_name": "${{ inputs.bundleName }}", \
                      "release_bundle_version": "${{ inputs.releaseVersion }}", \
                      "skip_docker_manifest_resolution": true, \
                      "source_type": "builds", \
@@ -53,10 +53,10 @@ jobs:
                                  "build_number": "${{ inputs.buildNumber }}", \
                                  "include_dependencies": false}]}}'
           
-          curl -u${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }} \
-            "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/distribution/distribute/${{ inputs.bundleName }}/${{ inputs.releaseVersion }}?project=spring" \
-            -XPOST -H "Content-Type: application/json" \
-            --data '{"auto_create_missing_repositories": "false", \
-                     "distribution_rules": [{"site_name": "JP-SaaS"}], 
+          curl -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
+            -X POST "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/distribution/distribute/${{ inputs.bundleName }}/${{ inputs.releaseVersion }}?project=spring" \
+            -H "Content-Type: application/json" \
+            -d '{"auto_create_missing_repositories": "false", \
+                     "distribution_rules": [{"site_name": "JP-SaaS"}], \
                      "modifications": {"mappings": [{"input": "spring-enterprise-maven-prod-local/(.*)","output":"spring-enterprise/$1"}]}}'
 
