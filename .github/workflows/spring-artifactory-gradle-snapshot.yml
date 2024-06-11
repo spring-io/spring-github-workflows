@@ -19,6 +19,11 @@ on:
         description: 'The Artifactory project key'
         required: false
         type: string
+      runner:
+        description: 'The runner for job'
+        required: false
+        type: string
+        default: ubuntu-latest
 
     secrets:
       GRADLE_ENTERPRISE_CACHE_USER:
@@ -43,7 +48,7 @@ env:
 
 jobs:
   build-snapshot-with-gradle:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     name: CI Build SNAPSHOT for ${{ github.ref_name }}
     steps:
 
