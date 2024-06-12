@@ -2,6 +2,12 @@ name: Pull Request Build with Gradle
 
 on:
   workflow_call:
+    inputs:
+      runner:
+        description: 'The runner for job'
+        required: false
+        type: string
+        default: ubuntu-latest
     secrets:
       ARTIFACTORY_USERNAME:
         required: false
@@ -14,7 +20,7 @@ env:
 
 jobs:
   build-pr:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     steps:
 
       - uses: actions/checkout@v4

@@ -24,6 +24,11 @@ on:
         description: 'The Artifactory project key'
         required: false
         type: string
+      runner:
+        description: 'The runner for job'
+        required: false
+        type: string
+        default: ubuntu-latest
 
     outputs:
       buildName:
@@ -65,7 +70,7 @@ env:
 
 jobs:
   staging-to-artifactory-with-gradle:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     outputs:
       buildName: ${{ steps.build-and-publish.outputs.buildName }}
       buildNumber: ${{ steps.build-and-publish.outputs.buildNumber }}

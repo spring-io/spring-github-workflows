@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: libs-milestone-local
+      runner:
+        description: 'The runner for job'
+        required: false
+        type: string
+        default: ubuntu-latest
 
     secrets:
       JF_ARTIFACTORY_SPRING:
@@ -31,7 +36,7 @@ env:
 
 jobs:
   promote-milestone-with-jfrog:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     steps:
 
       - uses: jfrog/setup-jfrog-cli@v4
