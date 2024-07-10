@@ -100,7 +100,7 @@ jobs:
           workflow: ${{ inputs.verifyStagedWorkflow }}
           wait-for-completion-interval: 30s
           display-workflow-run-url-interval: 5s
-#          workflow-logs: print - uncomment when v3 for action is released
+          workflow-logs: print
           token: ${{ env.GH_TOKEN }}
           inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
         env:

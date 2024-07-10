@@ -41,6 +41,7 @@ runs:
 
     - name: Evaluate Build Name
       id: build-name
+      shell: bash
       run: |
         echo Evaluate Build Name
         
@@ -61,18 +62,18 @@ runs:
           echo gitHubRunnerVersion=2.312.0 >> $GITHUB_OUTPUT
         fi
 
-      shell: bash
-
     - name: Set Release Version
       if: inputs.releaseVersion
+      shell: bash
       run: |
         echo Set Release Version
         
         sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
-      shell: bash
 
     - name: Build and Publish
       id: build-and-publish
+      shell: bash
+      timeout-minutes: 30
       run: |
         echo Build and Publish
         
@@ -81,7 +82,6 @@ runs:
         
         echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT
         echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
-      shell: bash
       env:
         ARTIFACTORY_URL: ${{ inputs.artifactoryUrl == '' && 'https://repo.spring.io' || inputs.artifactoryUrl }}/artifactory
         ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository == '' && 'libs-snapshot-local' || inputs.targetRepository }}
