@@ -71,17 +71,19 @@ runs:
         sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
 
     - name: Build and Publish
-      id: build-and-publish
-      shell: bash
-      timeout-minutes: 30
-      run: |
-        echo Build and Publish
+      uses: nick-fields/retry@v3
+      with:
+        timeout_minutes: 30
+        max_attempts: 3
+        polling_interval_seconds: 30
+        command: |
+          echo Build and Publish
         
-        cp spring-github-workflows/utils/*.gradle $HOME/.gradle/init.d
-        gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
+          cp spring-github-workflows/utils/*.gradle $HOME/.gradle/init.d
+          gradle clean build ${{ inputs.gradleTasks }} artifactoryPublish
         
-        echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT
-        echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
+          echo buildNumber=$ARTIFACTORY_BUILD_NUMBER >> $GITHUB_OUTPUT
+          echo "::notice title=Artifactory Build Name & Number::$ARTIFACTORY_BUILD_NAME/$ARTIFACTORY_BUILD_NUMBER"
       env:
         ARTIFACTORY_URL: ${{ inputs.artifactoryUrl == '' && 'https://repo.spring.io' || inputs.artifactoryUrl }}/artifactory
         ARTIFACTORY_REPOSITORY: ${{ inputs.targetRepository == '' && 'libs-snapshot-local' || inputs.targetRepository }}
