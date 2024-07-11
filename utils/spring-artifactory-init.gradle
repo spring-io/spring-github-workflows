@@ -3,7 +3,7 @@ initscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.33.12'
+		classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:5.2.3'
 	}
 }
 
@@ -46,7 +46,7 @@ allprojects {
 			setAgentVersion(System.getenv('ARTIFACTORY_USER_AGENT_VERSION'))
 			setVcsRevision(System.getenv('ARTIFACTORY_VCS_REVISION'))
 			setVcsUrl(System.getenv('ARTIFACTORY_VCS_URL'))
-			setArtifactoryPluginVersion('4.33.12')
+			setArtifactoryPluginVersion('5.2.3')
 		}
 
 		clientConfig.connectionRetries = 4
