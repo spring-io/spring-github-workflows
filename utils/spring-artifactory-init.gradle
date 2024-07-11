@@ -13,6 +13,10 @@ def gpgPrivateKey = System.getenv('GPG_PRIVATE_KEY')
 allprojects {
 	apply plugin: 'signing'
 
+	tasks.register('artifactoryPublish', org.jfrog.gradle.plugin.artifactory.task.ArtifactoryTask) {
+		enabled = false
+	}
+
 	apply plugin: org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin
 
 	artifactory {
@@ -50,10 +54,6 @@ allprojects {
 		}
 
 		clientConfig.connectionRetries = 4
-	}
-
-	tasks.named('artifactoryPublish') {
-		enabled = false
 	}
 
 	afterEvaluate {
