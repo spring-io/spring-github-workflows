@@ -30,6 +30,7 @@ jobs:
       - uses: spring-io/spring-gradle-build-action@v2
 
       - name: Run Pull Request Build
+        timeout-minutes: 30
         run: gradle check
 
       - name: Capture Test Results

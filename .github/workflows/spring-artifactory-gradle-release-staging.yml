@@ -93,6 +93,7 @@ jobs:
 
       - name: Build and Publish
         id: build-and-publish
+        timeout-minutes: 30
         uses: ./spring-github-workflows/.github/actions/spring-artifactory-gradle-build
         with:
           artifactoryUrl: ${{ inputs.artifactoryUrl }}
