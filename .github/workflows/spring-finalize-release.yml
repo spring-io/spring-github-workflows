@@ -9,7 +9,7 @@ on:
         type: string
 
     secrets:
-      SPRING_RELEASE_SLACK_WEBHOOK_URL:
+      SPRING_RELEASE_CHAT_WEBHOOK_URL:
         required: false
       GH_ACTIONS_REPO_TOKEN:
         required: true
@@ -34,21 +34,22 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Generate Changelog
+      - name: Changelog Config File
         run: |
           repositoryTeam=$(gh api repos/$GITHUB_REPOSITORY/collaborators --jq 'map(select(.role_name == "admin") | .login) | tostring')
-          repositoryTeam=$(sed 's/"//g' <<< ${repositoryTeam:1:-1}),dependabot[bot]
           repositoryVisibility=$(gh repo view --json visibility --jq .[])
           repositoryVisibility=$([[ $repositoryVisibility = 'PUBLIC' ]] && echo 'true' || echo 'false')
           
-          wget -q https://github.com/spring-io/github-changelog-generator/releases/download/v0.0.9/github-changelog-generator.jar
-          
-          java -jar github-changelog-generator.jar $MILESTONE changelog.md \
-            --changelog.repository=$GITHUB_REPOSITORY \
-            --github.username=spring-builds \
-            --github.password=$GITHUB_TOKEN \
-            --changelog.contributors.exclude.names=$repositoryTeam \
-            --changelog.issues.generate-links=$repositoryVisibility
+          echo "changelog.contributors.exclude.names=$repositoryTeam" > changelog.properties
+          echo "changelog.issues.generate-links=$repositoryVisibility" >> changelog.properties
+
+      - name: Generate Changelog
+        uses: spring-io/github-changelog-generator@v0.0.11
+        with:
+          milestone: ${{ env.MILESTONE }}
+          repository: ${{ env.GITHUB_REPOSITORY }}
+          token: ${{ env.GITHUB_TOKEN }}
+          config-file: changelog.properties
 
       - name: GitHub Release
         run: |
@@ -62,14 +63,11 @@ jobs:
             gh api -X PATCH repos/$GITHUB_REPOSITORY/milestones/$MILESTONE_ID -f state='closed' --silent
           fi
 
-      - name: Announce Release on Slack
-        uses: slackapi/slack-github-action@v1.26.0
-        if: env.SLACK_WEBHOOK_URL
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+      - name: Announce Release in Chat
+        uses: julb/action-post-googlechat-message@v1
+        if: env.CHAT_WEBHOOK_URL
         with:
-          payload: |
-            {
-              "text": "${{ github.event.repository.name }}-announcing `${{ env.MILESTONE }}`"
-            }
+          message: "${{ github.event.repository.name }}-announcing `${{ env.MILESTONE }}`"
+          gchat_webhook_url: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+        env:
+          CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}

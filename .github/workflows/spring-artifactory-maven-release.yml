@@ -33,7 +33,7 @@ on:
         default: verify-staged-artifacts.yml
 
     secrets:
-      SPRING_RELEASE_SLACK_WEBHOOK_URL:
+      SPRING_RELEASE_CHAT_WEBHOOK_URL:
         required: false
       GH_ACTIONS_REPO_TOKEN:
         required: true
