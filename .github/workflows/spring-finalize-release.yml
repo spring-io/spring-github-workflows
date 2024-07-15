@@ -47,7 +47,7 @@ jobs:
         uses: spring-io/github-changelog-generator@v0.0.11
         with:
           milestone: ${{ env.MILESTONE }}
-          repository: ${{ env.GITHUB_REPOSITORY }}
+          repository: ${{ github.repository }}
           token: ${{ env.GITHUB_TOKEN }}
           config-file: changelog.properties
 
