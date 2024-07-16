@@ -37,6 +37,7 @@ jobs:
       - name: Changelog Config File
         run: |
           repositoryTeam=$(gh api repos/$GITHUB_REPOSITORY/collaborators --jq 'map(select(.role_name == "admin") | .login) | tostring')
+          repositoryTeam=$(sed 's/"//g' <<< ${repositoryTeam:1:-1})
           repositoryVisibility=$(gh repo view --json visibility --jq .[])
           repositoryVisibility=$([[ $repositoryVisibility = 'PUBLIC' ]] && echo 'true' || echo 'false')
           
