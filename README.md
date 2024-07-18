@@ -13,7 +13,7 @@ GRADLE_ENTERPRISE_SECRET_ACCESS_KEY
 JF_ARTIFACTORY_SPRING
 ARTIFACTORY_USERNAME
 ARTIFACTORY_PASSWORD
-SPRING_RELEASE_SLACK_WEBHOOK_URL
+SPRING_RELEASE_CHAT_WEBHOOK_URL
 OSSRH_URL
 OSSRH_S01_TOKEN_USERNAME
 OSSRH_S01_TOKEN_PASSWORD
@@ -23,7 +23,7 @@ GPG_PRIVATE_KEY
 ```
 
 The Gradle Enterprise secrets are optional: not used by Maven and Gradle project might not be enrolled for the service.  
-The `SPRING_RELEASE_SLACK_WEBHOOK_URL` secret is also optional: probably you don't want to notify Slack about your release, or it is not available for GitHub organization.
+The `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is also optional: probably you don't want to notify Google Space about your release, or it is not available for GitHub organization.
 
 The mentioned secrets must be passed explicitly since these reusable workflows might be in different GitHub org than target project.
 
@@ -44,7 +44,7 @@ https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800
 You can add more branches to react for pull request events.
 
 The SNAPSHOT workflows ([spring-artifactory-gradle-snapshot.yml](.github/workflows/spring-artifactory-gradle-snapshot.yml) and [spring-artifactory-maven-snapshot.yml](.github/workflows/spring-artifactory-maven-snapshot.yml), respectively) are also that simple.
-They use JFrog Artifactory plugin to be able to publish artifacts into `libs-snapshot-local` repository.
+They use JFrog Artifactory plugin to be able to publish artifacts into `libs-snapshot-local` (by default) repository.
 The Gradle workflow can be supplied with Gradle Enterprise secrets.
 
 #### Gradle SNAPSHOT caller workflow:
@@ -75,10 +75,10 @@ The composite internal [extract-release-version](.github/actions/extract-release
 - Call Maven or Gradle (according to the workflow choice for the project in the repository) with the release version extracted from the previous job.
 This job stages released artifacts using JFrog Artifactory plugin into `libs-staging-local` repository on Spring Artifactory and commits `Next development version` to the branch we are releasing against
 - The next job is to [verify staged artifacts](#verify-staged-artifacts)
-- When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local`(and Maven Central) according to the releasing version schema
+- When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local` (by default) (and Maven Central) according to the releasing version schema
 - Then [spring-finalize-release.yml](.github/workflows/spring-finalize-release.yml) job is executed, which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from `Contributors` section.
 The `gh release create` command is performed on a tag for just released version.
-And in the end the milestone is closed and specific Slack channel is notified about release (if `SPRING_RELEASE_SLACK_WEBHOOK_URL` secret is present in the repository).
+And in the end the milestone is closed and specific Google Space is notified about release (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present in the repository).
 
 #### Example of Release caller workflow:
 https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/release.yml#L1-L25

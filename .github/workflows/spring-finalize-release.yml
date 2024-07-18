@@ -71,3 +71,15 @@ jobs:
           gchat_webhook_url: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
         env:
           CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+
+#      - name: Announce Release on Slack
+#        uses: slackapi/slack-github-action@v1.26.0
+#        if: env.SLACK_WEBHOOK_URL
+#        env:
+#          SLACK_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_SLACK_WEBHOOK_URL }}
+#          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+#        with:
+#          payload: |
+#            {
+#              "text": "${{ github.event.repository.name }}-announcing `${{ env.MILESTONE }}`"
+#            }
