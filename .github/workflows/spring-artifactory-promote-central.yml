@@ -41,7 +41,7 @@ on:
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   OSSRH_URL: ${{ secrets.OSSRH_URL }}
-  WORKFLOWS_REF: main
+  WORKFLOWS_REF: v3
 
 jobs:
   release-to-central:

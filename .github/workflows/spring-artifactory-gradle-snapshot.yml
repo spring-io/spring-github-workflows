@@ -50,7 +50,7 @@ env:
   ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
   GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
   GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-  WORKFLOWS_REF: main
+  WORKFLOWS_REF: v3
 
 jobs:
   build-snapshot-with-gradle:
