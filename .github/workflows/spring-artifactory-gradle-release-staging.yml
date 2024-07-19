@@ -58,14 +58,10 @@ on:
 
 env:
   GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
-  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
   GRADLE_ENTERPRISE_CACHE_USERNAME: ${{ secrets.GRADLE_ENTERPRISE_CACHE_USER }}
   GRADLE_ENTERPRISE_CACHE_PASSWORD: ${{ secrets.GRADLE_ENTERPRISE_CACHE_PASSWORD }}
   GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
   DEVELOCITY_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
-  GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -82,7 +78,6 @@ jobs:
           token: ${{ env.GITHUB_TOKEN }}
           show-progress: false
 
-
       - name: Checkout Common Repo
         uses: actions/checkout@v4
         with:
@@ -96,10 +91,15 @@ jobs:
         timeout-minutes: 30
         uses: ./spring-github-workflows/.github/actions/spring-artifactory-gradle-build
         with:
+          releaseVersion: ${{ inputs.releaseVersion }}
+          gradleTasks: ${{ inputs.gradleTasks }}
           artifactoryUrl: ${{ inputs.artifactoryUrl }}
           targetRepository: ${{ inputs.stagingRepository }}
           artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
-          releaseVersion: ${{ inputs.releaseVersion }}
+          artifactoryUsername: ${{ secrets.ARTIFACTORY_USERNAME }}
+          artifactoryPassword: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          gpgPrivateKey: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpgPassphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Tag Release and Next Development Version
         run: |
