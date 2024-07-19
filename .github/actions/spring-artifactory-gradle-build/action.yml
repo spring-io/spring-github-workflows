@@ -68,7 +68,8 @@ runs:
         
         cp spring-github-workflows/utils/*.gradle $HOME/.gradle/init.d
         
-        gradle clean build ${{ inputs.gradleTasks }} publishToDeploymentRepository
+        # See utils/deployment-repository-init.gradle
+        gradle clean build ${{ inputs.gradleTasks }} publishAllPublicationsToDeploymentRepository
 
     - name: Evaluate Build Name
       id: build-name
