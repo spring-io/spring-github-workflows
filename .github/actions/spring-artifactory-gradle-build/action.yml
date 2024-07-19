@@ -102,11 +102,9 @@ runs:
         repository: ${{ inputs.targetRepository == '' && 'libs-snapshot-local' || inputs.targetRepository }}
         folder: 'deployment-repository'
         threads: 10
-        signing-key: ${{ inputs.gpgPrivateKey }}
-        signing-passphrase: ${{ inputs.gpgPassphrase }}
         artifact-properties: |
           /**/*.zip::zip.name=${{ github.event.repository.name }},zip.deployed=false
           /**/*docs.zip::zip.type=docs
           /**/*dist.zip::zip.type=dist
-          					
-
+        signing-key: ${{ inputs.gpgPrivateKey }}
+        signing-passphrase: ${{ inputs.gpgPassphrase }}
