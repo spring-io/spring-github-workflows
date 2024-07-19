@@ -1,0 +1,14 @@
+allprojects {
+	afterEvaluate {
+		pluginManager.withPlugin('maven-publish') {
+			publishing {
+				repositories {
+					maven {
+						it.url = System.getenv('GITHUB_WORKSPACE') + '/deployment-repository'
+						it.name = 'deployment'
+					}
+				}
+			}
+		}
+	}
+}
