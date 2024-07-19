@@ -85,9 +85,10 @@ runs:
         fi
 
         buildName=${{ github.event.repository.name }}-$branchVersion${{ inputs.releaseVersion != '' && '-release' || '' }}
+        buildNumber=${{ github.run_number }}
         
         echo buildName=$buildName >> $GITHUB_OUTPUT
-        echo buildNumber=${{ github.run_number }} >> $GITHUB_OUTPUT
+        echo buildNumber=$buildNumber >> $GITHUB_OUTPUT
         
         echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
 
@@ -101,10 +102,10 @@ runs:
         build-name: ${{ steps.build-name.outputs.buildName }}
         repository: ${{ inputs.targetRepository == '' && 'libs-snapshot-local' || inputs.targetRepository }}
         folder: 'deployment-repository'
-        threads: 10
         artifact-properties: |
           /**/*.zip::zip.name=${{ github.event.repository.name }},zip.deployed=false
           /**/*docs.zip::zip.type=docs
           /**/*dist.zip::zip.type=dist
+        threads: 10
         signing-key: ${{ inputs.gpgPrivateKey }}
         signing-passphrase: ${{ inputs.gpgPassphrase }}
