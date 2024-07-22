@@ -18,6 +18,11 @@ on:
         default: 'type: dependency-upgrade'
         required: false
         type: string
+      autoMergeSnapshots:
+        description: 'Whether upgrades to SNAPSHOTs (usually after release against Milestone) are going to be merged automatically'
+        default: false
+        required: false
+        type: boolean
       mergeArguments:
         description: 'The arguments to pass to the gh pr merge command'
         required: false
@@ -53,9 +58,16 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ inputs.developmentLabel }}"
           gh pr edit ${{ github.event.pull_request.number }} --remove-label "${{ inputs.dependenciesLabel }}"
 
-      - name: Set Milestone to Dependabot pull request
+      - name: Set Milestone to Dependabot pull request or upgrade to SNAPSHOT
         id: set-milestone
         run: |
+          
+          if [[ ${{ inputs.autoMergeSnapshots }} == 'true' && ${{ steps.metadata.outputs.new-version }} == *-SNAPSHOT ]]
+          then
+            echo mergeEnabled=true >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
           if test -f pom.xml
           then
             CURRENT_VERSION=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
