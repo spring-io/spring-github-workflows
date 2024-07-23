@@ -55,7 +55,7 @@ jobs:
           cache: maven
 
       - name: Build and Deploy
-        run: mvn -B -ntp -Dmaven.repo.local=${pwd}/deployment-repository ${{ inputs.mavenArgs }} install
+        run: mvn -B -ntp -Dmaven.repo.local=$(pwd)/deployment-repository ${{ inputs.mavenArgs }} install
 
       - name: Evaluate Build Name
         id: build-name
@@ -100,6 +100,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: '**/target/surefire-reports/**/*.*'
+          path: '**/target/surefire-reports/*.*'
           retention-days: 3
 
