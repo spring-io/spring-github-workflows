@@ -62,7 +62,7 @@ jobs:
         id: set-milestone
         run: |
           
-          if [[ ${{ inputs.autoMergeSnapshots }} == 'true' && ${{ steps.metadata.outputs.new-version }} == *-SNAPSHOT ]]
+          if [[ '${{ inputs.autoMergeSnapshots }}' == 'true' && '${{ steps.metadata.outputs.new-version }}' == *-SNAPSHOT ]]
           then
             echo mergeEnabled=true >> $GITHUB_OUTPUT
             exit 0
