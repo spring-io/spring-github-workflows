@@ -86,7 +86,7 @@ jobs:
           password: ${{ secrets.ARTIFACTORY_PASSWORD }}
           build-name: ${{ steps.build-name.outputs.buildName }}
           repository: ${{ inputs.targetRepository }}
-          folder: deployment-repository
+          folder: 'deployment-repository'
           artifact-properties: |
             /**/*.zip::zip.name=${{ github.event.repository.name }},zip.deployed=false
             /**/*docs.zip::zip.type=docs
