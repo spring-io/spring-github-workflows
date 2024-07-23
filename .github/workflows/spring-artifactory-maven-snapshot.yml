@@ -94,6 +94,8 @@ jobs:
           threads: 10
           signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
           signing-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+        env:
+          ACTION_STEPS_DEBUG: true
 
       - name: Capture Test Results
         if: failure()
