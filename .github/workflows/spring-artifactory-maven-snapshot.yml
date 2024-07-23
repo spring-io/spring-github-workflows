@@ -55,7 +55,7 @@ jobs:
           cache: maven
 
       - name: Build and Deploy
-        run: mvn -B -ntp ${{ inputs.mavenArgs }} -DaltDeploymentRepository=local::file:deployment-repository clean deploy
+        run: mvn -B -ntp -Dmaven.repo.local=${pwd}/deployment-repository ${{ inputs.mavenArgs }} install
 
       - name: Evaluate Build Name
         id: build-name
