@@ -7,6 +7,11 @@ on:
         description: 'Additional Maven command arguments: tasks, goals, plugins etc. The `install` for Maven is included.'
         required: false
         type: string
+      artifactoryUrl:
+        description: 'The Artifactory Server'
+        required: false
+        type: string
+        default: https://repo.spring.io
       stagingRepository:
         description: 'The Artifactory Repository to stage artifacts to'
         required: false
@@ -31,6 +36,11 @@ on:
         required: false
         type: string
         default: verify-staged-artifacts.yml
+      runner:
+        description: 'The runner for job'
+        required: false
+        type: string
+        default: ubuntu-latest
 
     secrets:
       SPRING_RELEASE_CHAT_WEBHOOK_URL:
@@ -51,6 +61,10 @@ on:
         required: false
       JF_ARTIFACTORY_SPRING:
         required: true
+      ARTIFACTORY_USERNAME:
+        required: true
+      ARTIFACTORY_PASSWORD:
+        required: true
 
 env:
   GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
@@ -67,14 +81,16 @@ jobs:
     with:
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
       mavenArgs: ${{ inputs.buildToolArgs }}
+      artifactoryUrl: ${{ inputs.artifactoryUrl }}
       stagingRepository: ${{ inputs.stagingRepository }}
       artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
+      runner: ${{ inputs.runner }}
     secrets: inherit
 
   verify-staged:
     needs: [releaseVersion, staging]
     name: Verify ${{ needs.releaseVersion.outputs.releaseVersion }}
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     steps:
 
       - name: Call smoke tests workflow
@@ -96,6 +112,7 @@ jobs:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
       targetRepository: ${{ inputs.targetMilestoneRepository }}
+      runner: ${{ inputs.runner }}
     secrets: inherit
 
   promote-ga:
@@ -107,6 +124,7 @@ jobs:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
       targetRepository: ${{ inputs.targetReleaseRepository }}
+      runner: ${{ inputs.runner }}
     secrets: inherit
 
   finalize:

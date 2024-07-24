@@ -11,6 +11,11 @@ on:
         description: 'Additional mvn command arguments: goals, plugins etc. The `install` is included.'
         required: false
         type: string
+      artifactoryUrl:
+        description: 'The Artifactory Server'
+        required: false
+        type: string
+        default: https://repo.spring.io
       stagingRepository:
         description: 'The Artifactory Repository to stage artifacts to'
         required: false
@@ -20,6 +25,11 @@ on:
         description: 'The Artifactory project key'
         required: false
         type: string
+      runner:
+        description: 'The runner for job'
+        required: false
+        type: string
+        default: ubuntu-latest
 
     outputs:
       buildName:
@@ -32,23 +42,21 @@ on:
     secrets:
       GH_ACTIONS_REPO_TOKEN:
         required: true
-      JF_ARTIFACTORY_SPRING:
+      ARTIFACTORY_USERNAME:
         required: true
-      GPG_PASSPHRASE:
-        required: false
+      ARTIFACTORY_PASSWORD:
+        required: true
       GPG_PRIVATE_KEY:
         required: false
-
-env:
-  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
-  JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
+      GPG_PASSPHRASE:
+        required: false
 
 jobs:
   staging-to-artifactory-with-maven:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runner }}
     outputs:
-      buildName: ${{ steps.configure-jfrog.outputs.buildName }}
-      buildNumber: ${{ steps.configure-jfrog.outputs.buildNumber }}
+      buildName: ${{ steps.build-name.outputs.buildName }}
+      buildNumber: ${{ steps.build-name.outputs.buildNumber }}
     steps:
 
       - uses: actions/checkout@v4
@@ -61,50 +69,56 @@ jobs:
         with:
           distribution: temurin
           java-version: 17
-          cache: 'maven'
+          cache: maven
 
-      - uses: jfrog/setup-jfrog-cli@v4
-
-      - name: Configure JFrog Cli
-        id: configure-jfrog
+      - name: Evaluate Build Name
+        id: build-name
         run: |
-          jf mvnc \
-            --repo-resolve-releases=libs-milestone \
-            --repo-resolve-snapshots=snapshot \
-            --repo-deploy-releases=${{ inputs.stagingRepository }} \
-            --repo-deploy-snapshots=libs-snapshot-local
+          branchVersion=${{ github.ref_name }}
+
+          if [ $branchVersion = 'main' ]; then
+            snapshotVersion=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
+            branchVersion=${snapshotVersion%.*}.x
+          fi
           
-          buildName=${{ github.event.repository.name }}-${{ inputs.releaseVersion }}
+          buildName=${{ github.event.repository.name }}-$branchVersion-release
           buildNumber=${{ github.run_number }}
           
-          echo JFROG_CLI_BUILD_NAME=$buildName >> $GITHUB_ENV
-          echo JFROG_CLI_BUILD_NUMBER=$buildNumber >> $GITHUB_ENV
           echo buildName=$buildName >> $GITHUB_OUTPUT
           echo buildNumber=$buildNumber >> $GITHUB_OUTPUT
           echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
 
       - name: Set Release Version
-        run: |
-          mvn versions:set -DnewVersion=${{ inputs.releaseVersion }} -DgenerateBackupPoms=false -DprocessAllModules=true -B -ntp
+        run: mvn versions:set -DnewVersion=${{ inputs.releaseVersion }} -DgenerateBackupPoms=false -DprocessAllModules=true -B -ntp
 
-      - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
-        with:
-          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
-          passphrase: ${{ secrets.GPG_PASSPHRASE }}
-
-      - name: Build and Publish
-        run: |
-          jf mvn install -B -ntp ${{ inputs.mavenArgs }} -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
-          jf rt build-publish
+      - name: Build and Deploy
+        run: ./mvnw -B -ntp -DaltDeploymentRepository=local::file:deployment-repository ${{ inputs.mavenArgs }} deploy
 
       - name: Capture Test Results
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: '**/target/surefire-reports/**/*.*'
+          path: '**/target/surefire-reports/*.*'
           retention-days: 3
+
+      - name: Publish
+        uses: spring-io/artifactory-deploy-action@v0.0.1
+        with:
+          uri: ${{ inputs.artifactoryUrl }}
+          project: ${{ inputs.artifactoryProjectKey }}
+          username: ${{ secrets.ARTIFACTORY_USERNAME }}
+          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+          build-name: ${{ steps.build-name.outputs.buildName }}
+          repository: ${{ inputs.stagingRepository }}
+          folder: deployment-repository
+          artifact-properties: |
+            /**/*.zip::zip.name=${{ github.event.repository.name }},zip.deployed=false
+            /**/*docs.zip::zip.type=docs
+            /**/*dist.zip::zip.type=dist
+          threads: 10
+          signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          signing-passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
       - name: Tag Release and Next Development Version
         run: |
