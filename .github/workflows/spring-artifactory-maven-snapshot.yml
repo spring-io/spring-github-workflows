@@ -4,14 +4,9 @@ on:
   workflow_call:
     inputs:
       mavenArgs:
-        description: 'Additional mvn command arguments: goals, plugins etc. The `deploy` is included.'
+        description: 'Additional mvn command arguments: goals, plugins etc. The `install` is included.'
         required: false
         type: string
-      artifactoryUrl:
-        description: 'The Artifactory Server'
-        required: false
-        type: string
-        default: https://repo.spring.io
       targetRepository:
         description: 'The Artifactory Repository to upload snapshot artifacts to'
         required: false
@@ -28,14 +23,12 @@ on:
         default: ubuntu-latest
 
     secrets:
-      ARTIFACTORY_USERNAME:
+      JF_ARTIFACTORY_SPRING:
         required: true
-      ARTIFACTORY_PASSWORD:
-        required: true
-      GPG_PRIVATE_KEY:
-        required: false
-      GPG_PASSPHRASE:
-        required: false
+
+env:
+  JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  JFROG_CLI_BUILD_PROJECT: ${{ inputs.artifactoryProjectKey }}
 
 jobs:
   build_snapshot:
@@ -54,16 +47,16 @@ jobs:
           java-version: 17
           cache: maven
 
-      - name: Build and Deploy
-        run: ./mvnw -B -ntp -DaltDeploymentRepository=local::file:deployment-repository/ ${{ inputs.mavenArgs }} deploy
+      - uses: jfrog/setup-jfrog-cli@v4
 
-      - name: Evaluate Build Name
-        id: build-name
-        shell: bash
+      - name: Configure JFrog Cli
         run: |
-          echo Evaluate Build Name
-
-          branchVersion=${{ github.ref_name }}
+          jf mvnc \
+            --repo-resolve-releases=libs-milestone \
+            --repo-resolve-snapshots=snapshot \
+            --repo-deploy-releases=libs-milestone-local \
+            --repo-deploy-snapshots=${{ inputs.targetRepository }}
+           branchVersion=${{ github.ref_name }}
 
           if [ $branchVersion = 'main' ]; then
               snapshotVersion=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
@@ -71,29 +64,14 @@ jobs:
           fi
 
           buildName=${{ github.event.repository.name }}-$branchVersion
-          buildNumber=${{ github.run_number }}
+          
+          echo JFROG_CLI_BUILD_NAME=$buildName >> $GITHUB_ENV
+          echo JFROG_CLI_BUILD_NUMBER=$GITHUB_RUN_NUMBER >> $GITHUB_ENV
 
-          echo buildName=$buildName >> $GITHUB_OUTPUT
-
-          echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
-
-      - name: Publish
-        uses: spring-io/artifactory-deploy-action@v0.0.1
-        with:
-          uri: ${{ inputs.artifactoryUrl }}
-          project: ${{ inputs.artifactoryProjectKey }}
-          username: ${{ secrets.ARTIFACTORY_USERNAME }}
-          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          build-name: ${{ steps.build-name.outputs.buildName }}
-          repository: ${{ inputs.targetRepository }}
-          folder: 'deployment-repository'
-          artifact-properties: |
-            /**/*.zip::zip.name=${{ github.event.repository.name }},zip.deployed=false
-            /**/*docs.zip::zip.type=docs
-            /**/*dist.zip::zip.type=dist
-          threads: 10
-          signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
-          signing-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      - name: Build and Publish
+        run: |
+          jf mvn install -B -ntp ${{ inputs.mavenArgs }}
+          jf rt build-publish
 
       - name: Capture Test Results
         if: failure()
@@ -102,4 +80,3 @@ jobs:
           name: test-results
           path: '**/target/surefire-reports/*.*'
           retention-days: 3
-
