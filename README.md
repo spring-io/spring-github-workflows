@@ -173,7 +173,8 @@ However, there are some prerequisites to use this workflow in your project:
 The `spring-merge-dependabot-pr` workflow does these modifications to the Dependabot pull requests:
 - Modify label from `dependency-upgrade` to the `task` for the development dependencies group update to skip them from release notes by Spring Changelog Generator;
 - Adds a currently scheduled milestone to the pull request against a snapshot version extracted from the target branch;
-- And if milestone is scheduled, the pull request is queued for auto-merging after required checks have passed.
+- And if milestone is scheduled, the pull request is queued for auto-merging after required checks have passed;
+- If `autoMergeSnapshots` input is set to `true`, the upgrade from Milestone/Release Candidate dependency to its SNAPSHOT is going to be merged automatically without assigning a milestone to the PR.   
 
 The `mergeArguments` input of this workflow is applied to the `gh pr merge` command. 
 
