@@ -95,7 +95,7 @@ jobs:
           signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
           signing-passphrase: ${{ secrets.GPG_PASSPHRASE }}
         env:
-          ACTION_STEPS_DEBUG: true
+          ACTION_STEPS_DEBUG: ${{ secrets.ACTION_STEPS_DEBUG }}
 
       - name: Capture Test Results
         if: failure()
