@@ -55,7 +55,7 @@ jobs:
           cache: maven
 
       - name: Build and Deploy
-        run: mvn -B -ntp -Dmaven.repo.local=$(pwd)/deployment-repository ${{ inputs.mavenArgs }} install
+        run: ./mvnw -B -ntp -DaltDeploymentRepository=local::file:deployment-repository/ ${{ inputs.mavenArgs }} deploy
 
       - name: Evaluate Build Name
         id: build-name
@@ -94,8 +94,6 @@ jobs:
           threads: 10
           signing-key: ${{ secrets.GPG_PRIVATE_KEY }}
           signing-passphrase: ${{ secrets.GPG_PASSPHRASE }}
-        env:
-          ACTION_STEPS_DEBUG: ${{ secrets.ACTION_STEPS_DEBUG }}
 
       - name: Capture Test Results
         if: failure()
