@@ -70,6 +70,9 @@ runs:
         
         # See utils/deployment-repository-init.gradle
         gradle clean build ${{ inputs.gradleTasks }} publishAllPublicationsToDeploymentRepository
+      env:
+        ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
+        ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
 
     - name: Evaluate Build Name
       id: build-name
