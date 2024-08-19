@@ -93,21 +93,24 @@ jobs:
     name: Verify ${{ needs.releaseVersion.outputs.releaseVersion }}
     runs-on: ${{ inputs.runner }}
     steps:
-
-      - name: Call smoke tests workflow
-        uses: aurelien-baudet/workflow-dispatch@3133c5d135c7dbe4be4f9793872b6ef331b53bc7
+      - uses: actions/checkout@v4
         with:
-          workflow: ${{ inputs.verifyStagedWorkflow }}
-          wait-for-completion-interval: 30s
-          display-workflow-run-url-interval: 5s
-          workflow-logs: print
-          token: ${{ env.GH_TOKEN }}
-          inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
+          show-progress: false
+      - name: Call smoke tests workflow
+        run: gh workflow run ${{ inputs.verifyStagedWorkflow }} -f releaseVersion=${{ needs.releaseVersion.outputs.releaseVersion }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+  manual-approval:
+    needs: verify-staged
+    name: Waiting for verification approval
+    environment: 'Promote'
+    runs-on: ${{ inputs.runner }}
+    steps:
+      - run: echo "Approved to Promote Release"
+
   promote-milestone:
-    needs: [releaseVersion, staging, verify-staged]
+    needs: [releaseVersion, staging, manual-approval]
     name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
     if: ${{ (contains(needs.releaseVersion.outputs.releaseVersion, '-M') || contains(needs.releaseVersion.outputs.releaseVersion, '-RC')) }}
     uses: ./.github/workflows/spring-artifactory-promote-milestone.yml
@@ -120,7 +123,7 @@ jobs:
     secrets: inherit
 
   promote-ga:
-    needs: [releaseVersion, staging, verify-staged]
+    needs: [releaseVersion, staging, manual-approval]
     name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
     if: ${{ !contains(needs.releaseVersion.outputs.releaseVersion, '-') }}
     uses: ./.github/workflows/spring-artifactory-promote-central.yml

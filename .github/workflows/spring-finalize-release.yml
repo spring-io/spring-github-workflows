@@ -64,11 +64,9 @@ jobs:
           fi
 
       - name: Announce Release in Chat
-        uses: julb/action-post-googlechat-message@v1
         if: env.CHAT_WEBHOOK_URL
-        with:
-          message: "${{ github.event.repository.name }}-announcing `${{ env.MILESTONE }}`"
-          gchat_webhook_url: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+        run: |
+          curl -X POST '${{ env.CHAT_WEBHOOK_URL }}' -H 'Content-Type: application/json' -d '{ text: "${{ github.event.repository.name }}-announcing `${{ env.MILESTONE }}`"}'
         env:
           CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
 
