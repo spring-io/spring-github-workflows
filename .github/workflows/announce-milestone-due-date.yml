@@ -10,7 +10,8 @@ jobs:
     if: github.event.milestone.due_on
     steps:
       - run: |
-          dueDate=${"${{ github.event.milestone.due_on }}"%T*} 
+          dueDate=${{ github.event.milestone.due_on }} 
+          dueDate=${dueDate%T*} 
           if [ $dueDate = $(date '+%F') ]; then
             dueDate=today
           else
