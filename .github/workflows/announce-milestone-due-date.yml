@@ -12,9 +12,11 @@ jobs:
       - run: |
           dueDate=${{ github.event.milestone.due_on }} 
           dueDate=${dueDate%T*} 
-          if [ $dueDate = $(date '+%F') ]; then
+          if [ $dueDate = $(date '+%F') ]
+          then
             dueDate=today
           else
             dueDate="on $(date -d $dueDate '+%B %d')"
           fi
+          
           echo ${{ github.event.repository.name }}-planning `${{ github.event.milestone.title }}` $dueDate
