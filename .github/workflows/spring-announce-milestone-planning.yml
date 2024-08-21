@@ -1,0 +1,27 @@
+name: Announce Milestone Planning in Chat
+
+# Must be used for `on:  milestone: types: [created, edited]` GH events, and repo must have `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret
+
+on:
+  workflow_call:
+    secrets:
+      SPRING_RELEASE_CHAT_WEBHOOK_URL:
+        required: true
+
+jobs:
+  announce-milestone-planning:
+    runs-on: ubuntu-latest
+    if: github.event.milestone.due_on
+    steps:
+      - run: |
+          dueDate=${{ github.event.milestone.due_on }} 
+          dueDate=${dueDate%T*} 
+          if [ $dueDate = $(date '+%F') ]
+          then
+            dueDate=today
+          else
+            dueDate="on $(date -d $dueDate '+%B %d')"
+          fi
+          
+          curl -X POST '${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}' -H 'Content-Type: application/json' \
+            -d '{ text: "${{ github.event.repository.name }}-planning `${{ github.event.milestone.title }}` '"$dueDate"'"}'
