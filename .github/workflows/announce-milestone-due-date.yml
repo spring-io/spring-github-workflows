@@ -1,0 +1,13 @@
+name: Test Milestone Due Date
+
+on:
+  milestone:
+    types: [created, edited]
+
+jobs:
+  announce-milestone-due-date:
+    runs-on: ubuntu-latest
+    if: github.event.milestone.due_on
+    steps:
+      - run: |
+          echo Milestone ${{ github.event.milestone.title }} is due on ${{ github.event.milestone.due_on }} 
