@@ -16,11 +16,6 @@ inputs:
 runs:
   using: composite
   steps:
-
-    - uses: actions/checkout@v4
-      with:
-        show-progress: false
-
     - name: Dispatch workflow and wait
       shell: bash
       env:
@@ -29,11 +24,7 @@ runs:
         dispatchDate=$(date -Iseconds)
         workflowFile=${{ inputs.workflow }}
         
-        if [ '${{ inputs.inputs }}' ]; then
-          echo '${{ inputs.inputs }}' | gh workflow run $workflowFile --json
-        else
-          gh workflow run $workflowFile
-        fi
+        echo '${{ inputs.inputs }}' | gh workflow run $workflowFile --json
         
         sleep 60
         
@@ -45,7 +36,7 @@ runs:
         
         currentWorkflowRunUrl=$(echo "$run_data" | jq -r '.html_url') 
         
-        echo "::notice title=Dispatched workflow run::$currentWorkflowRunUrl"
+        echo "::notice file=$workflowFile,title=Dispatched workflow run::$currentWorkflowRunUrl"
         
         while true; do
           run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)

@@ -31,7 +31,7 @@ jobs:
           show-progress: false
           ref: ${{ env.WORKFLOWS_REF }}
 
-      - name: Build and Publish
+      - name: Dispatch Workflow
         timeout-minutes: 30
         uses: ./spring-github-workflows/.github/actions/spring-dispatch-workflow-and-wait
         with:

@@ -13,4 +13,4 @@ jobs:
     steps:
       - run: |
           sleep 60
-          echo "::notice The other workflow is done for ${{ inputs.anInput }}"
+          echo "::notice title=The other workflow is done for::${{ inputs.anInput }}"
