@@ -14,7 +14,7 @@ jobs:
     if: github.event.milestone.due_on
     steps:
       - run: |
-          if [ ${{ github.event.type }} = 'edited' -a  "${{ github.event.changes.due_on.from }}" = "${{ github.event.milestone.due_on }}" ]
+          if [ ${{ github.event.action }} = 'edited' -a  "${{ github.event.changes.due_on.from }}" = "${{ github.event.milestone.due_on }}" ]
           then
             exit 0
           fi
