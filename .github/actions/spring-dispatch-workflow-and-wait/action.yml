@@ -24,7 +24,11 @@ runs:
         dispatchDate=$(date -Iseconds)
         workflowFile=${{ inputs.workflow }}
         
-        echo '${{ inputs.inputs }}' | gh workflow run $workflowFile --json
+        if [ '${{ inputs.inputs }}' ]; then
+          echo '${{ inputs.inputs }}' | gh workflow run $workflowFile --json
+        else
+          gh workflow run $workflowFile
+        fi
         
         sleep 60
         
