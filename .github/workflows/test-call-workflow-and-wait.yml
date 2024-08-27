@@ -25,10 +25,14 @@ jobs:
           gh workflow run $workflowFile
 
           sleep 60
+          
+          run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/workflows/$workflowFile/runs?event=workflow_dispatch&created=>=$dispatchDate)
+          
+          currentWorkflowRunId=$(echo "$run_data" | jq -r '.workflow_runs[0].id')
 
-          currentWorkflowRunId=$(gh api repos/$GITHUB_REPOSITORY/actions/workflows/$workflowFile/runs?event=workflow_dispatch&created=">=$dispatchDate" -q '.workflow_runs[0].id')
-
-          echo Other workflow current run: $(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId -q '.html_url')
+          run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
+          
+          echo Other workflow current run: $(echo "$run_data" | jq -r '.html_url')
 
           while true; do
             run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
