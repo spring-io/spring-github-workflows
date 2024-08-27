@@ -1,0 +1,55 @@
+name: Main test workflow to call another and wait
+
+on:
+  workflow_dispatch:
+    inputs:
+      otherWorkflow:
+        description: 'Other workflow'
+        required: true
+        type: string
+
+jobs:
+  call-other-workflow-and-wait:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+      - name: Call tests workflow
+        timeout-minutes: 30
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dispatchDate=$(date -Iseconds)
+          workflowFile=${{ inputs.otherWorkflow }}
+          gh workflow run $workflowFile
+
+          sleep 60
+
+          currentWorkflowRunId=$(gh api repos/$GITHUB_REPOSITORY/actions/workflows/$workflowFile/runs?event=workflow_dispatch&created=>=$dispatchDate --jq '.workflow_runs[0].id')
+
+          echo Other workflow current run: $(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId --jq '.html_url')
+
+          while true; do
+            run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
+            status=$(echo "$run_data" | jq -r '.status')
+
+            if [ $status = "completed" ]; then
+              conclusion=$(echo "$run_data" | jq -r '.conclusion')
+              if [ $conclusion != "success" ]; then
+                echo "❌ The other workflow has not completed successfully"
+                exit 1
+              else
+                echo "✅ The other workflow completed successfully"
+              break
+              fi
+            fi
+
+            sleep 60
+          done
+
+  next-job:
+    needs: call-other-workflow-and-wait
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "✅ The main workflow completed successfully"

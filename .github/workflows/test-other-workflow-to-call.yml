@@ -1,0 +1,12 @@
+name: Test workflow to be called from another
+
+on:
+  workflow_dispatch:
+
+jobs:
+  other-workflow:
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          sleep 60
+          echo "✅ The other workflow is done"
