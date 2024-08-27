@@ -190,6 +190,25 @@ The branches to cherry-pick to are extracted from the matching sentence.
 The "Auto-cherry-pick" sentence is remove from the target commit message.
 The `-x` option of `git cherry-pick` command adds a link back to the original commit.
 
+## Announce Milestone Planning in Chat
+
+The [spring-announce-milestone-planning.yml](.github/workflows/spring-announce-milestone-planning.yml) workflow offers an automatic chat message publishing when `due_on` on the repository milestone is changed.
+The callers workflow must be configured like this:
+```yaml
+name: Announce Milestone Planning in Chat
+
+on:
+  milestone:
+    types: [ created, edited ]
+
+jobs:
+  announce-milestone-planning:
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-announce-milestone-planning.yml@main
+    secrets:
+      SPRING_RELEASE_CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_GCHAT_WEBHOOK_URL }}
+```
+The workflow reacts to non-empty `due_on` property of the event's milestone payload and check if this property really was changed on milestone edit. 
+
 ## Gradle Init Scripts
 
 The `next-dev-version-init.gradle` script adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
