@@ -52,7 +52,7 @@ runs:
               echo "::error file=$workflowFile::The Dispatched workflow has not completed successfully"
               exit 1
             else
-              echo "::notice file=$workflowFile::The Dispatched workflow completed successfully"
+              echo "::notice file=$workflowFile,title=The Dispatched workflow:: Completed successfully"
             break
             fi
           fi
