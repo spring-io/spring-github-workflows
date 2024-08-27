@@ -7,6 +7,13 @@ on:
         description: 'Other workflow'
         required: true
         type: string
+      anInput:
+        description: 'Some input'
+        required: false
+        type: string
+
+env:
+  WORKFLOWS_REF: main
 
 jobs:
   call-other-workflow-and-wait:
@@ -15,45 +22,25 @@ jobs:
       - uses: actions/checkout@v4
         with:
           show-progress: false
-      - name: Call tests workflow
+
+      - name: Checkout Common Repo
+        uses: actions/checkout@v4
+        with:
+          repository: spring-io/spring-github-workflows
+          path: spring-github-workflows
+          show-progress: false
+          ref: ${{ env.WORKFLOWS_REF }}
+
+      - name: Build and Publish
         timeout-minutes: 30
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          dispatchDate=$(date -Iseconds)
-          workflowFile=${{ inputs.otherWorkflow }}
-          gh workflow run $workflowFile
-
-          sleep 60
-          
-          run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/workflows/$workflowFile/runs?event=workflow_dispatch&created=>=$dispatchDate)
-          
-          currentWorkflowRunId=$(echo "$run_data" | jq -r '.workflow_runs[0].id')
-
-          run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
-          
-          echo Other workflow current run: $(echo "$run_data" | jq -r '.html_url')
-
-          while true; do
-            run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
-            status=$(echo "$run_data" | jq -r '.status')
-
-            if [ $status = "completed" ]; then
-              conclusion=$(echo "$run_data" | jq -r '.conclusion')
-              if [ $conclusion != "success" ]; then
-                echo "❌ The other workflow has not completed successfully"
-                exit 1
-              else
-                echo "✅ The other workflow completed successfully"
-              break
-              fi
-            fi
-
-            sleep 60
-          done
+        uses: ./spring-github-workflows/.github/actions/spring-dispatch-workflow-and-wait
+        with:
+          workflow: ${{ inputs.otherWorkflow }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          inputs: '{ "anInput": "${{ inputs.anInput }}" }'
 
   next-job:
     needs: call-other-workflow-and-wait
     runs-on: ubuntu-latest
     steps:
-      - run: echo "✅ The main workflow completed successfully"
+      - run: echo "::notice The main workflow completed successfully"

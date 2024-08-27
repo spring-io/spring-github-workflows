@@ -1,0 +1,66 @@
+name: Dispatch another workflow and wait for its completion
+
+description: 'Dispatch another workflow and wait for its completion'
+
+inputs:
+  workflow:
+    description: 'The workflow YAML file name to call'
+    required: true
+  token:
+    description: 'A GitHub token for gh api calls'
+    required: true
+  inputs:
+    description: 'The target workflow input in JSON format'
+    required: false
+
+runs:
+  using: composite
+  steps:
+
+    - uses: actions/checkout@v4
+      with:
+        show-progress: false
+
+    - name: Dispatch workflow and wait
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        dispatchDate=$(date -Iseconds)
+        workflowFile=${{ inputs.workflow }}
+        
+        if [ '${{ inputs.inputs }}' ]; then
+          echo '${{ inputs.inputs }}' | gh workflow run $workflowFile --json
+        else
+          gh workflow run $workflowFile
+        fi
+        
+        sleep 60
+        
+        run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/workflows/$workflowFile/runs?event=workflow_dispatch&created=>=$dispatchDate)
+        
+        currentWorkflowRunId=$(echo "$run_data" | jq -r '.workflow_runs[0].id')
+        
+        run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
+        
+        currentWorkflowRunUrl=$(echo "$run_data" | jq -r '.html_url') 
+        
+        echo "::notice title=Dispatched workflow run::$currentWorkflowRunUrl"
+        
+        while true; do
+          run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
+          status=$(echo "$run_data" | jq -r '.status')
+        
+          if [ $status = "completed" ]; then
+            conclusion=$(echo "$run_data" | jq -r '.conclusion')
+            if [ $conclusion != "success" ]; then
+              echo "::error file=$workflowFile::The Dispatched workflow has not completed successfully"
+              exit 1
+            else
+              echo "::notice file=$workflowFile::The Dispatched workflow completed successfully"
+            break
+            fi
+          fi
+        
+          sleep 60
+        done

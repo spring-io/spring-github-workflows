@@ -2,6 +2,10 @@ name: Test workflow to be called from another
 
 on:
   workflow_dispatch:
+    inputs:
+      anInput:
+        description: Some input
+        required: false
 
 jobs:
   other-workflow:
@@ -9,4 +13,4 @@ jobs:
     steps:
       - run: |
           sleep 60
-          echo "✅ The other workflow is done"
+          echo "::notice The other workflow is done for ${{ inputs.anInput }}"
