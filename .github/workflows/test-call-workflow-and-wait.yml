@@ -7,10 +7,6 @@ on:
         description: 'Other workflow'
         required: true
         type: string
-      anInput:
-        description: 'Some input'
-        required: false
-        type: string
 
 env:
   WORKFLOWS_REF: main
@@ -37,7 +33,6 @@ jobs:
         with:
           workflow: ${{ inputs.otherWorkflow }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          inputs: '{ "anInput": "${{ inputs.anInput }}" }'
 
   next-job:
     needs: call-other-workflow-and-wait
