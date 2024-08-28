@@ -52,8 +52,6 @@ on:
         required: false
       GH_ACTIONS_REPO_TOKEN:
         required: true
-      OSSRH_URL:
-        required: false
       OSSRH_S01_TOKEN_USERNAME:
         required: false
       OSSRH_S01_TOKEN_PASSWORD:
@@ -130,7 +128,7 @@ jobs:
     needs: [releaseVersion, staging]
     name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
     if: ${{ !contains(needs.releaseVersion.outputs.releaseVersion, '-') }}
-    uses: ./.github/workflows/spring-artifactory-promote-central.yml
+    uses: ./.github/workflows/spring-artifactory-promote-ga.yml
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}

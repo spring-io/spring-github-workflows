@@ -1,4 +1,4 @@
-name: Promote Staged GA release from Artifactory to Maven Central
+name: Promote Staged GA release (optional to Maven Central)
 
 on:
   workflow_call:
@@ -27,8 +27,6 @@ on:
         default: ubuntu-latest
 
     secrets:
-      OSSRH_URL:
-        required: false
       OSSRH_S01_TOKEN_USERNAME:
         required: false
       OSSRH_S01_TOKEN_PASSWORD:
@@ -40,11 +38,11 @@ on:
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
-  OSSRH_URL: ${{ secrets.OSSRH_URL }}
+  OSSRH_STAGING_PROFILE_NAME: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
   WORKFLOWS_REF: main
 
 jobs:
-  release-to-central:
+  promote-ga:
     runs-on: ${{ inputs.runner }}
     steps:
 
@@ -60,7 +58,7 @@ jobs:
         run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }} --project=${{ inputs.artifactoryProjectKey }}
 
       - name: Download Release Files
-        if: env.OSSRH_URL
+        if: env.OSSRH_STAGING_PROFILE_NAME
         run: |
           jfrog rt download \
             --spec utils/release-files-spec.json \
@@ -68,9 +66,8 @@ jobs:
 
       - uses: spring-io/nexus-sync-action@v0.0.1
         id: nexus
-        if: env.OSSRH_URL
+        if: env.OSSRH_STAGING_PROFILE_NAME
         with:
-          url: ${{ env.OSSRH_URL }}
           username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
           password: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}
           staging-profile-name: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}

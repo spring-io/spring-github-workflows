@@ -14,7 +14,6 @@ JF_ARTIFACTORY_SPRING
 ARTIFACTORY_USERNAME
 ARTIFACTORY_PASSWORD
 SPRING_RELEASE_CHAT_WEBHOOK_URL
-OSSRH_URL
 OSSRH_S01_TOKEN_USERNAME
 OSSRH_S01_TOKEN_PASSWORD
 OSSRH_STAGING_PROFILE_NAME
@@ -215,7 +214,7 @@ The workflow reacts to non-empty `due_on` property of the event's milestone payl
 The `next-dev-version-init.gradle` script adds a `nextDevelopmentVersion` task which is used when release has been staged and job is ready to push `Next development version` commit.
 The `spring-artifactory-init.gradle` script adds the `org.jfrog.gradle.plugin.artifactory.ArtifactoryPlugin` and `signing` plugins.
 Configures them for those projects where the `maven-publish` plugin is applied.
-The `signing` is activated if no `OSSRH_URL` environment variable is present, but `GPG_PASSPHRASE` & `GPG_PRIVATE_KEY` are present.
+The `signing` is activated if no `OSSRH_STAGING_PROFILE_NAME` environment variable is present, but `GPG_PASSPHRASE` & `GPG_PRIVATE_KEY` are present.
 The Artifactory plugin requires these environment variables:
 
 ```
