@@ -25,9 +25,9 @@ runs:
         workflowFile=${{ inputs.workflow }}
         
         if [ '${{ inputs.inputs }}' ]; then
-          echo '${{ inputs.inputs }}' | gh workflow run $workflowFile --json
+          echo '${{ inputs.inputs }}' | gh workflow run $workflowFile -r ${{ github.ref_name }} --json
         else
-          gh workflow run $workflowFile
+          gh workflow run $workflowFile -r ${{ github.ref_name }}
         fi
         
         sleep 60
