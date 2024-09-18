@@ -42,11 +42,7 @@ on:
         default: ubuntu-latest
 
     secrets:
-      GRADLE_ENTERPRISE_CACHE_USER:
-        required: false
-      GRADLE_ENTERPRISE_CACHE_PASSWORD:
-        required: false
-      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+      DEVELOCITY_ACCESS_KEY:
         required: false
       SPRING_RELEASE_CHAT_WEBHOOK_URL:
         required: false

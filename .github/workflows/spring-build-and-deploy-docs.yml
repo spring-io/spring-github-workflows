@@ -9,7 +9,7 @@ on:
         type: string
 
     secrets:
-      GRADLE_ENTERPRISE_SECRET_ACCESS_KEY:
+      DEVELOCITY_ACCESS_KEY:
         required: false
       DOCS_USERNAME:
         required: true
@@ -25,8 +25,7 @@ on:
         required: true
 
 env:
-  GRADLE_ENTERPRISE_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
-  DEVELOCITY_ACCESS_KEY: ${{ secrets.GRADLE_ENTERPRISE_SECRET_ACCESS_KEY }}
+  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
 
 jobs:
   docs-build:

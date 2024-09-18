@@ -7,9 +7,7 @@ To use these workflows in your project a set of organization secrets must be gra
 
 ```
 GH_ACTIONS_REPO_TOKEN
-GRADLE_ENTERPRISE_CACHE_USER
-GRADLE_ENTERPRISE_CACHE_PASSWORD
-GRADLE_ENTERPRISE_SECRET_ACCESS_KEY
+DEVELOCITY_ACCESS_KEY
 JF_ARTIFACTORY_SPRING
 ARTIFACTORY_USERNAME
 ARTIFACTORY_PASSWORD
@@ -21,7 +19,7 @@ GPG_PASSPHRASE
 GPG_PRIVATE_KEY
 ```
 
-The Gradle Enterprise secrets are optional: not used by Maven and Gradle project might not be enrolled for the service.  
+The Develocity secret is optional: not used by Maven and Gradle project might not be enrolled for the service.  
 The `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is also optional: probably you don't want to notify Google Space about your release, or it is not available for GitHub organization.
 As well as `OSSRH_*` secret, since not all releases might go to Maven Central, e.g. private (commercial) repositories only.
 
