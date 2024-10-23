@@ -39,7 +39,7 @@ on:
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   OSSRH_STAGING_PROFILE_NAME: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
-  WORKFLOWS_REF: main
+  WORKFLOWS_REF: v4
 
 jobs:
   promote-ga:
