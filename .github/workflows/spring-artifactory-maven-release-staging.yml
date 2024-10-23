@@ -40,6 +40,8 @@ on:
         value: ${{ jobs.staging-to-artifactory-with-maven.outputs.buildNumber }}
 
     secrets:
+      DEVELOCITY_ACCESS_KEY:
+        required: false
       GH_ACTIONS_REPO_TOKEN:
         required: true
       ARTIFACTORY_USERNAME:
@@ -50,6 +52,9 @@ on:
         required: false
       GPG_PASSPHRASE:
         required: false
+
+env:
+  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
 
 jobs:
   staging-to-artifactory-with-maven:

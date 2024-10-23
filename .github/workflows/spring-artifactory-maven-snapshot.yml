@@ -32,10 +32,15 @@ on:
         required: true
       ARTIFACTORY_PASSWORD:
         required: true
+      DEVELOCITY_ACCESS_KEY:
+        required: false
       GPG_PRIVATE_KEY:
         required: false
       GPG_PASSPHRASE:
         required: false
+
+env:
+  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
 
 jobs:
   build_snapshot:

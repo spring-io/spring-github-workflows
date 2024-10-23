@@ -43,6 +43,8 @@ on:
         default: ubuntu-latest
 
     secrets:
+      DEVELOCITY_ACCESS_KEY:
+        required: false
       SPRING_RELEASE_CHAT_WEBHOOK_URL:
         required: false
       GH_ACTIONS_REPO_TOKEN:
@@ -63,10 +65,6 @@ on:
         required: true
       ARTIFACTORY_PASSWORD:
         required: true
-
-env:
-  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
   releaseVersion:

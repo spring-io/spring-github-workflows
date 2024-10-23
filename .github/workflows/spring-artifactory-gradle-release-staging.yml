@@ -53,7 +53,6 @@ on:
         required: false
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
   WORKFLOWS_REF: main
 
@@ -68,7 +67,7 @@ jobs:
 
       - uses: actions/checkout@v4
         with:
-          token: ${{ env.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           show-progress: false
 
       - name: Checkout Common Repo
