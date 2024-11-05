@@ -92,14 +92,3 @@ jobs:
           artifactoryPassword: ${{ secrets.ARTIFACTORY_PASSWORD }}
           gpgPrivateKey: ${{ secrets.GPG_PRIVATE_KEY }}
           gpgPassphrase: ${{ secrets.GPG_PASSPHRASE }}
-
-      - name: Tag Release and Next Development Version
-        run: |
-          git config --global user.name 'Spring Builds'
-          git config --global user.email 'builds@springframework.org'
-          git commit -a -m "[artifactory-release] Release version ${{ inputs.releaseVersion }}"
-          git tag "v${{ inputs.releaseVersion }}"
-          git push --tags origin
-          gradle nextDevelopmentVersion --no-scan -q
-          git commit -a -m "[artifactory-release] Next development version"
-          git push origin

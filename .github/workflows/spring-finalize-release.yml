@@ -34,6 +34,50 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Tag Release and Next Development Version
+        id: tag-release
+        run: |
+          if test -f pom.xml
+          then
+            mvn versions:set -DnewVersion=${{ inputs.milestone }} -DgenerateBackupPoms=false -DprocessAllModules=true -B -ntp
+          else
+            sed -i "s/version=.*/version=${{ inputs.milestone }}/" gradle.properties
+          fi
+          git config --global user.name 'Spring Builds'
+          git config --global user.email 'builds@springframework.org'
+          git commit -a -m "[artifactory-release] Release version ${{ inputs.milestone }}"
+          git tag "v${{ inputs.milestone }}"
+          git push --tags origin
+          
+          NEXT_VERSION="${{ inputs.milestone }}"
+          
+          if [[ "$NEXT_VERSION" == *"-"* ]] 
+          then
+            NEXT_VERSION=${NEXT_VERSION/-*}
+          else
+            MAJOR=${NEXT_VERSION/.*}
+            MINOR_PATCH=${NEXT_VERSION#*.}
+            MINOR=${MINOR_PATCH/.*}
+            PATCH_HOT_FIX=${MINOR_PATCH#*.}
+            PATCH=${PATCH_HOT_FIX/.*}
+            PATCH=$((PATCH+1))
+            NEXT_VERSION=$MAJOR.$MINOR.$PATCH
+          fi
+          
+          NEXT_VERSION=${NEXT_VERSION}-SNAPSHOT
+          
+          if test -f pom.xml
+          then
+            mvn versions:set -DnewVersion=$NEXT_VERSION -DgenerateBackupPoms=false -DprocessAllModules=true -B -ntp
+          else
+            sed -i "s/version=.*/version=$NEXT_VERSION/" gradle.properties
+          fi
+          
+          git commit -a -m "[artifactory-release] Next development version"
+          git push origin
+          
+          echo nextVersion=$NEXT_VERSION >> $GITHUB_OUTPUT
+
       - name: Changelog Config File
         run: |
           repositoryTeam=$(gh api repos/$GITHUB_REPOSITORY/collaborators --jq 'map(select(.role_name == "admin") | .login) | tostring')
