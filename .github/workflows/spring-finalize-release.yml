@@ -55,13 +55,10 @@ jobs:
           then
             NEXT_VERSION=${NEXT_VERSION/-*}
           else
-            MAJOR=${NEXT_VERSION/.*}
-            MINOR_PATCH=${NEXT_VERSION#*.}
-            MINOR=${MINOR_PATCH/.*}
-            PATCH_HOT_FIX=${MINOR_PATCH#*.}
-            PATCH=${PATCH_HOT_FIX/.*}
+            MAJOR_MINOR=$(echo "$NEXT_VERSION" | cut -d '.' -f1-2)
+            PATCH=$(echo "$NEXT_VERSION" | cut -d '.' -f3)
             PATCH=$((PATCH+1))
-            NEXT_VERSION=$MAJOR.$MINOR.$PATCH
+            NEXT_VERSION=$MAJOR_MINOR.$PATCH
           fi
           
           NEXT_VERSION=${NEXT_VERSION}-SNAPSHOT
