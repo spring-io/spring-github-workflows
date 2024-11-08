@@ -1,0 +1,69 @@
+name: Update the Spring website project page for new version
+
+description: 'Update the Spring website project page for new version. The SNAPSHOT version is also added if generation permits. Supports only Antora docs.'
+
+inputs:
+  newVersion:
+    description: 'The version to add to project page'
+    required: true
+  token:
+    description: 'A GitHub token for REST api calls'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Update project page for new version
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        PROJECT=${{ github.event.repository.name }}
+        GITHUB_USER=$(gh api /user --jq '.login')
+        SPRING_WEBSITE_CLIENT='curl -s -u "$GITHUB_USER:${{ inputs.token }}" -H "Content-Type: application/json" --url "https://api.spring.io/projects/$PROJECT"'
+        
+        if [ $(eval $SPRING_WEBSITE_CLIENT -o /dev/null -w '%{http_code}') != '200' ]
+        then
+          echo "::notice title=Nothing to update on Spring website::No versions update for $PROJECT project which is not listed on Spring website."
+          exit 0
+        fi
+        
+        NEXT_VERSION="${{ inputs.newVersion }}"
+        MAJOR_MINOR=$(echo "$NEXT_VERSION" | cut -d '.' -f1-2)
+        
+        if [[ "$NEXT_VERSION" == *"-"* ]] 
+        then
+          NEXT_VERSION=${NEXT_VERSION/-*}
+        else
+          PATCH=$(echo "$NEXT_VERSION" | cut -d '.' -f3)
+          PATCH=$((PATCH+1))
+          NEXT_VERSION=$MAJOR_MINOR.$PATCH
+        fi
+        
+        NEXT_VERSION=${NEXT_VERSION}-SNAPSHOT
+        
+        PROJECT_PAGE_RELEASES=$(eval $SPRING_WEBSITE_CLIENT/releases | jq '._embedded.releases[].version' | tr -d \")
+  
+        for PROJECT_PAGE_RELEASE in $PROJECT_PAGE_RELEASES
+        do
+          if [[ $PROJECT_PAGE_RELEASE == $MAJOR_MINOR* ]]
+          then
+            eval $SPRING_WEBSITE_CLIENT/releases/$PROJECT_PAGE_RELEASE -X DELETE --fail --show-error
+          fi
+        done
+
+        create_release() {
+          VERSION_JSON='{"version": "${{ inputs.newVersion }}", "referenceDocUrl": "'https://docs.spring.io/$PROJECT/reference/\{version\}'", "apiDocUrl": "'https://docs.spring.io/$PROJECT/docs/\{version\}/api'", "isAntora": true}'
+
+          eval $SPRING_WEBSITE_CLIENT/releases -X POST -d '"$VERSION_JSON"' --fail --show-error
+        }
+        
+        create_release ${{ inputs.newVersion }}
+        
+        OSS_SUPPORT_END_DATE=$(eval $SPRING_WEBSITE_CLIENT/generations/${MAJOR_MINOR}.x | jq '.ossSupportEndDate' | tr -d \")
+  
+        if [[ $OSS_SUPPORT_END_DATE > $(date '+%F') ]]
+        then
+          create_release $NEXT_VERSION
+        fi
+        
