@@ -28,42 +28,42 @@ runs:
           exit 0
         fi
         
-        NEXT_VERSION="${{ inputs.newVersion }}"
-        MAJOR_MINOR=$(echo "$NEXT_VERSION" | cut -d '.' -f1-2)
+        VERSIONS_TO_UPDATE=${{ inputs.newVersion }}
         
-        if [[ "$NEXT_VERSION" == *"-"* ]] 
-        then
-          NEXT_VERSION=${NEXT_VERSION/-*}
-        else
-          PATCH=$(echo "$NEXT_VERSION" | cut -d '.' -f3)
-          PATCH=$((PATCH+1))
-          NEXT_VERSION=$MAJOR_MINOR.$PATCH
-        fi
-        
-        NEXT_VERSION=${NEXT_VERSION}-SNAPSHOT
-        
-        PROJECT_PAGE_RELEASES=$(eval $SPRING_WEBSITE_CLIENT/releases | jq '._embedded.releases[].version' | tr -d \")
-  
-        for PROJECT_PAGE_RELEASE in $PROJECT_PAGE_RELEASES
-        do
-          if [[ $PROJECT_PAGE_RELEASE == $MAJOR_MINOR* ]]
-          then
-            eval $SPRING_WEBSITE_CLIENT/releases/$PROJECT_PAGE_RELEASE -X DELETE --fail --show-error
-          fi
-        done
-
-        create_release() {
-          VERSION_JSON='{"version": "${{ inputs.newVersion }}", "referenceDocUrl": "'https://docs.spring.io/$PROJECT/reference/\{version\}'", "apiDocUrl": "'https://docs.spring.io/$PROJECT/docs/\{version\}/api'", "isAntora": true}'
-
-          eval $SPRING_WEBSITE_CLIENT/releases -X POST -d '"$VERSION_JSON"' --fail --show-error
-        }
-        
-        create_release ${{ inputs.newVersion }}
+        MAJOR_MINOR=$(echo ${{ inputs.newVersion }} | cut -d '.' -f1-2)
         
         OSS_SUPPORT_END_DATE=$(eval $SPRING_WEBSITE_CLIENT/generations/${MAJOR_MINOR}.x | jq '.ossSupportEndDate' | tr -d \")
-  
+        
         if [[ $OSS_SUPPORT_END_DATE > $(date '+%F') ]]
         then
-          create_release $NEXT_VERSION
+          NEXT_SNAPSHOT=${{ inputs.newVersion }}
+        
+          if [[ $NEXT_SNAPSHOT == *"-"* ]] 
+          then
+            NEXT_SNAPSHOT=${NEXT_SNAPSHOT/-*}
+          else
+            PATCH=$(echo $NEXT_SNAPSHOT | cut -d '.' -f3)
+            PATCH=$((PATCH+1))
+            NEXT_SNAPSHOT=$MAJOR_MINOR.$PATCH
+          fi
+        
+          NEXT_SNAPSHOT+='-SNAPSHOT'
+          VERSIONS_TO_UPDATE+=" $NEXT_SNAPSHOT"
         fi
+        
+        VERSIONS_TO_REMOVE=$(eval $SPRING_WEBSITE_CLIENT/releases | jq "._embedded.releases[].version | select(startswith(\"$MAJOR_MINOR\"))" | tr -d \")
+        
+        for VERSION_TO_REMOVE in $VERSIONS_TO_REMOVE
+        do
+          eval $SPRING_WEBSITE_CLIENT/releases/$VERSION_TO_REMOVE -X DELETE --fail --show-error
+        done
+        
+        for VERSION in $VERSIONS_TO_UPDATE
+        do
+          VERSION_JSON='{"version": "'$VERSION'", "referenceDocUrl": "'https://docs.spring.io/$PROJECT/reference/\{version\}'", "apiDocUrl": "'https://docs.spring.io/$PROJECT/docs/\{version\}/api'", "isAntora": true}'
+          eval $SPRING_WEBSITE_CLIENT/releases -X POST -d '"$VERSION_JSON"' --fail --show-error
+        done
+                
+        
+       
         
