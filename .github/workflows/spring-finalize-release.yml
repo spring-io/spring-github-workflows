@@ -15,8 +15,6 @@ on:
         required: true
 
 env:
-  MILESTONE: ${{ inputs.milestone }}
-  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SPRING_MAIN_BANNERMODE: off
 
@@ -88,26 +86,39 @@ jobs:
       - name: Generate Changelog
         uses: spring-io/github-changelog-generator@v0.0.11
         with:
-          milestone: ${{ env.MILESTONE }}
-          token: ${{ env.GITHUB_TOKEN }}
+          milestone: ${{ inputs.milestone }}
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           config-file: changelog.properties
 
       - name: GitHub Release
         run: |
-          RELEASE_URL=$(gh release create v${{ env.MILESTONE }} -F changelog.md ${{ (contains(env.MILESTONE, '-M') || contains(env.MILESTONE, '-RC')) && '--prerelease' || '' }})
+          RELEASE_URL=$(gh release create v${{ inputs.milestone }} -F changelog.md ${{ (contains(inputs.milestone, '-M') || contains(inputs.milestone, '-RC')) && '--prerelease' || '' }})
           echo "::notice title=Release Page::$RELEASE_URL"
 
       - name: Close Milestone
         run: |
-          MILESTONE_ID=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq '.[] | select(.title == env.MILESTONE) | .number')
+          MILESTONE_ID=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq '.[] | select(.title == "${{ inputs.milestone }}") | .number')
           if [ $MILESTONE_ID ]; then
             gh api -X PATCH repos/$GITHUB_REPOSITORY/milestones/$MILESTONE_ID -f state='closed' --silent
           fi
 
+      - name: Checkout Common Repo
+        uses: actions/checkout@v4
+        with:
+          repository: spring-io/spring-github-workflows
+          path: spring-github-workflows
+          show-progress: false
+
+      - name: Update Spring IO website for new version
+        uses: ./spring-github-workflows/.github/actions/spring-website-project-version-update
+        with:
+          newVersion: ${{ inputs.milestone }}
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+
       - name: Announce Release in Chat
         if: env.CHAT_WEBHOOK_URL
         run: |
-          curl -X POST '${{ env.CHAT_WEBHOOK_URL }}' -H 'Content-Type: application/json' -d '{ text: "${{ github.event.repository.name }}-announcing `${{ env.MILESTONE }}`"}'
+          curl -X POST '${{ env.CHAT_WEBHOOK_URL }}' -H 'Content-Type: application/json' -d '{ text: "${{ github.event.repository.name }}-announcing `${{ inputs.milestone }}`"}'
         env:
           CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
 
@@ -120,5 +131,5 @@ jobs:
 #        with:
 #          payload: |
 #            {
-#              "text": "${{ github.event.repository.name }}-announcing `${{ env.MILESTONE }}`"
+#              "text": "${{ github.event.repository.name }}-announcing `${{ inputs.milestone }}`"
 #            }
