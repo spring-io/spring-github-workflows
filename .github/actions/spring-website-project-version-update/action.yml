@@ -55,7 +55,7 @@ runs:
         
         for VERSION_TO_REMOVE in $VERSIONS_TO_REMOVE
         do
-          eval $SPRING_WEBSITE_CLIENT/releases/$VERSION_TO_REMOVE -X DELETE --fail --show-error
+          eval $SPRING_WEBSITE_CLIENT/releases/$VERSION_TO_REMOVE -X DELETE
         done
         
         for VERSION in $VERSIONS_TO_UPDATE
