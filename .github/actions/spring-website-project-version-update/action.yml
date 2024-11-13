@@ -34,7 +34,7 @@ runs:
         
         OSS_SUPPORT_END_DATE=$(eval $SPRING_WEBSITE_CLIENT/generations/${MAJOR_MINOR}.x | jq '.ossSupportEndDate' | tr -d \")
         
-        if [[ $OSS_SUPPORT_END_DATE > $(date '+%F') ]]
+        if [[ -z $OSS_SUPPORT_END_DATE || $OSS_SUPPORT_END_DATE > $(date '+%F') ]]
         then
           NEXT_SNAPSHOT=${{ inputs.newVersion }}
         
