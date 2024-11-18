@@ -39,7 +39,7 @@ on:
 
 env:
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-  WORKFLOWS_REF: main
+  WORKFLOWS_REF: v5
 
 jobs:
   build-snapshot-with-gradle:
