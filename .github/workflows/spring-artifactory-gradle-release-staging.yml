@@ -54,7 +54,7 @@ on:
 
 env:
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-  WORKFLOWS_REF: v5
+  WORKFLOWS_REF: main
 
 jobs:
   staging-to-artifactory-with-gradle:
