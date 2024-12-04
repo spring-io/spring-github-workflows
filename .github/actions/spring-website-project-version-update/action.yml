@@ -60,7 +60,7 @@ runs:
         
         for VERSION in $VERSIONS_TO_UPDATE
         do
-          VERSION_JSON='{"version": "'$VERSION'", "referenceDocUrl": "'https://docs.spring.io/$PROJECT/reference/\{version\}'", "apiDocUrl": "'https://docs.spring.io/$PROJECT/docs/\{version\}/api'", "isAntora": true}'
+          VERSION_JSON='{"version": "'$VERSION'", "referenceDocUrl": "'https://docs.spring.io/$PROJECT/reference/\{version\}'", "apiDocUrl": "'https://docs.spring.io/$PROJECT/docs/$VERSION/api'", "isAntora": true}'
           eval $SPRING_WEBSITE_CLIENT/releases -X POST -d '"$VERSION_JSON"' --fail --show-error
         done
                 

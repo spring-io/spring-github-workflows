@@ -39,15 +39,11 @@ jobs:
     steps:
 
       - run: |
-          curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
-            -X POST -H "X-JFrog-Signing-Key-Name: packagesKey" -H "Content-Type: application/json" \
-            "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/release_bundle?project=spring" \
-            -d '{"release_bundle_name": "${{ inputs.bundleName }}", "release_bundle_version": "${{ inputs.releaseVersion }}", "skip_docker_manifest_resolution": true, "source_type": "builds", "source": {"builds": [ {"build_repository": "spring-build-info", "build_name": "${{ inputs.buildName }}", "build_number": "${{ inputs.buildNumber }}", "include_dependencies": false}]}}' 
+          ARTIFACTORY_CLIENT='curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" -X POST -H "Content-Type: application/json" --fail --show-error --url "${{ inputs.artifactoryUrl }}/lifecycle/api/v2"'
           
-          sleep 10
-          
-          curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
-            -X POST -H "Content-Type: application/json" \
-            "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/distribution/distribute/${{ inputs.bundleName }}/${{ inputs.releaseVersion }}?project=spring" \
-            -d '{"auto_create_missing_repositories": "false", "distribution_rules": [{"site_name": "JP-SaaS"}], "modifications": {"mappings": [{"input": "spring-enterprise-maven-prod-local/(.*)", "output": "spring-enterprise/$1"}]}}'
+          BUNDLE_JSON='{"release_bundle_name": "${{ inputs.bundleName }}", "release_bundle_version": "${{ inputs.releaseVersion }}", "skip_docker_manifest_resolution": true, "source_type": "builds", "source": {"builds": [ {"build_repository": "spring-build-info", "build_name": "${{ inputs.buildName }}", "build_number": "${{ inputs.buildNumber }}"}]}}'
+          eval $ARTIFACTORY_CLIENT/release_bundle?project=spring&async=false -H "X-JFrog-Signing-Key-Name: packagesKey" -d '"$BUNDLE_JSON"'
+
+          DISTRIBUTION_JSON='{"auto_create_missing_repositories": "false", "distribution_rules": [{"site_name": "JP-SaaS"}], "modifications": {"mappings": [{"input": "spring-enterprise-maven-prod-local/(.*)", "output": "spring-enterprise/$1"}]}}'
+          eval $ARTIFACTORY_CLIENT/distribution/distribute/${{ inputs.bundleName }}/${{ inputs.releaseVersion }}?project=spring -d '"$DISTRIBUTION_JSON"'
 
