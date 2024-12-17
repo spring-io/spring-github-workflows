@@ -1,6 +1,7 @@
 # GitHub Actions Workflows for Spring Projects
 
-This project containers reusable GitHub Actions Workflows to build Spring projects with Gradle or Maven.
+This project contains reusable GitHub Actions Workflows to build Spring projects with Gradle or Maven.
+And provides some other useful utilities to perform from GitHub Actions, such a Dependabot auto-merge, or automatic back-port issue creation.  
 The workflows are designed for specific tasks and can be reused individually or in combinations in the target projects.
 
 To use these workflows in your project a set of organization secrets must be granted to the repository:
@@ -19,13 +20,13 @@ GPG_PASSPHRASE
 GPG_PRIVATE_KEY
 ```
 
-The Develocity secret is optional: not used by Maven and Gradle project might not be enrolled for the service.  
+The Develocity secret is optional: mostly not used by Maven and Gradle project might not be enrolled for the service.  
 The `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is also optional: probably you don't want to notify Google Space about your release, or it is not available for GitHub organization.
 As well as `OSSRH_*` secret, since not all releases might go to Maven Central, e.g. private (commercial) repositories only.
 
 The mentioned secrets must be passed explicitly since these reusable workflows might be in different GitHub org than target project.
 
-The SNAPSHOT and Release workflows uses JFrog Artifactory plugin to publish artifacts into Artifactory.
+The SNAPSHOT and Release workflows uses [spring-io/artifactory-deploy-action](https://github.com/spring-io/artifactory-deploy-action) to publish artifacts into Artifactory.
 
 ## Build SNAPSHOT and Pull Request Workflows
 
@@ -42,8 +43,8 @@ https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800
 You can add more branches to react for pull request events.
 
 The SNAPSHOT workflows ([spring-artifactory-gradle-snapshot.yml](.github/workflows/spring-artifactory-gradle-snapshot.yml) and [spring-artifactory-maven-snapshot.yml](.github/workflows/spring-artifactory-maven-snapshot.yml), respectively) are also that simple.
-They use JFrog Artifactory plugin to be able to publish artifacts into `libs-snapshot-local` (by default) repository.
-The Gradle workflow can be supplied with Gradle Enterprise secrets.
+They publish artifacts into `libs-snapshot-local` (by default) repository.
+The Gradle workflow can be supplied with Develocity secret.
 
 #### Gradle SNAPSHOT caller workflow:
 https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/ci-snapshot-gradle.yml#L1-L18

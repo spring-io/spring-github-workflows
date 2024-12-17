@@ -39,15 +39,18 @@ jobs:
           branches=$(echo "$COMMIT_MESSAGE" | grep "$CHERRY_PICK_TOKEN" | grep -o1 -E "([0-9]+\.[0-9]+\.x)")
           for branch in $branches
           do 
-            git checkout "$branch"
-            if git cherry-pick ${{ github.sha }} -x
+            if [ "$branch" != '${{ github.ref_name }}' ]
             then
-              echo "::notice title=Commit cherry-picked::${{ github.sha }} to branch $branch"
-            else
-              echo "::error title=Cannot cherry-pick::${{ github.sha }} to branch $branch. Manual procedure required"
-              exit 1
+              git checkout "$branch"
+              if git cherry-pick ${{ github.sha }} -x
+              then
+                echo "::notice title=Commit cherry-picked::${{ github.sha }} to branch $branch"
+              else
+                echo "::error title=Cannot cherry-pick::${{ github.sha }} to branch $branch. Manual procedure required"
+                exit 1
+              fi
+              branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$CHERRY_PICK_TOKEN")
+              git commit --amend -o -m "$branchCommitMessage"  
+              git push origin $branch    
             fi
-            branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$CHERRY_PICK_TOKEN")
-            git commit --amend -o -m "$branchCommitMessage"  
-            git push origin $branch
           done
