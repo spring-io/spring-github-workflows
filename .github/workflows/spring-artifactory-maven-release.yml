@@ -41,6 +41,10 @@ on:
         required: false
         type: string
         default: ubuntu-latest
+      bundleName:
+        description: 'The Artifactory Bundle Name'
+        required: false
+        type: string
 
     secrets:
       DEVELOCITY_ACCESS_KEY:
@@ -130,6 +134,19 @@ jobs:
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
       targetRepository: ${{ inputs.targetReleaseRepository }}
       runner: ${{ inputs.runner }}
+    secrets: inherit
+
+  spring-release-bundle:
+    needs: [ releaseVersion, staging, promote-milestone, promote-ga ]
+    name: Release Bundle for ${{ needs.releaseVersion.outputs.releaseVersion }}
+    if: inputs.bundleName
+    uses: ./.github/workflows/spring-enterprise-release-bundle.yml
+    with:
+      buildName: ${{ needs.staging.outputs.buildName }}
+      buildNumber: ${{ needs.staging.outputs.buildNumber }}
+      artifactoryUrl: ${{ inputs.artifactoryUrl }}
+      bundleName: ${{ inputs.bundleName }}
+      releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
     secrets: inherit
 
   finalize:
