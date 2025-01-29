@@ -7,6 +7,9 @@ on:
         description: Current Milestone to release
         value: ${{ jobs.find-release-version.outputs.releaseVersion }}
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   find-release-version:
     runs-on: ubuntu-latest
@@ -25,8 +28,6 @@ jobs:
       - name: Find Scheduled Milestone
         id: find-milestone
         uses: ./spring-github-workflows/.github/actions/spring-scheduled-milestone-for-branch
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Version to Release
         run: |
