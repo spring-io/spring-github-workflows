@@ -1,0 +1,48 @@
+name: Get the closest GitHub Milestone for the branch we running in
+
+description: 'Checkouts the repository to obtain the current version then call gh api to find a Milestone.
+GH_TOKEN environment variable has to be set for this action.'
+
+outputs:
+  milestone:
+    description: 'The scheduled Milestone if any'
+    value: ${{ steps.find-milestone.outputs.milestone }}
+  currentVersion:
+    description: 'The version for Milestone to find'
+    value: ${{ steps.find-milestone.outputs.currentVersion }}
+
+runs:
+  using: composite
+  steps:
+
+    - uses: actions/checkout@v4
+      with:
+        show-progress: false
+
+    - uses: actions/setup-java@v4
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - name: Find Scheduled Milestone for Current Version in Branch
+      id: find-milestone
+      shell: bash
+      run: |
+        if test -f pom.xml
+        then
+          CURRENT_VERSION=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
+        else
+          CURRENT_VERSION=$(cat gradle.properties | sed -n '/^version=/ { s/^version=//;p }')
+        fi
+        
+        echo currentVersion=$CURRENT_VERSION >> $GITHUB_OUTPUT
+        
+        export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
+        MILESTONE=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.due_on != null and (.title | startswith(env.CANDIDATE_VERSION)))) | .[0] | .title')
+        
+        if [ -z $MILESTONE ]
+        then
+          echo "::warning title=No scheduled milestone::No scheduled milestone for $CURRENT_VERSION version"
+        else
+          echo milestone=$MILESTONE >> $GITHUB_OUTPUT
+        fi
