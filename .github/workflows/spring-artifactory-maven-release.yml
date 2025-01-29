@@ -45,6 +45,11 @@ on:
         description: 'The Artifactory Bundle Name'
         required: false
         type: string
+      deployMilestoneToCentral:
+        description: 'Whether to deploy Milestone release to Maven Central'
+        default: false
+        required: false
+        type: boolean
 
     secrets:
       DEVELOCITY_ACCESS_KEY:
@@ -88,7 +93,7 @@ jobs:
     secrets: inherit
 
   verify-staged:
-    needs: [releaseVersion, staging]
+    needs: [ releaseVersion, staging ]
     name: Verify ${{ needs.releaseVersion.outputs.releaseVersion }}
     runs-on: ${{ inputs.runner }}
     steps:
@@ -112,23 +117,22 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
 
-  promote-milestone:
-    needs: [releaseVersion, staging, verify-staged]
+  promote-release:
+    needs: [ releaseVersion, staging, verify-staged ]
     name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
-    if: ${{ (contains(needs.releaseVersion.outputs.releaseVersion, '-M') || contains(needs.releaseVersion.outputs.releaseVersion, '-RC')) }}
-    uses: ./.github/workflows/spring-artifactory-promote-milestone.yml
+    uses: ./.github/workflows/spring-artifactory-promote-release.yml
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
-      targetRepository: ${{ inputs.targetMilestoneRepository }}
+      targetRepository: ${{ contains(needs.releaseVersion.outputs.releaseVersion, '-') && inputs.targetMilestoneRepository || inputs.targetReleaseRepository }}
       runner: ${{ inputs.runner }}
     secrets: inherit
 
-  promote-ga:
-    needs: [releaseVersion, staging, verify-staged]
-    name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
-    if: ${{ !contains(needs.releaseVersion.outputs.releaseVersion, '-') }}
-    uses: ./.github/workflows/spring-artifactory-promote-ga.yml
+  deploy-to-central:
+    needs: [ releaseVersion, staging, promote-release ]
+    name: Deploy ${{ needs.releaseVersion.outputs.releaseVersion }} to Maven Central
+    if: ${{ !inputs.bundleName && (!contains(needs.releaseVersion.outputs.releaseVersion, '-') || inputs.deployMilestoneToCentral) }}
+    uses: ./.github/workflows/spring-artifactory-deploy-to-maven-central.yml
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
@@ -137,7 +141,7 @@ jobs:
     secrets: inherit
 
   spring-release-bundle:
-    needs: [ releaseVersion, staging, promote-milestone, promote-ga ]
+    needs: [ releaseVersion, staging, promote-release ]
     name: Release Bundle for ${{ needs.releaseVersion.outputs.releaseVersion }}
     if: inputs.bundleName
     uses: ./.github/workflows/spring-enterprise-release-bundle.yml
@@ -150,8 +154,7 @@ jobs:
     secrets: inherit
 
   finalize:
-    if: ${{ !(failure() || cancelled()) }}
-    needs: [releaseVersion, promote-milestone, promote-ga]
+    needs: [ releaseVersion, deploy-to-central, spring-release-bundle ]
     name: Finalize ${{ needs.releaseVersion.outputs.releaseVersion }}
     uses: ./.github/workflows/spring-finalize-release.yml
     with:

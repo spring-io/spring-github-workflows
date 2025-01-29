@@ -1,12 +1,8 @@
-name: Promote Staged GA release (optional to Maven Central)
+name: Deploy Release (Milestone or GA) to Maven Central from Artifactory Build
 
 on:
   workflow_call:
     inputs:
-      artifactoryProjectKey:
-        description: 'The Artifactory project key'
-        required: false
-        type: string
       buildName:
         description: 'The Artifactory Build Name'
         required: true
@@ -15,11 +11,6 @@ on:
         description: 'The Artifactory Build Number'
         required: true
         type: string
-      targetRepository:
-        description: 'The Artifactory Repository to promote the build to'
-        required: false
-        type: string
-        default: libs-release-local
       runner:
         description: 'The runner for job'
         required: false
@@ -28,21 +19,20 @@ on:
 
     secrets:
       OSSRH_S01_TOKEN_USERNAME:
-        required: false
+        required: true
       OSSRH_S01_TOKEN_PASSWORD:
-        required: false
+        required: true
       OSSRH_STAGING_PROFILE_NAME:
-        required: false
+        required: true
       JF_ARTIFACTORY_SPRING:
         required: true
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
-  OSSRH_STAGING_PROFILE_NAME: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
   WORKFLOWS_REF: main
 
 jobs:
-  promote-ga:
+  deploy-to-maven-central:
     runs-on: ${{ inputs.runner }}
     steps:
 
@@ -54,9 +44,6 @@ jobs:
 
       - uses: jfrog/setup-jfrog-cli@v4
 
-      - name: Promote Build
-        run: jfrog rt build-promote ${{ inputs.buildName }} ${{ inputs.buildNumber }} ${{ inputs.targetRepository }} --project=${{ inputs.artifactoryProjectKey }}
-
       - name: Download Release Files
         if: env.OSSRH_STAGING_PROFILE_NAME
         run: |
@@ -66,7 +53,6 @@ jobs:
 
       - uses: spring-io/nexus-sync-action@v0.0.1
         id: nexus
-        if: env.OSSRH_STAGING_PROFILE_NAME
         with:
           username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
           password: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}

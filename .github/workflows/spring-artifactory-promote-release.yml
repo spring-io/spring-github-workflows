@@ -1,4 +1,4 @@
-name: Promote Staged Milestone in Artifactory
+name: Promote Staged Release (Milestone or GA) in Artifactory
 
 on:
   workflow_call:
@@ -19,7 +19,7 @@ on:
         description: 'The Artifactory Repository to promote the build to'
         required: false
         type: string
-        default: libs-milestone-local
+        default: libs-release-local
       runner:
         description: 'The runner for job'
         required: false
@@ -35,7 +35,7 @@ env:
   WORKFLOWS_REF: main
 
 jobs:
-  promote-milestone-with-jfrog:
+  promote-release-with-jfrog:
     runs-on: ${{ inputs.runner }}
     steps:
 
