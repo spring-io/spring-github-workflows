@@ -30,6 +30,7 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  WORKFLOWS_REF: main
 
 jobs:
   merge-dependabot-pr:
@@ -41,10 +42,13 @@ jobs:
         with:
           show-progress: false
 
-      - uses: actions/setup-java@v4
+      - name: Checkout Common Repo
+        uses: actions/checkout@v4
         with:
-          distribution: temurin
-          java-version: 17
+          repository: spring-io/spring-github-workflows
+          path: spring-github-workflows
+          show-progress: false
+          ref: ${{ env.WORKFLOWS_REF }}
 
       - name: Dependabot metadata
         id: metadata
@@ -58,34 +62,24 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ inputs.developmentLabel }}"
           gh pr edit ${{ github.event.pull_request.number }} --remove-label "${{ inputs.dependenciesLabel }}"
 
-      - name: Set Milestone to Dependabot pull request or upgrade to SNAPSHOT
-        id: set-milestone
+      - name: Find Scheduled Milestone
+        id: find-milestone
+        if: ${{ inputs.autoMergeSnapshots != 'true' || !endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT') }}
+        uses: ./spring-github-workflows/.github/actions/spring-scheduled-milestone-for-branch
+
+      - name: Set Milestone to Dependabot pull request
+        if: ${{ inputs.autoMergeSnapshots != 'true' || !endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT') }}
         run: |
-          
-          if [[ '${{ inputs.autoMergeSnapshots }}' == 'true' && '${{ steps.metadata.outputs.new-version }}' == *-SNAPSHOT ]]
-          then
-            echo mergeEnabled=true >> $GITHUB_OUTPUT
-            exit 0
-          fi
-          
-          if test -f pom.xml
-          then
-            CURRENT_VERSION=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
-          else
-            CURRENT_VERSION=$(cat gradle.properties | sed -n '/^version=/ { s/^version=//;p }')
-          fi
-          export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
-          MILESTONE=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.due_on != null and (.title | startswith(env.CANDIDATE_VERSION)))) | .[0] | .title')
+          MILESTONE=${{ steps.find-milestone.outputs.milestone }}
           
           if [ -z $MILESTONE ]
           then
             gh run cancel ${{ github.run_id }}
-            echo "::warning title=Cannot merge::No scheduled milestone for $CURRENT_VERSION version"
+            echo "::warning title=Cannot merge::No scheduled milestone for ${{ steps.find-milestone.outputs.currentVersion }} version"
           else
             gh pr edit ${{ github.event.pull_request.number }} --milestone $MILESTONE
-            echo mergeEnabled=true >> $GITHUB_OUTPUT
           fi
 
       - name: Merge Dependabot pull request
-        if: steps.set-milestone.outputs.mergeEnabled
+        if: ${{ !cancelled() }}
         run: gh pr merge ${{ github.event.pull_request.number }} ${{ inputs.mergeArguments }}
