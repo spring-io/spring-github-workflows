@@ -15,10 +15,6 @@ runs:
   using: composite
   steps:
 
-    - uses: actions/checkout@v4
-      with:
-        show-progress: false
-
     - uses: actions/setup-java@v4
       with:
         distribution: temurin
