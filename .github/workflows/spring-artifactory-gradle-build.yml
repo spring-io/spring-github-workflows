@@ -1,25 +1,24 @@
-name: Build with Gradle and Stage Release to Artifactory
+name: CI Artifactory Build for Gradle
 
 on:
   workflow_call:
     inputs:
       releaseVersion:
-        description: 'Release version like 3.0.0-M1, 3.1.0-RC1, 3.2.0 etc.'
-        required: true
+        description: 'Release version like 3.0.0-M1, 3.1.0-RC1, 3.2.0 etc. If not specified this workflow acts as a SNAPSHOT build.'
+        required: false
         type: string
       gradleTasks:
-        description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
+        description: 'Additional Gradle tasks. The `build` and `publishAllPublicationsToDeploymentRepository` are included.'
         required: false
         type: string
       artifactoryUrl:
         description: 'The Artifactory Server'
         required: false
         type: string
-      stagingRepository:
-        description: 'The Artifactory Repository to stage artifacts to'
+      targetRepository:
+        description: 'The Artifactory Repository to upload artifacts to'
         required: false
         type: string
-        default: libs-staging-local
       artifactoryProjectKey:
         description: 'The Artifactory project key'
         required: false
@@ -33,20 +32,18 @@ on:
     outputs:
       buildName:
         description: 'Artifactory Build Name'
-        value: ${{ jobs.staging-to-artifactory-with-gradle.outputs.buildName }}
+        value: ${{ jobs.build-with-gradle.outputs.buildName }}
       buildNumber:
         description: 'Artifactory Build Number'
-        value: ${{ jobs.staging-to-artifactory-with-gradle.outputs.buildNumber }}
+        value: ${{ jobs.build-with-gradle.outputs.buildNumber }}
 
     secrets:
-      GH_ACTIONS_REPO_TOKEN:
-        required: true
+      DEVELOCITY_ACCESS_KEY:
+        required: false
       ARTIFACTORY_USERNAME:
         required: true
       ARTIFACTORY_PASSWORD:
         required: true
-      DEVELOCITY_ACCESS_KEY:
-        required: false
       GPG_PASSPHRASE:
         required: false
       GPG_PRIVATE_KEY:
@@ -57,8 +54,10 @@ env:
   WORKFLOWS_REF: main
 
 jobs:
-  staging-to-artifactory-with-gradle:
+  build-with-gradle:
     runs-on: ${{ inputs.runner }}
+    name: CI Build for ${{ github.ref_name }}
+
     outputs:
       buildName: ${{ steps.build-and-publish.outputs.buildName }}
       buildNumber: ${{ steps.build-and-publish.outputs.buildNumber }}
@@ -85,9 +84,11 @@ jobs:
           releaseVersion: ${{ inputs.releaseVersion }}
           gradleTasks: ${{ inputs.gradleTasks }}
           artifactoryUrl: ${{ inputs.artifactoryUrl }}
-          targetRepository: ${{ inputs.stagingRepository }}
+          targetRepository: ${{ inputs.targetRepository }}
           artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
           artifactoryUsername: ${{ secrets.ARTIFACTORY_USERNAME }}
           artifactoryPassword: ${{ secrets.ARTIFACTORY_PASSWORD }}
           gpgPrivateKey: ${{ secrets.GPG_PRIVATE_KEY }}
           gpgPassphrase: ${{ secrets.GPG_PASSPHRASE }}
+
+

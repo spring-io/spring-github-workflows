@@ -43,33 +43,13 @@ env:
 
 jobs:
   build-snapshot-with-gradle:
-    runs-on: ${{ inputs.runner }}
     name: CI Build SNAPSHOT for ${{ github.ref_name }}
-    steps:
-
-      - uses: actions/checkout@v4
-        with:
-          show-progress: false
-
-      - name: Checkout Common Repo
-        uses: actions/checkout@v4
-        with:
-          repository: spring-io/spring-github-workflows
-          path: spring-github-workflows
-          show-progress: false
-          ref: ${{ env.WORKFLOWS_REF }}
-
-      - name: Build and Publish
-        timeout-minutes: 30
-        uses: ./spring-github-workflows/.github/actions/spring-artifactory-gradle-build
-        with:
-          gradleTasks: ${{ inputs.gradleTasks }}
-          artifactoryUrl: ${{ inputs.artifactoryUrl }}
-          targetRepository: ${{ inputs.targetRepository }}
-          artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
-          artifactoryUsername: ${{ secrets.ARTIFACTORY_USERNAME }}
-          artifactoryPassword: ${{ secrets.ARTIFACTORY_PASSWORD }}
-          gpgPrivateKey: ${{ secrets.GPG_PRIVATE_KEY }}
-          gpgPassphrase: ${{ secrets.GPG_PASSPHRASE }}
-
+    uses: ./.github/workflows/spring-artifactory-gradle-build.yml
+    with:
+      gradleTasks: ${{ inputs.gradleTasks }}
+      artifactoryUrl: ${{ inputs.artifactoryUrl }}
+      targetRepository: ${{ inputs.targetRepository }}
+      artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
+      runner: ${{ inputs.runner }}
+    secrets: inherit
 
