@@ -18,6 +18,11 @@ on:
         default: 'type: dependency-upgrade'
         required: false
         type: string
+      autoMerge:
+        description: 'Merged automatically without setting Milestone to the pull request'
+        default: false
+        required: false
+        type: boolean
       autoMergeSnapshots:
         description: 'Whether upgrades to SNAPSHOTs (usually after release against Milestone) are going to be merged automatically'
         default: false
@@ -62,13 +67,18 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ inputs.developmentLabel }}"
           gh pr edit ${{ github.event.pull_request.number }} --remove-label "${{ inputs.dependenciesLabel }}"
 
+      - id: is-auto-merge
+        run: |
+          AUTO_MERGE=${{ inputs.autoMerge || (inputs.autoMergeSnapshots && endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT')) }}
+          echo autoMerge=$AUTO_MERGE >> $GITHUB_OUTPUT
+
       - name: Find Scheduled Milestone
         id: find-milestone
-        if: ${{ inputs.autoMergeSnapshots != 'true' || !endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT') }}
+        if: ${{ !steps.is-auto-merge.outputs.autoMerge }}
         uses: ./spring-github-workflows/.github/actions/spring-scheduled-milestone-for-branch
 
       - name: Set Milestone to Dependabot pull request
-        if: ${{ inputs.autoMergeSnapshots != 'true' || !endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT') }}
+        if: ${{ !steps.is-auto-merge.outputs.autoMerge }}
         run: |
           MILESTONE=${{ steps.find-milestone.outputs.milestone }}
           
