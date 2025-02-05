@@ -70,6 +70,10 @@ jobs:
       - id: is-auto-merge
         run: |
           AUTO_MERGE=${{ inputs.autoMerge || (inputs.autoMergeSnapshots && endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT')) }}
+          if [ -z $AUTO_MERGE ]
+          then
+            AUTO_MERGE=$(gh pr view ${{ github.event.pull_request.number }} --json milestone -q '.milestone.number')
+          fi
           echo autoMerge=$AUTO_MERGE >> $GITHUB_OUTPUT
 
       - name: Find Scheduled Milestone
