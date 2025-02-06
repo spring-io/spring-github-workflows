@@ -51,6 +51,9 @@ runs:
 
     - name: Set up Gradle
       uses: spring-io/spring-gradle-build-action@v2
+      with:
+        java-version: 23
+        distribution: liberica
 
     - name: Set Release Version
       if: inputs.releaseVersion
