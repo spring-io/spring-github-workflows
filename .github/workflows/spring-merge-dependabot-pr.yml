@@ -67,12 +67,17 @@ jobs:
           gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ inputs.developmentLabel }}"
           gh pr edit ${{ github.event.pull_request.number }} --remove-label "${{ inputs.dependenciesLabel }}"
 
-      - id: is-auto-merge
+      - name: Determine auto-merge
+        id: is-auto-merge
         run: |
           AUTO_MERGE=${{ inputs.autoMerge || (inputs.autoMergeSnapshots && endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT')) }}
           if [ -z $AUTO_MERGE ]
           then
-            AUTO_MERGE=$(gh pr view ${{ github.event.pull_request.number }} --json milestone -q '.milestone.number')
+            PR_MILESTONE=$(gh pr view ${{ github.event.pull_request.number }} --json milestone -q '.milestone.number')
+            if [ -z $PR_MILESTONE ]
+            then
+              AUTO_MERGE=true
+            fi
           fi
           echo autoMerge=$AUTO_MERGE >> $GITHUB_OUTPUT
 
