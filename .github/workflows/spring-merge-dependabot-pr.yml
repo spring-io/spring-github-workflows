@@ -74,7 +74,7 @@ jobs:
           if [ -z $AUTO_MERGE ]
           then
             PR_MILESTONE=$(gh pr view ${{ github.event.pull_request.number }} --json milestone -q '.milestone.number')
-            if [ -z $PR_MILESTONE ]
+            if [ $PR_MILESTONE ]
             then
               AUTO_MERGE=true
             fi
