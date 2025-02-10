@@ -79,18 +79,15 @@ jobs:
               AUTO_MERGE=true
             fi
           fi
-          
-          echo "autoMerge is $AUTO_MERGE" 
-          
           echo autoMerge=$AUTO_MERGE >> $GITHUB_OUTPUT
 
       - name: Find Scheduled Milestone
         id: find-milestone
-        if: steps.is-auto-merge.outputs.autoMerge == false
+        if: steps.is-auto-merge.outputs.autoMerge == 'false'
         uses: ./spring-github-workflows/.github/actions/spring-scheduled-milestone-for-branch
 
       - name: Set Milestone to Dependabot pull request
-        if: steps.is-auto-merge.outputs.autoMerge == false
+        if: steps.is-auto-merge.outputs.autoMerge == 'false'
         run: |
           MILESTONE=${{ steps.find-milestone.outputs.milestone }}
           
