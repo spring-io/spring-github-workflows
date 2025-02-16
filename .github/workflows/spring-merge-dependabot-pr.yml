@@ -95,6 +95,7 @@ jobs:
           then
             gh run cancel ${{ github.run_id }}
             echo "::warning title=Cannot merge::No scheduled milestone for ${{ steps.find-milestone.outputs.currentVersion }} version"
+            gh run watch ${{ github.run_id }}
           else
             gh pr edit ${{ github.event.pull_request.number }} --milestone $MILESTONE
           fi
