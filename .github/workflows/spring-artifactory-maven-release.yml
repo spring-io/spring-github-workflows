@@ -154,6 +154,7 @@ jobs:
     secrets: inherit
 
   finalize:
+    if: ${{ !(failure() || cancelled()) }}
     needs: [ releaseVersion, deploy-to-central, spring-release-bundle ]
     name: Finalize ${{ needs.releaseVersion.outputs.releaseVersion }}
     uses: ./.github/workflows/spring-finalize-release.yml
