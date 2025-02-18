@@ -45,7 +45,6 @@ jobs:
       - uses: jfrog/setup-jfrog-cli@v4
 
       - name: Download Release Files
-        if: env.OSSRH_STAGING_PROFILE_NAME
         run: |
           jfrog rt download \
             --spec utils/release-files-spec.json \
