@@ -62,6 +62,8 @@ jobs:
           
           NEXT_VERSION=${NEXT_VERSION}-SNAPSHOT
           
+          git pull origin ${{ github.ref }}
+          
           if test -f pom.xml
           then
             mvn versions:set -DnewVersion=$NEXT_VERSION -DgenerateBackupPoms=false -DprocessAllModules=true -B -ntp
