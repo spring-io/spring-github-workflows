@@ -39,6 +39,11 @@
               "name": {
                 "$nmatch": "*.zip.asc"
               }
+            },
+            {
+              "path": {
+                "$nmatch": "*spring-github-workflows*"
+              }
             }
           ]
         }
