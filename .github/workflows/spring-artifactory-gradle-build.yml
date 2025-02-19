@@ -72,14 +72,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: spring-io/spring-github-workflows
-          path: spring-github-workflows
+          path: .github/spring-github-workflows
           show-progress: false
           ref: ${{ env.WORKFLOWS_REF }}
 
       - name: Build and Publish
         id: build-and-publish
         timeout-minutes: 30
-        uses: ./spring-github-workflows/.github/actions/spring-artifactory-gradle-build
+        uses: ./.github/spring-github-workflows/.github/actions/spring-artifactory-gradle-build
         with:
           releaseVersion: ${{ inputs.releaseVersion }}
           gradleTasks: ${{ inputs.gradleTasks }}
