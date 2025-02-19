@@ -69,7 +69,7 @@ runs:
       run: |
         echo Build and Publish
         
-        cp spring-github-workflows/utils/*.gradle $HOME/.gradle/init.d
+        cp .github/spring-github-workflows/utils/*.gradle $HOME/.gradle/init.d
         
         # See utils/deployment-repository-init.gradle
         gradle clean build ${{ inputs.gradleTasks }} publishAllPublicationsToDeploymentRepository
