@@ -30,7 +30,6 @@ jobs:
       - uses: spring-io/spring-gradle-build-action@v2
         with:
           java-version: '23'
-          distribution: 'liberica'
 
       - name: Run Pull Request Build
         timeout-minutes: 30
