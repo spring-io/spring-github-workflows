@@ -45,10 +45,15 @@ jobs:
       - uses: jfrog/setup-jfrog-cli@v4
 
       - name: Download Release Files
+        id: download-release-files
         run: |
           jfrog rt download \
             --spec utils/release-files-spec.json \
             --spec-vars "buildname=${{ inputs.buildName }};buildnumber=${{ inputs.buildNumber }}"
+          
+          jarToCheck=$(find nexus -name "*.jar" -print -quit)
+          jarToCheck=${jarToCheck#nexus}
+          echo jarToCheck=$jarToCheck >> $GITHUB_OUTPUT
 
       - uses: spring-io/nexus-sync-action@v0.0.1
         id: nexus
@@ -64,3 +69,8 @@ jobs:
           release: true
           close-timeout: 3600
           release-timeout: 3600
+
+      - name: Await for Artifact in Maven Central Repository
+        uses: ./.github/actions/await-http-resource
+        with:
+          url: 'https://repo.maven.apache.org/maven2'${{ steps.download-release-files.outputs.jarToCheck }}
