@@ -73,4 +73,4 @@ jobs:
       - name: Await for Artifact in Maven Central Repository
         uses: ./.github/actions/await-http-resource
         with:
-          url: 'https://repo.maven.apache.org/maven2'${{ steps.download-release-files.outputs.jarToCheck }}
+          url: https://repo.maven.apache.org/maven2${{ steps.download-release-files.outputs.jarToCheck }}
