@@ -1,0 +1,89 @@
+name: Publish Artifacts to Maven Central Portal
+
+description: 'Generates MD5 and SHA1 checksums (by default) for each file in the `bundle-dir`, zips all of them, and upload this bundle via Central Portal API.
+if `deployment-status-interval` is provided, the action is looping for the deployment status request until PUBLISHED or FAILED.'
+
+inputs:
+  token:
+    description: 'The Maven Central Portal Bearer Token'
+    required: true
+  release-version:
+    description: 'The Bundle Version (usually project release)'
+    required: true
+  bundle-dir:
+    description: 'A directory with release bundle'
+    required: false
+    default: 'nexus'
+  generate-checksums:
+    description: 'Whether to generate MD5 and SHA1 checksums'
+    required: false
+    default: true
+  deployment-status-interval:
+    description: 'If provided, the action initiate a deployment status check loop with this delay in between attempts until PUBLISHED or FAILED'
+    required: false
+    default: 0
+
+outputs:
+  deployment-id:
+    description: "Maven Central Portal publisher reply for retrieving information about the deployment"
+    value: ${{ steps.publish-to-central-portal.outputs.deploymentId }}
+
+runs:
+  using: composite
+  steps:
+
+    - name: Generate Checksums
+      if: inputs.generate-checksums
+      shell: bash
+      run: |
+        for file in ./${{ inputs.bundle-dir }}/*
+        do
+          if [[ -f $file && $file != *.asc ]]
+          then
+            sha1sum $file > $file.sha1
+            md5sum $file > $file.md5
+          fi
+        done
+
+    - name: Zip Bundle
+      id: zip-bundle
+      shell: bash
+      run: |
+        zipName=${GITHUB_REPOSITORY#*/}-${{ inputs.release-version }}-bundle.zip
+        zip -r -j $zipName ./${{ inputs.bundle-dir }}/*
+        echo zipName=$zipName >> $GITHUB_OUTPUT
+
+    - name: Upload to Central Portal
+      id: publish-to-central-portal
+      shell: bash
+      run: |
+        deploymentId=$(curl --request POST --silent \
+            --header 'Authorization: Bearer ${{ inputs.token }}' \
+            --form bundle=@${{ steps.zip-bundle.outputs.zipName }}) \
+            https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC)
+        
+        echo deploymentId=$deploymentId >> $GITHUB_OUTPUT
+        
+        echo "::notice title=Central Portal Deployment ID::$deploymentId"
+
+    - name: Check for Bundle Status
+      if: inputs.deployment-status-interval > 0
+      shell: bash
+      run: |
+        while true; do
+          statusResponse=$(curl --request POST --silent \
+            --header 'Authorization: Bearer ${{ inputs.token }}' \
+            https://central.sonatype.com/api/v1/publisher/status?id=${{ steps.publish-to-central-portal.outputs.deploymentId }})
+        
+          status=$(echo "$statusResponse" | jq '.deploymentState')
+        
+          if [ $status = PUBLISHED ]; then
+            break
+          elif [ $status = FAILED ]; then
+            errors=$(echo "$statusResponse" | jq '.errors')
+            echo "::error file=${{ steps.zip-bundle.outputs.zipName }}::The Cenral Portal deployment has failed with errors: $errors"
+            exit 1
+          fi
+        
+          sleep ${{ inputs.deployment-status-interval }}
+        done
