@@ -4,8 +4,11 @@ description: 'Generates MD5 and SHA1 checksums (by default) for each file in the
 if `deployment-status-interval` is provided, the action is looping for the deployment status request until PUBLISHED or FAILED.'
 
 inputs:
-  token:
-    description: 'The Maven Central Portal Bearer Token'
+  token-username:
+    description: 'The Maven Central Portal User'
+    required: true
+  token-password:
+    description: 'The Maven Central Portal User Token'
     required: true
   release-version:
     description: 'The Bundle Version (usually project release)'
@@ -15,7 +18,7 @@ inputs:
     required: false
     default: 'nexus'
   generate-checksums:
-    description: 'Whether to generate MD5 and SHA1 checksums'
+    description: 'Whether to generate MD5 and SHA1 checksums. Might be already provided in bundle dir.'
     required: false
     default: true
   deployment-status-interval:
@@ -53,13 +56,21 @@ runs:
         zip -r -j $zipName ./${{ inputs.bundle-dir }}/*
         echo zipName=$zipName >> $GITHUB_OUTPUT
 
+    - name: Generate Bearer Token
+      id: bearer-token
+      shell: bash
+      run: |
+        token=$(printf "${{ inputs.token-username }}:${{ inputs.token-password }}" | base64)
+        
+        echo token=$token >> $GITHUB_OUTPUT
+
     - name: Upload to Central Portal
       id: publish-to-central-portal
       shell: bash
       run: |
         deploymentId=$(curl --request POST --silent \
-            --header 'Authorization: Bearer ${{ inputs.token }}' \
-            --form bundle=@${{ steps.zip-bundle.outputs.zipName }}) \
+            --header 'Authorization: Bearer ${{ steps.bearer-token.outputs.token }}' \
+            --form bundle=@${{ steps.zip-bundle.outputs.zipName }} \
             https://central.sonatype.com/api/v1/publisher/upload?publishingType=AUTOMATIC)
         
         echo deploymentId=$deploymentId >> $GITHUB_OUTPUT
@@ -72,7 +83,7 @@ runs:
       run: |
         while true; do
           statusResponse=$(curl --request POST --silent \
-            --header 'Authorization: Bearer ${{ inputs.token }}' \
+            --header 'Authorization: Bearer ${{ steps.bearer-token.outputs.token }}' \
             https://central.sonatype.com/api/v1/publisher/status?id=${{ steps.publish-to-central-portal.outputs.deploymentId }})
         
           status=$(echo "$statusResponse" | jq '.deploymentState')
