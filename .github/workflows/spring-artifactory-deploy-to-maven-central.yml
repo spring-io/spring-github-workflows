@@ -55,7 +55,7 @@ jobs:
           jarToCheck=${jarToCheck#nexus}
           echo jarToCheck=$jarToCheck >> $GITHUB_OUTPUT
 
-      - uses: spring-io/nexus-sync-action@v0.0.1
+      - uses: spring-io/nexus-sync-action@v0.1.0
         id: nexus
         with:
           username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
