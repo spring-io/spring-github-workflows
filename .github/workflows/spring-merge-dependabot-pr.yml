@@ -61,11 +61,31 @@ jobs:
         with:
          github-token: ${{ env.GH_TOKEN }}
 
+      # Dependabot does not have ability to let us skip from '-SNAPSHOT' updates.
+      # The problem happens when there is a GA for snapshot we are using right now.
+      # For example, we have a '1.0.0-SNAPSHOT' after previous update from the '1.0.0-RC1'.
+      # Now that dependency has gone to '1.0.0' GA, so we would expect an update like '1.0.0-SNAPSHOT -> 1.0.0',
+      # but Dependabot does '1.0.0-SNAPSHOT -> 1.0.1-SNAPSHOT'.
+      # This is wrong and causes extra burden in manual changes and commit history.
+      # Therefore, closing such a PR as invalid.
+      # See more info in: https://stackoverflow.com/questions/79204574/how-to-make-dependabot-to-not-update-from-snapshot
+      - name: Close if SNAPSHOT to SNAPSHOT update
+        if: ${{ endsWith(steps.metadata.outputs.previous-version, '-SNAPSHOT') && endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT') }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "status: invalid" --remove-milestone --remove-label "${{ inputs.dependenciesLabel }}"
+          
+          CLOSE_COMMENT="Upgrade from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }} is not allowed"
+          
+          gh pr close ${{ github.event.pull_request.number }} --comment $CLOSE_COMMENT 
+          
+          gh run cancel ${{ github.run_id }}
+          echo "::warning title=Cannot merge::$CLOSE_COMMENT"
+          gh run watch ${{ github.run_id }}
+
       - name: Add a label for development dependencies pull request
         if: ${{ steps.metadata.outputs.dependency-group == inputs.developmentGroup || endsWith(steps.metadata.outputs.new-version, '-SNAPSHOT') }}
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ inputs.developmentLabel }}"
-          gh pr edit ${{ github.event.pull_request.number }} --remove-label "${{ inputs.dependenciesLabel }}"
+          gh pr edit ${{ github.event.pull_request.number }} --add-label "${{ inputs.developmentLabel }}" --remove-label "${{ inputs.dependenciesLabel }}"
 
       - name: Determine auto-merge
         id: is-auto-merge
