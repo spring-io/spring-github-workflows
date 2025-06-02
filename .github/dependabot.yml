@@ -1,7 +1,9 @@
 version: 2
 updates:
-   - package-ecosystem: github-actions
-     directory: /
-     schedule:
-       interval: weekly
-       day: sunday
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: sunday
+    ignore:
+      - dependency-name: 'spring-io/nexus-sync-action' # Until dedicated Central Portal GH Action
