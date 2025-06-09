@@ -136,6 +136,7 @@ jobs:
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
+      releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
       runner: ${{ inputs.runner }}
     secrets: inherit
 

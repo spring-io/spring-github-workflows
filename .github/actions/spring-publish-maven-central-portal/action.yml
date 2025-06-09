@@ -16,7 +16,7 @@ inputs:
   bundle-dir:
     description: 'A directory with release bundle'
     required: false
-    default: 'nexus'
+    default: 'central_bundle'
   generate-checksums:
     description: 'Whether to generate MD5 and SHA1 checksums. Might be already provided in bundle dir.'
     required: false

@@ -11,6 +11,10 @@ on:
         description: 'The Artifactory Build Number'
         required: true
         type: string
+      releaseVersion:
+        description: 'The release version'
+        required: true
+        type: string
       runner:
         description: 'The runner for job'
         required: false
@@ -19,16 +23,21 @@ on:
 
     secrets:
       OSSRH_S01_TOKEN_USERNAME:
-        required: true
+        required: false
       OSSRH_S01_TOKEN_PASSWORD:
-        required: true
+        required: false
       OSSRH_STAGING_PROFILE_NAME:
-        required: true
+        required: false
+      PORTAL_TOKEN_USERNAME:
+        required: false
+      PORTAL_TOKEN_PASSWORD:
+        required: false
       JF_ARTIFACTORY_SPRING:
         required: true
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
+  OSSRH_S01_TOKEN_USERNAME: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
   WORKFLOWS_REF: main
 
 jobs:
@@ -57,10 +66,12 @@ jobs:
 
       - uses: spring-io/nexus-sync-action@v0.0.1
         id: nexus
+        if: env.OSSRH_S01_TOKEN_USERNAME
         with:
           username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
           password: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}
           staging-profile-name: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
+          dir: central_bundle
           create: true
           upload: true
           generate-checksums: true
@@ -71,6 +82,16 @@ jobs:
           release-timeout: 3600
 
       - name: Await for Artifact in Maven Central Repository
+        if: env.OSSRH_S01_TOKEN_USERNAME
         uses: ./.github/actions/await-http-resource
         with:
           url: https://repo.maven.apache.org/maven2${{ steps.download-release-files.outputs.jarToCheck }}
+
+      - name: Deploy Bundle to Maven Central Portal
+        if: env.PORTAL_TOKEN_USERNAME
+        uses: ./.github/actions/spring-publish-maven-central-portal
+        with:
+          release-version: ${{ inputs.releaseVersion }}
+          token-username: ${{ secrets.PORTAL_TOKEN_USERNAME }}
+          token-password: ${{ secrets.PORTAL_TOKEN_PASSWORD }}
+          deployment-status-interval: '1m'
