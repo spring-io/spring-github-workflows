@@ -16,6 +16,8 @@ SPRING_RELEASE_CHAT_WEBHOOK_URL
 OSSRH_S01_TOKEN_USERNAME
 OSSRH_S01_TOKEN_PASSWORD
 OSSRH_STAGING_PROFILE_NAME
+CENTRAL_TOKEN_USERNAME
+CENTRAL_TOKEN_PASSWORD
 GPG_PASSPHRASE
 GPG_PRIVATE_KEY
 ```
@@ -75,7 +77,7 @@ The logic of this release workflow:
 - Call Maven or Gradle (according to the workflow choice for the project in the repository) with the release version extracted from the previous job.
 This job stages released artifacts using JFrog Artifactory plugin into `libs-staging-local` repository on Spring Artifactory and commits `Next development version` to the branch we are releasing against
 - The next job is to [verify staged artifacts](#verify-staged-artifacts)
-- When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local` (by default) (and optional to Maven Central: if `OSSRH_STAGING_PROFILE_NAME` secret is provided) according to the releasing version schema
+- When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local` (by default) (and optional to Maven Central: if `bundleName` input is not provided) according to the releasing version schema
 - Then [spring-finalize-release.yml](.github/workflows/spring-finalize-release.yml) job is executed, which tags release into GitHub, commits next development version, generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from `Contributors` section.
 The `gh release create` command is performed on a tag for just released version.
 Then spring.io project page is updated for newly released version.

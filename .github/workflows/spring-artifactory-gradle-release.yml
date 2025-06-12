@@ -63,6 +63,10 @@ on:
         required: false
       OSSRH_STAGING_PROFILE_NAME:
         required: false
+      CENTRAL_TOKEN_USERNAME:
+        required: false
+      CENTRAL_TOKEN_PASSWORD:
+        required: false
       GPG_PASSPHRASE:
         required: false
       GPG_PRIVATE_KEY:
@@ -136,7 +140,6 @@ jobs:
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
-      releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
       runner: ${{ inputs.runner }}
     secrets: inherit
 

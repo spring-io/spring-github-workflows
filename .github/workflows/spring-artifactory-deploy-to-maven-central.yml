@@ -11,10 +11,6 @@ on:
         description: 'The Artifactory Build Number'
         required: true
         type: string
-      releaseVersion:
-        description: 'The release version'
-        required: true
-        type: string
       runner:
         description: 'The runner for job'
         required: false
@@ -28,9 +24,9 @@ on:
         required: false
       OSSRH_STAGING_PROFILE_NAME:
         required: false
-      PORTAL_TOKEN_USERNAME:
+      CENTRAL_TOKEN_USERNAME:
         required: false
-      PORTAL_TOKEN_PASSWORD:
+      CENTRAL_TOKEN_PASSWORD:
         required: false
       JF_ARTIFACTORY_SPRING:
         required: true
@@ -38,12 +34,22 @@ on:
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   OSSRH_S01_TOKEN_USERNAME: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
+  CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
   WORKFLOWS_REF: main
 
 jobs:
   deploy-to-maven-central:
     runs-on: ${{ inputs.runner }}
     steps:
+
+      - name: Verify Maven Secrets
+        run: |
+          if [ -z $OSSRH_S01_TOKEN_USERNAME ] || [ -z $CENTRAL_TOKEN_USERNAME ] 
+          then
+            gh run cancel ${{ github.run_id }}
+            echo "::error title=Cannot deploy to Maven Central:: The 'OSSRH_S01_TOKEN_USERNAME' & 'OSSRH_S01_TOKEN_PASSWORD' or 'CENTRAL_TOKEN_USERNAME' & 'CENTRAL_TOKEN_PASSWORD' pair of secrets must be provided"
+            exit 1
+          fi
 
       - uses: actions/checkout@v4
         with:
@@ -60,8 +66,8 @@ jobs:
             --spec utils/release-files-spec.json \
             --spec-vars "buildname=${{ inputs.buildName }};buildnumber=${{ inputs.buildNumber }}"
           
-          jarToCheck=$(find nexus -name "*.jar" -print -quit)
-          jarToCheck=${jarToCheck#nexus}
+          jarToCheck=$(find central_bundle -name "*.jar" -print -quit)
+          jarToCheck=${jarToCheck#central_bundle}
           echo jarToCheck=$jarToCheck >> $GITHUB_OUTPUT
 
       - uses: spring-io/nexus-sync-action@v0.0.1
@@ -88,10 +94,9 @@ jobs:
           url: https://repo.maven.apache.org/maven2${{ steps.download-release-files.outputs.jarToCheck }}
 
       - name: Deploy Bundle to Maven Central Portal
-        if: env.PORTAL_TOKEN_USERNAME
-        uses: ./.github/actions/spring-publish-maven-central-portal
+        if: env.CENTRAL_TOKEN_USERNAME
+        uses: spring-io/central-publish-action@v0.2.0
         with:
-          release-version: ${{ inputs.releaseVersion }}
-          token-username: ${{ secrets.PORTAL_TOKEN_USERNAME }}
-          token-password: ${{ secrets.PORTAL_TOKEN_PASSWORD }}
-          deployment-status-interval: '1m'
+          token-name: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
+          token: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+          dir: central_bundle
