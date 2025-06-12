@@ -70,7 +70,7 @@ jobs:
           jarToCheck=${jarToCheck#central_bundle}
           echo jarToCheck=$jarToCheck >> $GITHUB_OUTPUT
 
-      - uses: spring-io/nexus-sync-action@v0.0.1
+      - uses: spring-io/nexus-sync-action@v0.1.1
         id: nexus
         if: env.OSSRH_S01_TOKEN_USERNAME
         with:
