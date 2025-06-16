@@ -32,6 +32,7 @@ on:
         required: true
 
 env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
   OSSRH_S01_TOKEN_USERNAME: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
   CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
