@@ -49,7 +49,7 @@ jobs:
 
       - name: Verify Maven Secrets
         run: |
-          if [ -z $OSSRH_S01_TOKEN_USERNAME ] || [ -z $CENTRAL_TOKEN_USERNAME ] 
+          if [[ -z $OSSRH_S01_TOKEN_USERNAME && -z $CENTRAL_TOKEN_USERNAME ]] 
           then
             gh run cancel ${{ github.run_id }}
             echo "::error title=Cannot deploy to Maven Central:: The 'OSSRH_S01_TOKEN_USERNAME' & 'OSSRH_S01_TOKEN_PASSWORD' or 'CENTRAL_TOKEN_USERNAME' & 'CENTRAL_TOKEN_PASSWORD' pair of secrets must be provided"
