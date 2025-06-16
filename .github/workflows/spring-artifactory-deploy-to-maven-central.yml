@@ -43,6 +43,10 @@ jobs:
     runs-on: ${{ inputs.runner }}
     steps:
 
+      - uses: actions/checkout@v4
+        with:
+          show-progress: false
+
       - name: Verify Maven Secrets
         run: |
           if [ -z $OSSRH_S01_TOKEN_USERNAME ] || [ -z $CENTRAL_TOKEN_USERNAME ] 
