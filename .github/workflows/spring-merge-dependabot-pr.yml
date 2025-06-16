@@ -76,7 +76,7 @@ jobs:
           
           CLOSE_COMMENT="Upgrade from ${{ steps.metadata.outputs.previous-version }} to ${{ steps.metadata.outputs.new-version }} is not allowed"
           
-          gh pr close ${{ github.event.pull_request.number }} --comment $CLOSE_COMMENT 
+          gh pr close ${{ github.event.pull_request.number }} --comment "$CLOSE_COMMENT" 
           
           gh run cancel ${{ github.run_id }}
           echo "::warning title=Cannot merge::$CLOSE_COMMENT"
