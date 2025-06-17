@@ -14,13 +14,16 @@ jobs:
     if: github.event.milestone.due_on
     steps:
       - run: |
-          if [ ${{ github.event.action }} = 'edited' -a  "${{ github.event.changes.due_on.from }}" = "${{ github.event.milestone.due_on }}" ]
+          dueDate=${{ github.event.milestone.due_on }} 
+          dueDate=${dueDate%T*}
+          changesDueOn=${{ github.event.changes.due_on.from }}
+          changesDueOn=${changesDueOn%T*}
+          
+          if [ '${{ github.event.action }}' = 'edited' -a  '$changesDueOn' = '$dueDate' ]
           then
             exit 0
           fi
-          
-          dueDate=${{ github.event.milestone.due_on }} 
-          dueDate=${dueDate%T*} 
+           
           if [ $dueDate = $(date '+%F') ]
           then
             dueDate=today
