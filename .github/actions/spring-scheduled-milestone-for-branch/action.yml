@@ -18,7 +18,7 @@ runs:
     - uses: actions/setup-java@v4
       with:
         distribution: temurin
-        java-version: 17
+        java-version: 24
 
     - name: Find Scheduled Milestone for Current Version in Branch
       id: find-milestone
