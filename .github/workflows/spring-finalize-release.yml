@@ -62,7 +62,7 @@ jobs:
           
           NEXT_VERSION=${NEXT_VERSION}-SNAPSHOT
           
-          git fetch --all
+          git fetch origin
           git pull origin ${{ github.ref }}
           
           if test -f pom.xml
