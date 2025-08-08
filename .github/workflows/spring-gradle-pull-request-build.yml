@@ -33,7 +33,7 @@ jobs:
 
       - name: Run Pull Request Build
         timeout-minutes: 30
-        run: gradle check
+        run: ./gradlew check
 
       - name: Capture Test Results
         if: failure()
