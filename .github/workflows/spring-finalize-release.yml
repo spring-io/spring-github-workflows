@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           show-progress: false
@@ -107,7 +107,7 @@ jobs:
           fi
 
       - name: Checkout Common Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: spring-io/spring-github-workflows
           path: .github/spring-github-workflows

@@ -64,12 +64,12 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           show-progress: false
 
       - name: Checkout Common Repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: spring-io/spring-github-workflows
           path: .github/spring-github-workflows
