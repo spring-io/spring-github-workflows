@@ -44,9 +44,12 @@ jobs:
           fi
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
+          
+          git fetch origin --no-tags
+          git pull origin ${{ github.ref }}
+          
           git commit -a -m "[artifactory-release] Release version ${{ inputs.milestone }}"
           git tag "v${{ inputs.milestone }}"
-          git push --tags origin
           
           NEXT_VERSION="${{ inputs.milestone }}"
           
@@ -62,9 +65,6 @@ jobs:
           
           NEXT_VERSION=${NEXT_VERSION}-SNAPSHOT
           
-          git fetch origin
-          git pull origin ${{ github.ref }}
-          
           if test -f pom.xml
           then
             mvn versions:set -DnewVersion=$NEXT_VERSION -DgenerateBackupPoms=false -DprocessAllModules=true -B -ntp
@@ -74,6 +74,7 @@ jobs:
           
           git commit -a -m "[artifactory-release] Next development version"
           git push origin
+          git push --tags origin
           
           echo nextVersion=$NEXT_VERSION >> $GITHUB_OUTPUT
 
