@@ -28,7 +28,7 @@ jobs:
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           show-progress: false
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 24
