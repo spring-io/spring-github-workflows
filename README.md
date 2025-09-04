@@ -37,10 +37,10 @@ They perform Gradle `check` task and Maven `verify` goal, respectively.
 The caller workflow is as simple as follows.
 
 #### Gradle Pull Request caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/pr-build-gradle.yml#L1-L10
+https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/pr-build-gradle.yml#L1-L10
 
 #### Maven Pull Request caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/pr-build-maven.yml#L1-L10
+https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/pr-build-maven.yml#L1-L10
 
 You can add more branches to react for pull request events.
 
@@ -49,10 +49,10 @@ They publish artifacts into `libs-snapshot-local` (by default) repository.
 The Gradle workflow can be supplied with Develocity secret.
 
 #### Gradle SNAPSHOT caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/ci-snapshot-gradle.yml#L1-L18
+https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/ci-snapshot-gradle.yml#L1-L18
 
 #### Maven SNAPSHOT caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/ci-snapshot-maven.yml#L1-L13
+https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/ci-snapshot-maven.yml#L1-L13
 
 Both Gradle and Maven SNAPSHOT build workflow requires `ARTIFACTORY_USERNAME` & `ARTIFACTORY_PASSWORD` secretes to authorise [spring-io/artifactory-deploy-action](https://github.com/spring-io/artifactory-deploy-action).
 Optionally, all the artifacts can be signed if `GPG_PASSPHRASE` and `GPG_PRIVATE_KEY` secrets are provided.
@@ -85,7 +85,7 @@ Then spring.io project page is updated for newly released version.
 And in the end the milestone closed and specific Google Space notified about release (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present in the repository).
 
 #### Example of Release caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/release.yml#L1-L25
+https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/release.yml#L1-L25
 
 Such a workflow must be on every branch which is supposed to be released via GitHub actions.
 
