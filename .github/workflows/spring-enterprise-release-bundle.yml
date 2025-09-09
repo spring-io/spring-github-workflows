@@ -41,10 +41,8 @@ jobs:
       - run: |
           curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
             -X POST -H "X-JFrog-Signing-Key-Name: packagesKey" -H "Content-Type: application/json" \
-            "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/release_bundle?project=spring" \
+            "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/release_bundle?project=spring&async=false" \
             -d '{"release_bundle_name": "${{ inputs.bundleName }}", "release_bundle_version": "${{ inputs.releaseVersion }}", "skip_docker_manifest_resolution": true, "source_type": "builds", "source": {"builds": [ {"build_repository": "spring-build-info", "build_name": "${{ inputs.buildName }}", "build_number": "${{ inputs.buildNumber }}", "include_dependencies": false}]}}' 
-          
-          sleep 10
           
           curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
             -X POST -H "Content-Type: application/json" \
