@@ -8,28 +8,10 @@ on:
 
 jobs:
   backport-issue:
-    if: contains(github.event.head_commit.message, 'Fixes:') || contains(github.event.head_commit.message, 'Closes:')
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v5
-        with:
-          show-progress: false
-
-      - uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 24
-
       - name: Create Backport Issue
-        run: |
-          wget -q https://github.com/spring-io/backport-bot/releases/download/latest/backport-bot-0.0.1-SNAPSHOT.jar
-          java -jar backport-bot-0.0.1-SNAPSHOT.jar \
-            --github.accessToken="$GITHUB_TOKEN" \
-            --github.event_name "$GITHUB_EVENT_NAME" \
-            --github.event "$GITHUB_EVENT"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-          GITHUB_EVENT: ${{ toJSON(github.event) }}
-          SPRING_MAIN_BANNERMODE: off
-
+        uses: spring-io/backport-bot@v0.0.1
+        with:
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
