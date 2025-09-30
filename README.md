@@ -85,7 +85,7 @@ Then spring.io project page is updated for newly released version.
 And in the end the milestone closed and specific Google Space notified about release (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present in the repository).
 
 #### Example of Release caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/release.yml#L1-L25
+https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/release-with-gradle.yml#L1-L25
 
 Such a workflow must be on every branch which is supposed to be released via GitHub actions.
 
@@ -122,7 +122,7 @@ The [spring-backport-issue.yml](.github/workflows/spring-backport-issue.yml) use
 See its documentation for labeling convention and respective GitHub events for calling this workflow.
 
 #### Backport Issue caller workflow example:
-https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/backport-issue.yml#L1-L16
+https://github.com/spring-io/spring-github-workflows/blob/521ac488abc90d961704030a9f7a0ea635dbddde/samples/backport-issue.yml#L1-L16
 
 ## Dependabot Support
 
@@ -144,7 +144,7 @@ The `spring-merge-dependabot-pr` workflow does these modifications to the Depend
 The `mergeArguments` input of this workflow is applied to the `gh pr merge` command. 
 
 #### Dependabot merge pull request workflow example:
-https://github.com/spring-io/spring-github-workflows/blob/710bf1214450ffb9a4d3a1cfbe12755ed2d59edc/samples/merge-dependabot-pr.yml#L1-L14
+https://github.com/spring-io/spring-github-workflows/blob/521ac488abc90d961704030a9f7a0ea635dbddde/samples/merge-dependabot-pr.yml#L1-L13
 
 ## Automatic cherry-pick workflow
 
@@ -181,7 +181,7 @@ This action is used in the `verify-staged` job of the release workflow.
 
 ## Gradle Init Scripts
 
-The `[deployment-repository-init.gradle](utils/deployment-repository-init.gradle)` script adds a Maven repository for publishing artifacts into a local directory (`/deployment-repository`) via respective `publishAllPublicationsToDeploymentRepository` Gradle task.
+The [deployment-repository-init.gradle](utils/deployment-repository-init.gradle) script adds a Maven repository for publishing artifacts into a local directory (`/deployment-repository`) via respective `publishAllPublicationsToDeploymentRepository` Gradle task.
 Then [spring-io/artifactory-deploy-action](https://github.com/spring-io/artifactory-deploy-action) picks up those artifacts for uploading to the Artifactory.
 The Maven build does that via `deploy` goal and respective `-DaltDeploymentRepository=local::file:deployment-repository` CLI option.
 
