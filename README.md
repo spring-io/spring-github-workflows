@@ -25,6 +25,7 @@ GPG_PRIVATE_KEY
 The Develocity secret is optional: mostly not used by Maven and Gradle project might not be enrolled for the service.  
 The `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is also optional: probably you don't want to notify Google Space about your release, or it is not available for GitHub organization.
 As well as `OSSRH_*` secret, since not all releases might go to Maven Central, e.g. private (commercial) repositories only.
+Also, the `OSSRH_*` and `CENTRAL_TOKEN_*` secrets are mutually exclusive where `CENTRAL_TOKEN_*` will lead to publishing via [Maven Central Portal](https://central.sonatype.org/register/central-portal/). 
 
 The mentioned secrets must be passed explicitly since these reusable workflows might be in different GitHub org than target project.
 
@@ -49,10 +50,10 @@ They publish artifacts into `libs-snapshot-local` (by default) repository.
 The Gradle workflow can be supplied with Develocity secret.
 
 #### Gradle SNAPSHOT caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/ci-snapshot-gradle.yml#L1-L18
+https://github.com/spring-io/spring-github-workflows/blob/88d5c5f78e88d00b9ad18885438d4e3657433ccf/samples/ci-snapshot-gradle.yml#L1-L17
 
 #### Maven SNAPSHOT caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/ci-snapshot-maven.yml#L1-L13
+https://github.com/spring-io/spring-github-workflows/blob/88d5c5f78e88d00b9ad18885438d4e3657433ccf/samples/ci-snapshot-maven.yml#L1-L14
 
 Both Gradle and Maven SNAPSHOT build workflow requires `ARTIFACTORY_USERNAME` & `ARTIFACTORY_PASSWORD` secretes to authorise [spring-io/artifactory-deploy-action](https://github.com/spring-io/artifactory-deploy-action).
 Optionally, all the artifacts can be signed if `GPG_PASSPHRASE` and `GPG_PRIVATE_KEY` secrets are provided.
@@ -85,7 +86,7 @@ Then spring.io project page is updated for newly released version.
 And in the end the milestone closed and specific Google Space notified about release (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present in the repository).
 
 #### Example of Release caller workflow:
-https://github.com/spring-io/spring-github-workflows/blob/29fd75ff06da2789a1fcd9b1732bf8bce4704fa6/samples/release-with-gradle.yml#L1-L25
+https://github.com/spring-io/spring-github-workflows/blob/88d5c5f78e88d00b9ad18885438d4e3657433ccf/samples/release-with-gradle.yml#L1-L24
 
 Such a workflow must be on every branch which is supposed to be released via GitHub actions.
 
@@ -152,7 +153,7 @@ The [spring-cherry-pick.yml](.github/workflows/spring-cherry-pick.yml) workflow 
 For example `Auto-cherry-pick to 6.2.x & 6.1.x`.
 The `Auto-cherry-pick` token is a default value for the `autoCherryPickToken` input of this workflow.
 The branches to cherry-pick to are extracted from the matching sentence.
-The "Auto-cherry-pick" sentence is remove from the target commit message.
+The "Auto-cherry-pick" sentence is removed from the target commit message.
 The `-x` option of `git cherry-pick` command adds a link back to the original commit.
 
 ## Announce Milestone Planning in Chat
