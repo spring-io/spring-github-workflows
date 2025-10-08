@@ -32,7 +32,7 @@ on:
 
 env:
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
-  WORKFLOWS_REF: main
+  WORKFLOWS_REF: v6
 
 jobs:
   promote-release-with-jfrog:

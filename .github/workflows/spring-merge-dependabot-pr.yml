@@ -35,7 +35,7 @@ on:
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  WORKFLOWS_REF: main
+  WORKFLOWS_REF: v6
 
 jobs:
   merge-dependabot-pr:
