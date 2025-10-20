@@ -105,3 +105,4 @@ jobs:
           token-name: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           token: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
           dir: central_bundle
+          ignore-already-exists-error: true
