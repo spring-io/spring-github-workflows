@@ -108,7 +108,7 @@ jobs:
           retention-days: 3
 
       - name: Publish
-        uses: spring-io/artifactory-deploy-action@v0.0.3
+        uses: spring-io/artifactory-deploy-action@v0.0.4
         with:
           uri: ${{ inputs.artifactoryUrl }}
           project: ${{ inputs.artifactoryProjectKey }}
