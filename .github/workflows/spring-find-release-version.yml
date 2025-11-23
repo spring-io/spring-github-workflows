@@ -17,12 +17,12 @@ jobs:
       releaseVersion: ${{ steps.find-milestone.outputs.milestone }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           show-progress: false
 
       - name: Checkout Common Repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: spring-io/spring-github-workflows
           path: .github/spring-github-workflows
