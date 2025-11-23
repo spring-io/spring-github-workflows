@@ -64,7 +64,7 @@ jobs:
       buildNumber: ${{ steps.build-name.outputs.buildNumber }}
     steps:
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           show-progress: false

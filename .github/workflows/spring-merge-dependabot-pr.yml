@@ -43,12 +43,12 @@ jobs:
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     steps:
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           show-progress: false
 
       - name: Checkout Common Repo
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: spring-io/spring-github-workflows
           path: .github/spring-github-workflows
