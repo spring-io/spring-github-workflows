@@ -121,11 +121,12 @@ jobs:
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
 
       - name: Announce Release in Chat
-        if: env.CHAT_WEBHOOK_URL
-        run: |
-          curl -X POST '${{ env.CHAT_WEBHOOK_URL }}' -H 'Content-Type: application/json' -d '{ text: "${{ github.event.repository.name }}-announcing `${{ inputs.milestone }}`"}'
-        env:
-          CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+        if: secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL != ''
+        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.1
+        with:
+          gchat-webhook-url: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+          project-name: ${{ github.event.repository.name }}
+          version: ${{ inputs.milestone }}
 
 #      - name: Announce Release on Slack
 #        uses: slackapi/slack-github-action@v1.26.0
