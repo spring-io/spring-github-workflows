@@ -122,8 +122,10 @@ jobs:
 
       - name: Announce Release in Chat
         if: env.CHAT_WEBHOOK_URL
-        run: |
-          curl -X POST '${{ env.CHAT_WEBHOOK_URL }}' -H 'Content-Type: application/json' -d '{ text: "${{ github.event.repository.name }}-announcing `${{ inputs.milestone }}`"}'
+        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.1
+        with:
+          gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
+          version: ${{ inputs.milestone }}
         env:
           CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
 
