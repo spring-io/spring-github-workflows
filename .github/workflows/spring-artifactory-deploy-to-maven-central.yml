@@ -100,7 +100,7 @@ jobs:
 
       - name: Deploy Bundle to Maven Central Portal
         if: env.CENTRAL_TOKEN_USERNAME
-        uses: spring-io/central-publish-action@v0.3.0
+        uses: spring-io/central-publish-action@v0.4.0
         with:
           token-name: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           token: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
