@@ -122,7 +122,7 @@ jobs:
 
       - name: Announce Release in Chat
         if: env.CHAT_WEBHOOK_URL
-        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.1
+        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.2
         with:
           gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
           version: ${{ inputs.milestone }}
