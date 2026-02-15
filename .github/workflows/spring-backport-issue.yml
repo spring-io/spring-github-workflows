@@ -13,6 +13,6 @@ jobs:
     steps:
 
       - name: Create Backport Issue
-        uses: spring-io/backport-bot@v0.0.1
+        uses: spring-io/backport-bot@v0.0.2
         with:
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
