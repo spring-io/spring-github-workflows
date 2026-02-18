@@ -18,6 +18,8 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
       run: |
+        set -euo pipefail
+
         PROJECT=${{ github.event.repository.name }}
         GITHUB_USER=$(gh api /user --jq '.login')
         
@@ -78,6 +80,8 @@ runs:
               --fail --show-error \
               "https://api.spring.io/projects/$PROJECT/releases/$VERSION_TO_REMOVE"
         done
+        
+        sleep 1
         
         # Add new versions
         for VERSION in $VERSIONS_TO_UPDATE
