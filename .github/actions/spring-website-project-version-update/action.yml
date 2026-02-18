@@ -81,7 +81,7 @@ runs:
               "https://api.spring.io/projects/$PROJECT/releases/$VERSION_TO_REMOVE"
         done
         
-        sleep 1
+#        sleep 1
         
         # Add new versions
         for VERSION in $VERSIONS_TO_UPDATE
