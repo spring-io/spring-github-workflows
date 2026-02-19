@@ -48,7 +48,7 @@ jobs:
           git fetch origin --no-tags
           git pull origin ${{ github.ref }}
           
-          git commit -a -m "[artifactory-release] Release version ${{ inputs.milestone }}"
+          git commit -a -m "[CI/CD] Release version ${{ inputs.milestone }}"
           git tag "v${{ inputs.milestone }}"
           
           NEXT_VERSION="${{ inputs.milestone }}"
@@ -72,7 +72,7 @@ jobs:
             sed -i "s/version=.*/version=$NEXT_VERSION/" gradle.properties
           fi
           
-          git commit -a -m "[artifactory-release] Next development version"
+          git commit -a -m "[CI/CD] Next development version"
           git push origin
           git push --tags origin
           

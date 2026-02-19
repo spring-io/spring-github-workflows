@@ -4,7 +4,7 @@ on:
   workflow_call:
     inputs:
       buildToolArgs:
-        description: 'Additional Gradle command arguments: tasks, options etc. The `build` and `artifactoryPublish` for Gradle are included.'
+        description: 'Additional Gradle command arguments: tasks, options etc. The `build` and `publishAllPublicationsToDeploymentRepository` for Gradle are included.'
         required: false
         type: string
       artifactoryUrl:
