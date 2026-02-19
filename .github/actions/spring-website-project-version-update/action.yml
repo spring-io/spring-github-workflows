@@ -21,40 +21,33 @@ runs:
         set -euo pipefail
 
         PROJECT=${{ github.event.repository.name }}
+        NEW_VERSION=${{ inputs.newVersion }}
         GITHUB_USER=$(gh api /user --jq '.login')
         
         # Check if project exists on Spring website
-        HTTP_CODE=$(curl -s -u "$GITHUB_USER:$GH_TOKEN" \
-                      -H "Content-Type: application/json" \
-                      -o /dev/null -w '%{http_code}' \
-                      "https://api.spring.io/projects/$PROJECT")
+        HTTP_CODE=$(curl -s -u "$GITHUB_USER:$GH_TOKEN" -H "Content-Type: application/json" -o /dev/null -w '%{http_code}' "https://api.spring.io/projects/$PROJECT")
         
-        if [ "$HTTP_CODE" != "200" ]
+        if [ $HTTP_CODE != 200 ]
         then
-           echo "::notice title=Nothing to update on Spring website::No versions update for $PROJECT project which is not listed on Spring website."
-           exit 0
+          echo "::notice title=Nothing to update on Spring website::No versions update for $PROJECT project which is not listed on Spring website."
+          exit 0
         fi
         
-        VERSIONS_TO_UPDATE=${{ inputs.newVersion }}
-       
-        MAJOR_MINOR=$(echo ${{ inputs.newVersion }} | cut -d '.' -f1-2)
+        MAJOR_MINOR=$(echo $NEW_VERSION | cut -d '.' -f1-2)
         
         # Fetch OSS support end date
-        OSS_SUPPORT_END_DATE=$(curl -s -u "$GITHUB_USER:$GH_TOKEN" \
-                                  -H "Content-Type: application/json" \
-                                  "https://api.spring.io/projects/$PROJECT/generations/${MAJOR_MINOR}.x" | \
-                      jq -r '.ossSupportEndDate // empty')
+        OSS_SUPPORT_END_DATE=$(curl -s -u "$GITHUB_USER:$GH_TOKEN" -H "Content-Type: application/json" "https://api.spring.io/projects/$PROJECT/generations/${MAJOR_MINOR}.x" | jq -r '.ossSupportEndDate // empty')
+        
+        VERSIONS_TO_UPDATE=$NEW_VERSION
         
         # Add next SNAPSHOT version if OSS support is still active
         if [[ -n "$OSS_SUPPORT_END_DATE" && "$OSS_SUPPORT_END_DATE" > "$(date '+%F')" ]]
         then
-          NEXT_SNAPSHOT=${{ inputs.newVersion }}
-        
-          if [[ $NEXT_SNAPSHOT == *"-"* ]] 
+          if [[ $NEW_VERSION == *"-"* ]]
           then
-            NEXT_SNAPSHOT=${NEXT_SNAPSHOT/-*}
+            NEXT_SNAPSHOT=${NEW_VERSION/-*}
           else
-            PATCH=$(echo $NEXT_SNAPSHOT | cut -d '.' -f3)
+            PATCH=$(echo $NEW_VERSION | cut -d '.' -f3)
             PATCH=$((PATCH+1))
             NEXT_SNAPSHOT=$MAJOR_MINOR.$PATCH
           fi
@@ -64,38 +57,37 @@ runs:
         fi
         
         # Fetch versions to remove
-        VERSIONS_TO_REMOVE=$(curl -s -u "$GITHUB_USER:$GH_TOKEN" \
-                                -H "Content-Type: application/json" \
-                                "https://api.spring.io/projects/$PROJECT/releases" | \
-                          jq -r "._embedded.releases[].version | select(startswith(\"$MAJOR_MINOR\"))")
+        VERSIONS_TO_REMOVE=$(curl -s -u "$GITHUB_USER:$GH_TOKEN" -H "Content-Type: application/json" "https://api.spring.io/projects/$PROJECT/releases" | jq -r "._embedded.releases[].version | select(startswith(\"$MAJOR_MINOR\"))")
         
-        # Remove old versions
+        # Remove old versions if they are not in the list of versions to update
         for VERSION_TO_REMOVE in $VERSIONS_TO_REMOVE
         do
-           echo "Removing version: $VERSION_TO_REMOVE"
-
-           curl -s -u "$GITHUB_USER:$GH_TOKEN" \
-              -H "Content-Type: application/json" \
-              -X DELETE \
-              --fail --show-error \
-              "https://api.spring.io/projects/$PROJECT/releases/$VERSION_TO_REMOVE"
+          if ! echo "$VERSIONS_TO_UPDATE" | grep -qw "$VERSION_TO_REMOVE"
+          then
+            curl -s -u "$GITHUB_USER:$GH_TOKEN" -H "Content-Type: application/json" -X DELETE --fail --show-error "https://api.spring.io/projects/$PROJECT/releases/$VERSION_TO_REMOVE"
+          fi
         done
-        
-#        sleep 1
         
         # Add new versions
         for VERSION in $VERSIONS_TO_UPDATE
         do
-            echo "Adding version: $VERSION"
- 
-            VERSION_JSON=$(jq -n \
-             --arg version "$VERSION" \
-             --arg project "$PROJECT" \
-             '{version: $version, referenceDocUrl: "https://docs.spring.io/\($project)/reference/{version}", apiDocUrl: "https://docs.spring.io/\($project)/docs/\($version)/api", isAntora: true}')
+          SKIP_VERSION=false
+          for VERSION_TO_REMOVE in $VERSIONS_TO_REMOVE
+          do
+            if [ $VERSION_TO_REMOVE = $VERSION ]
+            then
+              SKIP_VERSION=true
+              break
+            fi
+          done
         
-            curl -s -u "$GITHUB_USER:$GH_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "$VERSION_JSON" \
-              --fail --show-error \
-              "https://api.spring.io/projects/$PROJECT/releases"
+          if [ $SKIP_VERSION = false ]
+          then
+            VERSION_JSON=$(jq -n \
+                --arg version "$VERSION" \
+                --arg project "$PROJECT" \
+                '{version: $version, referenceDocUrl: "https://docs.spring.io/\($project)/reference/{version}", apiDocUrl: "https://docs.spring.io/\($project)/docs/\($version)/api", isAntora: true}')
+        
+            curl -s -u "$GITHUB_USER:$GH_TOKEN" -H "Content-Type: application/json" -d "$VERSION_JSON" --fail --show-error "https://api.spring.io/projects/$PROJECT/releases"
+          fi
         done
