@@ -15,7 +15,7 @@ on:
         required: true
 
 env:
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SPRING_MAIN_BANNERMODE: off
 
 jobs:
@@ -96,16 +96,14 @@ jobs:
           config-file: changelog.properties
 
       - name: GitHub Release
-        run: |
-          RELEASE_URL=$(gh release create v${{ inputs.milestone }} -F changelog.md ${{ (contains(inputs.milestone, '-M') || contains(inputs.milestone, '-RC')) && '--prerelease' || '' }})
-          echo "::notice title=Release Page::$RELEASE_URL"
+        uses: spring-io/spring-release-actions/publish-release-notes@0.0.2
+        with:
+          tag: v${{ inputs.milestone }}
 
       - name: Close Milestone
-        run: |
-          MILESTONE_ID=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq '.[] | select(.title == "${{ inputs.milestone }}") | .number')
-          if [ $MILESTONE_ID ]; then
-            gh api -X PATCH repos/$GITHUB_REPOSITORY/milestones/$MILESTONE_ID -f state='closed' --silent
-          fi
+        uses: spring-io/spring-release-actions/close-milestone@0.0.2
+        with:
+          version: ${{ inputs.milestone }}
 
       - name: Checkout Common Repo
         uses: actions/checkout@v6
