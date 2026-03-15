@@ -96,12 +96,12 @@ jobs:
           config-file: changelog.properties
 
       - name: GitHub Release
-        uses: spring-io/spring-release-actions/publish-release-notes@0.0.2
+        uses: spring-io/spring-release-actions/publish-release-notes@0.0.3
         with:
           tag: v${{ inputs.milestone }}
 
       - name: Close Milestone
-        uses: spring-io/spring-release-actions/close-milestone@0.0.2
+        uses: spring-io/spring-release-actions/close-milestone@0.0.3
         with:
           version: ${{ inputs.milestone }}
 
@@ -113,14 +113,14 @@ jobs:
           show-progress: false
 
       - name: Update Spring IO website for new version
-        uses: spring-io/spring-release-actions/update-learn-page@0.0.2
+        uses: spring-io/spring-release-actions/update-learn-page@0.0.3
         with:
           version: ${{ inputs.milestone }}
           website-token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
 
       - name: Announce Release in Chat
         if: env.CHAT_WEBHOOK_URL
-        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.2
+        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.3
         with:
           gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
           version: ${{ inputs.milestone }}
