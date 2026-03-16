@@ -82,12 +82,13 @@ This job stages released artifacts using JFrog Artifactory plugin into `libs-sta
 - Then [spring-finalize-release.yml](.github/workflows/spring-finalize-release.yml) job is executed, which tags release into GitHub, commits next development version, generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from `Contributors` section.
 The `gh release create` command is performed on a tag for a just released version.
 Then `spring.io` project page is updated for a newly released version.
+(The [spring-website-project-version-update](.github/actions/spring-website-project-version-update) local action is implemented for this goal).
 And in the end the milestone closed, and specific Google Space notified about release (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present in the repository).
 
 #### Example of Release caller workflow:
 https://github.com/spring-io/spring-github-workflows/blob/88d5c5f78e88d00b9ad18885438d4e3657433ccf/samples/release-with-gradle.yml#L1-L24
 
-Such a workflow must be on every branch supposed to be released via GitHub actions.
+Such a workflow must be on every branch that is supposed to be released via GitHub actions.
 
 The `buildToolArgs` parameter for this job means extra build tool arguments.
 For example, the mentioned `dist` value is a Gradle task in the project.
@@ -105,13 +106,13 @@ https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800
 > **Warning**
 > The [spring-artifactory-gradle-release.yml](.github/workflows/spring-artifactory-gradle-release.yml) (and [spring-artifactory-maven-release.yml](.github/workflows/spring-artifactory-maven-release.yml)) already uses 3 of 4 levels of nested reusable workflows.
 > Where the caller workflow is the last one.
-> Therefore, don't try to reuse your caller workflow. 
+> Therefore don't try to reuse your caller workflow. 
 
 ## Verify Staged Artifacts
 
 The `verify-staged` job expects an optional `verifyStagedWorkflow` input (the `verify-staged-artifacts.yml`, by default) workflow supplied from the target project.
 For example, [Spring Integration for AWS](https://github.com/spring-projects/spring-integration-aws) uses `jfrog rt download` command to verify that released `spring-integration-aws-${{ inputs.releaseVersion }}.jar` is valid.
-Other projects may check out their samples repository and set up a release version to perform smoke tests against just staged artifacts.
+Other projects may check out their samples repository and set up release version to perform smoke tests against just staged artifacts.
 
 #### Verify the staged workflow sample:
 https://github.com/spring-io/spring-github-workflows/blob/78b29123a17655f019d800690cc906d692f836a9/samples/verify-staged-artifacts.yml#L1-L28
