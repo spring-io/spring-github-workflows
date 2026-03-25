@@ -15,10 +15,10 @@ runs:
   using: composite
   steps:
 
-    - uses: actions/setup-java@v4
+    - uses: actions/setup-java@v5
       with:
         distribution: temurin
-        java-version: 24
+        java-version: 25
 
     - name: Find Scheduled Milestone for Current Version in Branch
       id: find-milestone

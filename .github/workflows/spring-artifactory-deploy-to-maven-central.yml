@@ -62,7 +62,7 @@ jobs:
           show-progress: false
           ref: ${{ env.WORKFLOWS_REF }}
 
-      - uses: jfrog/setup-jfrog-cli@v4
+      - uses: jfrog/setup-jfrog-cli@v4.10.0
 
       - name: Download Release Files
         id: download-release-files
