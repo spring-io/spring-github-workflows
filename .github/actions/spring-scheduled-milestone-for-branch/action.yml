@@ -9,7 +9,7 @@ outputs:
     value: ${{ steps.find-milestone.outputs.milestone }}
   currentVersion:
     description: 'The version for Milestone to find'
-    value: ${{ steps.find-milestone.outputs.currentVersion }}
+    value: ${{ steps.compute-version.outputs.version }}
 
 runs:
   using: composite
@@ -20,19 +20,16 @@ runs:
         distribution: temurin
         java-version: 25
 
+    - name: Compute Version
+      id: compute-version
+      uses: spring-io/spring-release-actions/compute-version@0.0.3
+
     - name: Find Scheduled Milestone for Current Version in Branch
       id: find-milestone
       shell: bash
       run: |
-        if test -f pom.xml
-        then
-          CURRENT_VERSION=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
-        else
-          CURRENT_VERSION=$(cat gradle.properties | sed -n '/^version=/ { s/^version=//;p }')
-        fi
-        
-        echo currentVersion=$CURRENT_VERSION >> $GITHUB_OUTPUT
-        
+        CURRENT_VERSION=${{ steps.compute-version.outputs.version }}
+ 
         export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
         MILESTONE=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.due_on != null and (.title | startswith(env.CANDIDATE_VERSION)))) | .[0] | .title')
         
