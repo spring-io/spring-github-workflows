@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: jfrog/setup-jfrog-cli@v4.10.0
+      - uses: jfrog/setup-jfrog-cli@v5
         env:
           JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
 
