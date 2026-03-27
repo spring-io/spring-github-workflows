@@ -38,8 +38,7 @@ runs:
         MAJOR_MINOR=$(echo "$NEW_VERSION" | cut -d '.' -f1-2)
         
         # Fetch OSS support end date
-        OSS_SUPPORT_END_DATE=$(curl "${CURL_OPTS[@]}" "$BASE_URL/generations/${MAJOR_MINOR}.x" \
-                                    | jq -r '.ossSupportEndDate // empty')
+        OSS_SUPPORT_END_DATE=$(curl "${CURL_OPTS[@]}" "$BASE_URL/generations/${MAJOR_MINOR}.x" | jq -r '.ossSupportEndDate // empty')
         
         VERSIONS_TO_UPDATE=$NEW_VERSION
         
