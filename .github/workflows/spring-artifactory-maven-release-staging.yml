@@ -76,13 +76,17 @@ jobs:
           java-version: 24
           cache: maven
 
+      - name: Compute Version
+        id: compute-version
+        uses: spring-io/spring-release-actions/compute-version@0.0.3
+
       - name: Evaluate Build Name
         id: build-name
         run: |
           branchVersion=${{ github.ref_name }}
 
           if [ $branchVersion = 'main' ]; then
-            snapshotVersion=$(mvn help:evaluate -Dexpression="project.version" -q -DforceStdout)
+            snapshotVersion=${{ steps.compute-version.outputs.version }}
             branchVersion=${snapshotVersion%.*}.x
           fi
           

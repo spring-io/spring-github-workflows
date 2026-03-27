@@ -54,6 +54,10 @@ runs:
       with:
         java-version: 24
 
+    - name: Compute Version
+      id: compute-version
+      uses: spring-io/spring-release-actions/compute-version@0.0.3
+
     - name: Set Release Version
       if: inputs.releaseVersion
       shell: bash
@@ -85,7 +89,7 @@ runs:
         branchVersion=${{ github.ref_name }}
 
         if [ $branchVersion = 'main' ]; then
-            snapshotVersion=$(cat gradle.properties | sed -n '/^version=/ { s/^version=//;p }')
+            snapshotVersion=${{ steps.compute-version.outputs.version }}
             branchVersion=${snapshotVersion%.*}.x
         fi
 

@@ -34,6 +34,12 @@ jobs:
           distribution: temurin
           java-version: 24
 
+      - name: Compute Next Snapshot
+        id: next-snapshot
+        uses: spring-io/spring-release-actions/compute-next-snapshot@0.0.3
+        with:
+          version: ${{ inputs.milestone }}
+
       - name: Tag Release and Next Development Version
         id: tag-release
         run: |
@@ -52,19 +58,7 @@ jobs:
           git commit -a -m "[CI/CD] Release version ${{ inputs.milestone }}"
           git tag "v${{ inputs.milestone }}"
           
-          NEXT_VERSION="${{ inputs.milestone }}"
-          
-          if [[ "$NEXT_VERSION" == *"-"* ]] 
-          then
-            NEXT_VERSION=${NEXT_VERSION/-*}
-          else
-            MAJOR_MINOR=$(echo "$NEXT_VERSION" | cut -d '.' -f1-2)
-            PATCH=$(echo "$NEXT_VERSION" | cut -d '.' -f3)
-            PATCH=$((PATCH+1))
-            NEXT_VERSION=$MAJOR_MINOR.$PATCH
-          fi
-          
-          NEXT_VERSION=${NEXT_VERSION}-SNAPSHOT
+          NEXT_VERSION="${{ steps.next-snapshot.outputs.version }}"
           
           if test -f pom.xml
           then
