@@ -111,10 +111,27 @@ jobs:
           fi
           echo autoMerge=$AUTO_MERGE >> $GITHUB_OUTPUT
 
-      - name: Find Scheduled Milestone
-        id: find-milestone
+      - uses: actions/setup-java@v5
         if: steps.is-auto-merge.outputs.autoMerge == 'false'
-        uses: ./.github/spring-github-workflows/.github/actions/spring-scheduled-milestone-for-branch
+        with:
+          distribution: temurin
+          java-version: 25
+
+      - name: Compute Version
+        if: steps.is-auto-merge.outputs.autoMerge == 'false'
+        id: compute-version
+        uses: spring-io/spring-release-actions/compute-version@0.0.3
+
+      - name: Find Milestone for Current Version in Branch
+        if: steps.is-auto-merge.outputs.autoMerge == 'false'
+        id: find-milestone
+        run: |
+          CURRENT_VERSION=${{ steps.compute-version.outputs.version }}
+          
+          export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
+          MILESTONE=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.title | startswith(env.CANDIDATE_VERSION))) | .[0].title')
+          
+          echo milestone=$MILESTONE >> $GITHUB_OUTPUT
 
       - name: Set Milestone to Dependabot pull request
         if: steps.is-auto-merge.outputs.autoMerge == 'false'
@@ -124,7 +141,7 @@ jobs:
           if [ -z $MILESTONE ]
           then
             gh run cancel ${{ github.run_id }}
-            echo "::warning title=Cannot merge::No scheduled milestone for ${{ steps.find-milestone.outputs.currentVersion }} version"
+            echo "::warning title=Cannot merge::No milestone for ${{ steps.find-milestone.outputs.currentVersion }} version"
             gh run watch ${{ github.run_id }}
           else
             gh pr edit ${{ github.event.pull_request.number }} --milestone $MILESTONE
