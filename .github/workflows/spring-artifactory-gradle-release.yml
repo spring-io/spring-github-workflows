@@ -78,6 +78,9 @@ on:
       ARTIFACTORY_PASSWORD:
         required: true
 
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
   releaseVersion:
     uses: ./.github/workflows/spring-find-release-version.yml
