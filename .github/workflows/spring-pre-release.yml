@@ -1,0 +1,44 @@
+name: Perform Pre Release Checks
+
+on:
+  workflow_call:
+    inputs:
+      milestone:
+        description: 'Milestone title, e.g 3.0.0-M1, 3.1.0-RC1, 3.2.0 etc.'
+        required: true
+        type: string
+      snapshotWorkflow:
+        description: 'A workflow name in the target project to check for latest green SNAPSHOT before going for release.'
+        required: false
+        type: string
+        default: ci-snapshot.yml
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  pre-release:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: spring-io/spring-release-actions/count-open-issues@0.0.3
+        id: count-open-issues
+        with:
+          milestone: ${{ inputs.milestone }}
+
+      - name: Check if no opened issues
+        run: |
+          if [[ ${{ steps.count-open-issues.outputs.count }} -gt 0 ]]
+          then
+            gh run cancel ${{ github.run_id }}
+            echo "::warning title=Cannot release::The milestone ${{ inputs.milestone }} has opened issues"
+          fi
+
+      - name: Check the last SNAPSHOT build is green
+        run: |
+          LAST_SNAPSHOT_BUILD_STATUS=$(gh run list -R ${{ github.repository }} -b ${{ github.ref_name }} -L 1 -w ${{ inputs.snapshotWorkflow }} --json conclusion --jq .[0].conclusion)
+          if [[ $LAST_SNAPSHOT_BUILD_STATUS != 'success' ]]
+          then
+            gh run cancel ${{ github.run_id }}
+            echo "::warning title=Cannot release::The last SNAPSHOT build for milestone ${{ inputs.milestone }} has not passed"
+          fi

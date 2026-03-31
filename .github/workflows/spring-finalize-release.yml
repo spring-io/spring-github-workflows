@@ -1,4 +1,4 @@
-name: Create GH release and Notify Slack
+name: Create GH release and close milestone
 
 on:
   workflow_call:
@@ -9,8 +9,6 @@ on:
         type: string
 
     secrets:
-      SPRING_RELEASE_CHAT_WEBHOOK_URL:
-        required: false
       GH_ACTIONS_REPO_TOKEN:
         required: true
 

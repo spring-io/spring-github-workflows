@@ -35,6 +35,11 @@ on:
         required: false
         type: string
         default: verify-staged-artifacts.yml
+      snapshotWorkflow:
+          description: 'A workflow name in the target project to check for latest green SNAPSHOT before going for release.'
+          required: false
+          type: string
+          default: ci-snapshot.yml
       runner:
         description: 'The runner for job'
         required: false
@@ -78,50 +83,24 @@ on:
       ARTIFACTORY_PASSWORD:
         required: true
 
-env:
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 jobs:
-  releaseVersion:
+  release-version:
     uses: ./.github/workflows/spring-find-release-version.yml
 
-  check-if-no-opened-issues:
-    needs: releaseVersion
-    name: Check is no opened issues for ${{ needs.releaseVersion.outputs.releaseVersion }}
-    runs-on: ${{ inputs.runner }}
-    steps:
-      - uses: spring-io/spring-release-actions/count-open-issues@0.0.3
-        id: count-open-issues
-        with:
-          milestone: ${{ needs.releaseVersion.outputs.releaseVersion }}
-      - name: Check if no opened issues
-        run: |
-          if [[ ${{ steps.count-open-issues.outputs.count }} -gt 0 ]]
-          then
-            gh run cancel ${{ github.run_id }}
-            echo "::warning title=Cannot release::The milestone ${{ needs.releaseVersion.outputs.releaseVersion }} has opened issues"
-          fi
-
-  check-last-snapshot-build:
-    needs: [ releaseVersion, check-if-no-opened-issues ]
-    name: Check the last SNAPSHOT build for ${{ needs.releaseVersion.outputs.releaseVersion }}
-    runs-on: ${{ inputs.runner }}
-    steps:
-      - name: Check the last SNAPSHOT build is green
-        run: |
-          LAST_SNAPSHOT_BUILD_STATUS=$(gh run list -R ${{ github.repository }} -b ${{ github.ref_name }} -L 1 -w ci-snapshot.yml --json conclusion --jq .[0].conclusion)
-          if [[ $LAST_SNAPSHOT_BUILD_STATUS != 'success' ]]
-          then
-            gh run cancel ${{ github.run_id }}
-            echo "::warning title=Cannot release::The last SNAPSHOT build for milestone ${{ needs.releaseVersion.outputs.releaseVersion }} has not passed"
-          fi
+  pre-release:
+    needs: release-version
+    name: Pre-release checks for ${{ needs.release-version.outputs.releaseVersion }}
+    uses: ./.github/workflows/spring-pre-release.yml
+    with:
+      milestone: ${{ needs.release-version.outputs.releaseVersion }}
+      snapshotWorkflow: ${{ inputs.snapshotWorkflow }}
 
   staging:
-    needs: [ releaseVersion, check-last-snapshot-build]
-    name: Stage ${{ needs.releaseVersion.outputs.releaseVersion }}
+    needs: [ release-version, pre-release]
+    name: Stage ${{ needs.release-version.outputs.releaseVersion }}
     uses: ./.github/workflows/spring-artifactory-gradle-build.yml
     with:
-      releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
+      releaseVersion: ${{ needs.release-version.outputs.releaseVersion }}
       gradleTasks: ${{ inputs.buildToolArgs }}
       artifactoryUrl: ${{ inputs.artifactoryUrl }}
       targetRepository: ${{ inputs.stagingRepository }}
@@ -130,8 +109,8 @@ jobs:
     secrets: inherit
 
   verify-staged:
-    needs: [ releaseVersion, staging ]
-    name: Verify ${{ needs.releaseVersion.outputs.releaseVersion }}
+    needs: [ release-version, staging ]
+    name: Verify ${{ needs.release-version.outputs.releaseVersion }}
     runs-on: ${{ inputs.runner }}
     steps:
       - uses: actions/checkout@v6
@@ -152,24 +131,24 @@ jobs:
         with:
           workflow: ${{ inputs.verifyStagedWorkflow }}
           token: ${{ secrets.GITHUB_TOKEN }}
-          inputs: '{ "releaseVersion": "${{ needs.releaseVersion.outputs.releaseVersion }}" }'
+          inputs: '{ "releaseVersion": "${{ needs.release-version.outputs.releaseVersion }}" }'
 
   promote-release:
-    needs: [ releaseVersion, staging, verify-staged ]
-    name: Promote ${{ needs.releaseVersion.outputs.releaseVersion }}
+    needs: [ release-version, staging, verify-staged ]
+    name: Promote ${{ needs.release-version.outputs.releaseVersion }}
     uses: ./.github/workflows/spring-artifactory-promote-release.yml
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
-      targetRepository: ${{ contains(needs.releaseVersion.outputs.releaseVersion, '-') && inputs.targetMilestoneRepository || inputs.targetReleaseRepository }}
+      targetRepository: ${{ contains(needs.release-version.outputs.releaseVersion, '-') && inputs.targetMilestoneRepository || inputs.targetReleaseRepository }}
       artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
       runner: ${{ inputs.runner }}
     secrets: inherit
 
   deploy-to-central:
-    needs: [ releaseVersion, staging, promote-release ]
-    name: Deploy ${{ needs.releaseVersion.outputs.releaseVersion }} to Maven Central
-    if: ${{ !inputs.bundleName && (!contains(needs.releaseVersion.outputs.releaseVersion, '-') || inputs.deployMilestoneToCentral) }}
+    needs: [ release-version, staging, promote-release ]
+    name: Deploy ${{ needs.release-version.outputs.releaseVersion }} to Maven Central
+    if: ${{ !inputs.bundleName && (!contains(needs.release-version.outputs.releaseVersion, '-') || inputs.deployMilestoneToCentral) }}
     uses: ./.github/workflows/spring-artifactory-deploy-to-maven-central.yml
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
@@ -177,9 +156,9 @@ jobs:
       runner: ${{ inputs.runner }}
     secrets: inherit
 
-  spring-release-bundle:
-    needs: [ releaseVersion, staging, promote-release ]
-    name: Release Bundle for ${{ needs.releaseVersion.outputs.releaseVersion }}
+  release-bundle:
+    needs: [ release-version, staging, promote-release ]
+    name: Release Bundle for ${{ needs.release-version.outputs.releaseVersion }}
     if: inputs.bundleName
     uses: ./.github/workflows/spring-enterprise-release-bundle.yml
     with:
@@ -187,43 +166,23 @@ jobs:
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
       artifactoryUrl: ${{ inputs.artifactoryUrl }}
       bundleName: ${{ inputs.bundleName }}
-      releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
+      releaseVersion: ${{ needs.release-version.outputs.releaseVersion }}
     secrets: inherit
 
   finalize:
     if: ${{ !(failure() || cancelled()) }}
-    needs: [ releaseVersion, deploy-to-central, spring-release-bundle ]
-    name: Finalize ${{ needs.releaseVersion.outputs.releaseVersion }} release
+    needs: [ release-version, deploy-to-central, release-bundle ]
+    name: Finalize ${{ needs.release-version.outputs.releaseVersion }} release
     uses: ./.github/workflows/spring-finalize-release.yml
     with:
-      milestone: ${{ needs.releaseVersion.outputs.releaseVersion }}
+      milestone: ${{ needs.release-version.outputs.releaseVersion }}
     secrets: inherit
 
   post-release:
     if: ${{ !(failure() || cancelled()) }}
-    needs: [ releaseVersion, finalize ]
-    name: Post-procedure for ${{ needs.releaseVersion.outputs.releaseVersion }} release
-    runs-on: ${{ inputs.runner }}
-    steps:
-      - name: Checkout Common Repo
-        uses: actions/checkout@v6
-        with:
-          repository: spring-io/spring-github-workflows
-          path: .github/spring-github-workflows
-          show-progress: false
-          ref: ${{ env.WORKFLOWS_REF }}
-
-      - name: Update Spring IO website for new version
-        uses: ./.github/spring-github-workflows/.github/actions/spring-website-project-version-update
-        with:
-          newVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
-          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-
-      - name: Announce Release in Chat
-        if: env.CHAT_WEBHOOK_URL
-        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.3
-        with:
-          gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
-          version: ${{ needs.releaseVersion.outputs.releaseVersion }}
-        env:
-          CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+    needs: [ release-version, finalize ]
+    name: Post-procedure for ${{ needs.release-version.outputs.releaseVersion }} release
+    uses: ./.github/workflows/spring-post-release.yml
+    with:
+      milestone: ${{ needs.release-version.outputs.releaseVersion }}
+    secrets: inherit
