@@ -1,6 +1,6 @@
 name: Distribute Spring Enterprise Release Bundle
 
-# Intended to be used in private repositories for commercial releases where allowed ubuntu22-2-8 GH runner is available
+# Intended to be used in private repositories for commercial releases where an allowed ubuntu22-2-8 GH runner is available
 
 on:
   workflow_call:
@@ -37,14 +37,12 @@ jobs:
   distribute-spring-enterprise-release-bundle:
     runs-on: ubuntu22-2-8
     steps:
-
-      - run: |
-          curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
-            -X POST -H "X-JFrog-Signing-Key-Name: packagesKey" -H "Content-Type: application/json" \
-            "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/release_bundle?project=spring&async=false" \
-            -d '{"release_bundle_name": "${{ inputs.bundleName }}", "release_bundle_version": "${{ inputs.releaseVersion }}", "skip_docker_manifest_resolution": true, "source_type": "builds", "source": {"builds": [ {"build_repository": "spring-build-info", "build_name": "${{ inputs.buildName }}", "build_number": "${{ inputs.buildNumber }}", "include_dependencies": false}]}}' 
-          
-          curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
-            -X POST -H "Content-Type: application/json" \
-            "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/distribution/distribute/${{ inputs.bundleName }}/${{ inputs.releaseVersion }}?project=spring" \
-            -d '{"auto_create_missing_repositories": "false", "distribution_rules": [{"site_name": "JP-SaaS"}], "modifications": {"mappings": [{"input": "spring-enterprise-maven-prod-local/(.*)", "output": "spring-enterprise/$1"}]}}'
+      - uses: spring-io/spring-release-actions/distribute-release-bundle@main
+        with:
+          artifactory-url: ${{ inputs.artifactoryUrl }}
+          bundle-name: ${{ inputs.bundleName }}
+          build-name: ${{ inputs.buildName }}
+          build-number: ${{ inputs.buildNumber }}
+          version: ${{ inputs.releaseVersion }}
+          username: ${{ secrets.ARTIFACTORY_USERNAME }}
+          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
