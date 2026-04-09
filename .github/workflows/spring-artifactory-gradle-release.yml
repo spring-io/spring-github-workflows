@@ -62,12 +62,6 @@ on:
         required: false
       GH_ACTIONS_REPO_TOKEN:
         required: true
-      OSSRH_S01_TOKEN_USERNAME:
-        required: false
-      OSSRH_S01_TOKEN_PASSWORD:
-        required: false
-      OSSRH_STAGING_PROFILE_NAME:
-        required: false
       CENTRAL_TOKEN_USERNAME:
         required: false
       CENTRAL_TOKEN_PASSWORD:
@@ -153,7 +147,6 @@ jobs:
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
       buildNumber: ${{ needs.staging.outputs.buildNumber }}
-      runner: ${{ inputs.runner }}
     secrets: inherit
 
   release-bundle:

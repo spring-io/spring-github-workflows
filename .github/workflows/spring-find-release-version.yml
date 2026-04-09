@@ -14,32 +14,30 @@ jobs:
   find-release-version:
     runs-on: ubuntu-latest
     outputs:
-      releaseVersion: ${{ steps.find-milestone.outputs.milestone }}
+      releaseVersion: ${{ steps.milestone.outputs.release-version }}
 
     steps:
       - uses: actions/checkout@v6
         with:
           show-progress: false
 
-      - name: Checkout Common Repo
-        uses: actions/checkout@v6
-        with:
-          repository: spring-io/spring-github-workflows
-          path: .github/spring-github-workflows
-          show-progress: false
-          ref: ${{ env.WORKFLOWS_REF }}
+      - name: Compute Version
+        id: compute-version
+        uses: spring-io/spring-release-actions/compute-version@0.0.3
 
-      - name: Find Scheduled Milestone
-        id: find-milestone
-        uses: ./.github/spring-github-workflows/.github/actions/spring-scheduled-milestone-for-branch
+      - name: Compute next scheduled milestone
+        id: milestone
+        uses: spring-io/spring-release-actions/compute-next-scheduled-milestone@main
+        with:
+          snapshot-version: ${{ steps.compute-version.outputs.version }}
 
       - name: Version to Release
         run: |
-          RELEASE_VERSION=${{ steps.find-milestone.outputs.milestone }}
+          RELEASE_VERSION=${{ steps.milestone.outputs.release-version }}
           if [ -z $RELEASE_VERSION ]
           then
             gh run cancel ${{ github.run_id }}
-            echo "::warning title=Nothing to release::No scheduled milestone for ${{ steps.find-milestone.outputs.currentVersion }} version"
+            echo "::warning title=Nothing to release::No scheduled milestone for ${{ steps.compute-version.outputs.version }} version"
           else
             echo "::notice title=RELEASE VERSION::$RELEASE_VERSION"
           fi

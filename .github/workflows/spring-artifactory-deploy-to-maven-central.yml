@@ -11,50 +11,23 @@ on:
         description: 'The Artifactory Build Number'
         required: true
         type: string
-      runner:
-        description: 'The runner for job'
-        required: false
-        type: string
-        default: ubuntu-latest
 
     secrets:
-      OSSRH_S01_TOKEN_USERNAME:
-        required: false
-      OSSRH_S01_TOKEN_PASSWORD:
-        required: false
-      OSSRH_STAGING_PROFILE_NAME:
-        required: false
       CENTRAL_TOKEN_USERNAME:
-        required: false
+        required: true
       CENTRAL_TOKEN_PASSWORD:
-        required: false
+        required: true
       JF_ARTIFACTORY_SPRING:
         required: true
 
 env:
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   JF_ENV_SPRING: ${{ secrets.JF_ARTIFACTORY_SPRING }}
-  OSSRH_S01_TOKEN_USERNAME: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
-  CENTRAL_TOKEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
   WORKFLOWS_REF: main
 
 jobs:
   deploy-to-maven-central:
-    runs-on: ${{ inputs.runner }}
+    runs-on: ubuntu-latest
     steps:
-
-      - uses: actions/checkout@v6
-        with:
-          show-progress: false
-
-      - name: Verify Maven Secrets
-        run: |
-          if [[ -z $OSSRH_S01_TOKEN_USERNAME && -z $CENTRAL_TOKEN_USERNAME ]] 
-          then
-            gh run cancel ${{ github.run_id }}
-            echo "::error title=Cannot deploy to Maven Central:: The 'OSSRH_S01_TOKEN_USERNAME' & 'OSSRH_S01_TOKEN_PASSWORD' or 'CENTRAL_TOKEN_USERNAME' & 'CENTRAL_TOKEN_PASSWORD' pair of secrets must be provided"
-            exit 1
-          fi
 
       - uses: actions/checkout@v6
         with:
@@ -65,41 +38,12 @@ jobs:
       - uses: jfrog/setup-jfrog-cli@v5
 
       - name: Download Release Files
-        id: download-release-files
         run: |
           jfrog rt download \
             --spec utils/release-files-spec.json \
             --spec-vars "buildname=${{ inputs.buildName }};buildnumber=${{ inputs.buildNumber }}"
-          
-          jarToCheck=$(find central_bundle -name "*.jar" -print -quit)
-          jarToCheck=${jarToCheck#central_bundle}
-          echo jarToCheck=$jarToCheck >> $GITHUB_OUTPUT
-
-      - uses: spring-io/nexus-sync-action@v0.0.1
-        id: nexus
-        if: env.OSSRH_S01_TOKEN_USERNAME
-        with:
-          username: ${{ secrets.OSSRH_S01_TOKEN_USERNAME }}
-          password: ${{ secrets.OSSRH_S01_TOKEN_PASSWORD }}
-          staging-profile-name: ${{ secrets.OSSRH_STAGING_PROFILE_NAME }}
-          dir: central_bundle
-          create: true
-          upload: true
-          generate-checksums: true
-          upload-parallel: 10
-          close: true
-          release: true
-          close-timeout: 3600
-          release-timeout: 3600
-
-      - name: Await for Artifact in Maven Central Repository
-        if: env.OSSRH_S01_TOKEN_USERNAME
-        uses: ./.github/actions/await-http-resource
-        with:
-          url: https://repo.maven.apache.org/maven2${{ steps.download-release-files.outputs.jarToCheck }}
 
       - name: Deploy Bundle to Maven Central Portal
-        if: env.CENTRAL_TOKEN_USERNAME
         uses: spring-io/central-publish-action@v0.4.0
         with:
           token-name: ${{ secrets.CENTRAL_TOKEN_USERNAME }}

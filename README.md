@@ -13,19 +13,15 @@ JF_ARTIFACTORY_SPRING
 ARTIFACTORY_USERNAME
 ARTIFACTORY_PASSWORD
 SPRING_RELEASE_CHAT_WEBHOOK_URL
-OSSRH_S01_TOKEN_USERNAME
-OSSRH_S01_TOKEN_PASSWORD
-OSSRH_STAGING_PROFILE_NAME
 CENTRAL_TOKEN_USERNAME
 CENTRAL_TOKEN_PASSWORD
 GPG_PASSPHRASE
 GPG_PRIVATE_KEY
 ```
 
-The Develocity secret is optional: mostly not used by Maven and Gradle project might not be enrolled for the service.  
+The Develocity secret is optional: mostly not used by Maven, and a Gradle project might not be enrolled for the service.  
 The `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is also optional: probably you don't want to notify Google Space about your release, or it is not available for GitHub organization.
-As well as `OSSRH_*` secret, since not all releases might go to Maven Central, e.g. private (commercial) repositories only.
-Also, the `OSSRH_*` and `CENTRAL_TOKEN_*` secrets are mutually exclusive where `CENTRAL_TOKEN_*` will lead to publishing via [Maven Central Portal](https://central.sonatype.org/register/central-portal/). 
+As well as `CENTRAL_TOKEN_*` secrets, since not all releases might go to [Maven Central Portal](https://central.sonatype.org/register/central-portal/), e.g. private (commercial) repositories only.
 
 The mentioned secrets must be passed explicitly since these reusable workflows might be in a different GitHub org than the target project.
 
