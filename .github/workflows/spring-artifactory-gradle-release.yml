@@ -54,6 +54,10 @@ on:
         default: false
         required: false
         type: boolean
+      releaseTrainWeekAndDay:
+        description: 'The week of the month and day of the week when the project is usually scheduled in the release train, e.g. 4/1 (4th Monday), 3/5 (3d Friday)'
+        required: false
+        type: string
 
     secrets:
       DEVELOCITY_ACCESS_KEY:
@@ -178,4 +182,5 @@ jobs:
     uses: ./.github/workflows/spring-post-release.yml
     with:
       milestone: ${{ needs.release-version.outputs.releaseVersion }}
+      releaseTrainWeekAndDay: ${{ inputs.releaseTrainWeekAndDay }}
     secrets: inherit

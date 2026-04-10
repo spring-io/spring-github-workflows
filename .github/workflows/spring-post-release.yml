@@ -7,6 +7,10 @@ on:
         description: 'Milestone title, e.g 3.0.0-M1, 3.1.0-RC1, 3.2.0 etc.'
         required: true
         type: string
+      releaseTrainWeekAndDay:
+        description: 'The week of the month and day of the week when the project is usually scheduled in the release train, e.g. 4/1 (4th Monday), 3/5 (3d Friday)'
+        required: false
+        type: string
 
     secrets:
       SPRING_RELEASE_CHAT_WEBHOOK_URL:
@@ -43,3 +47,42 @@ jobs:
           version: ${{ inputs.milestone }}
         env:
           CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+
+      - name: Compute Version
+        id: compute-version
+        if: inputs.releaseTrainWeekAndDay
+        uses: spring-io/spring-release-actions/compute-version@0.0.3
+
+      - name: Check if next milestone already scheduled
+        id: existing-milestone
+        uses: spring-io/spring-release-actions/compute-next-scheduled-milestone@main
+        with:
+          snapshot-version: ${{ steps.compute-version.outputs.version }}
+
+      - name: Compute Next Milestone
+        if: steps.existing-milestone.outputs.release-version == ''
+        id: next-milestone
+        run: |
+          NEXT-MILESTONE=${{ steps.compute-version.outputs.version }}
+          NEXT-MILESTONE=${NEXT-MILESTONE/-SNAPSHOT}
+          echo milestone=$NEXT-MILESTONE >> $GITHUB_OUTPUT
+
+      - name: Compute Next Milestone Date
+        id: next-milestone-date
+        if: steps.next-milestone.outputs.milestone
+        run: |
+          RELEASE_WEEK=${${{inputs.repleaseTrainWeekAndDay}}%%/*}
+          RELEASE_DAY=${${{inputs.repleaseTrainWeekAndDay}}#*/}
+          NEXT_MONTH_FIRST=$(date -d "$(date +%Y-%m-01) + 1 month" +%Y-%m-%d)
+          TARGET_WEEK=$(date -d "$NEXT_MONTH_FIRST + $(( RELEASE_WEEK - 1 )) weeks" +%Y-%m-%d)
+          TARGET_DOW=$(date -d "$TARGET_WEEK" +%w)
+          DAYS_DIFF=$(( RELEASE_DAY - TARGET_DOW ))
+          MILESTONE_DATE=$(date -d "$TARGET_WEEK + $DAYS_DIFF days" +%Y-%m-%d)
+          echo due-date=$MILESTONE_DATE >> $GITHUB_OUTPUT
+
+      - name: Schedule Milestone
+        if: steps.next-milestone.outputs.milestone
+        uses: spring-io/spring-release-actions/schedule-milestone@0.0.3
+        with:
+          version-date: ${{ steps.next-milestone-date.outputs.due-date }}
+          version: ${{ steps.next-milestone.outputs.milestone }}
