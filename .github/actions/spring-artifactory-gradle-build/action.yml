@@ -3,9 +3,10 @@ name: CI Artifactory Build for Gradle
 description: 'Builds the project with Gradle. 
 If `releaseVersion` input is provided, the version is set to gradle.properties.
 If `testJavaVersion` is provided, no artifacts are published to the Artifactory.
-Otherwise the `targetRepository` is required.
-The `artifactoryUsername`, `artifactoryPassword` are always required for possible authentication to the Artifactory repository.
+Otherwise, the `artifactoryUsername`, `artifactoryPassword` are required for publishing artifacts whether release or SNAPSHOT.
+They might be also used for getting access to the private Artifactory repository in case of CI mode.
 The `artifactoryUrl` is `https://repo.spring.io` by default.
+The `targetRepository` is `libs-snapshot-local` by default.
 The buildName for build-info is based on the repository name and `releaseVersion` input (if provided).
 Otherwise the `github.ref_name` is used if it is not `main`.
 When `github.ref_name` is `main`, the `version` is read from gradle.properties and last number is replaced with `x`.'
@@ -16,10 +17,10 @@ inputs:
     required: false
   artifactoryUsername:
     description: 'The Artifactory User'
-    required: true
+    required: false
   artifactoryPassword:
     description: 'The Artifactory Password'
-    required: true
+    required: false
   targetRepository:
     description: 'The Artifactory Repository to upload artifacts to'
     required: false
@@ -75,7 +76,7 @@ runs:
     - name: CI Build
       if: inputs.testJavaVersion
       shell: bash
-      run:  |
+      run: |
         echo CI Build
         
         ./gradlew clean build ${{ inputs.gradleTasks }} -PtestJavaVersion=${{ inputs.testJavaVersion }}

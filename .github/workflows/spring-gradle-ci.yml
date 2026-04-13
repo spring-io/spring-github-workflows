@@ -19,9 +19,9 @@ on:
 
     secrets:
       ARTIFACTORY_USERNAME:
-        required: true
+        required: false
       ARTIFACTORY_PASSWORD:
-        required: true
+        required: false
 
 jobs:
   ci-with-gradle:
