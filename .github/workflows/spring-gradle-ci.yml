@@ -49,7 +49,7 @@ jobs:
         run: |
           echo CI Build
           
-          ./gradlew check ${{ inputs.gradleTasks }} -PtestJavaVersion=${{ inputs.testJavaVersion }}
+          ./gradlew check ${{ inputs.gradleTasks }} --rerun-tasks --no-build-cache -PtestJavaVersion=${{ inputs.testJavaVersion }}
         env:
           ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
           ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
