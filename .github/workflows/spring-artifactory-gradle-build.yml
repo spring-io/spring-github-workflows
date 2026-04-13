@@ -45,9 +45,9 @@ on:
       DEVELOCITY_ACCESS_KEY:
         required: false
       ARTIFACTORY_USERNAME:
-        required: true
+        required: false
       ARTIFACTORY_PASSWORD:
-        required: true
+        required: false
       GPG_PASSPHRASE:
         required: false
       GPG_PRIVATE_KEY:

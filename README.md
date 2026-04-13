@@ -184,7 +184,7 @@ This action is used in the `verify-staged` job of the release workflow.
 
 ## Gradle Init Scripts
 
-The [deployment-repository-init.gradle](utils/deployment-repository-init.gradle) script adds a Maven repository for publishing artifacts into a local directory (`/deployment-repository`) via respective `publishAllPublicationsToDeploymentRepository` Gradle task.
+The [Gradle Build Action](.github/actions/spring-artifactory-gradle-build)and a script with Maven repository for publishing artifacts into a local directory (`/deployment-repository`) via respective `publishAllPublicationsToDeploymentRepository` Gradle task.
 Then [spring-io/artifactory-deploy-action](https://github.com/spring-io/artifactory-deploy-action) picks up those artifacts for uploading to the Artifactory.
 The Maven build does that via `deploy` goal and respective `-DaltDeploymentRepository=local::file:deployment-repository` CLI option.
 
