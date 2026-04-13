@@ -28,6 +28,10 @@ on:
         required: false
         type: string
         default: ubuntu-latest
+      testJavaVersion:
+        description: 'Java version for testing in matrix strategy.'
+        required: false
+        type: string
 
     outputs:
       buildName:
@@ -90,5 +94,6 @@ jobs:
           artifactoryPassword: ${{ secrets.ARTIFACTORY_PASSWORD }}
           gpgPrivateKey: ${{ secrets.GPG_PRIVATE_KEY }}
           gpgPassphrase: ${{ secrets.GPG_PASSPHRASE }}
+          testJavaVersion: ${{ inputs.testJavaVersion }}
 
 

@@ -1,0 +1,35 @@
+name: Continuous Integration Build for Gradle
+
+on:
+  workflow_call:
+    inputs:
+      testJavaVersion:
+        description: 'Java version for testing'
+        required: true
+        type: string
+      gradleTasks:
+        description: 'Additional Gradle tasks. The `build` is included'
+        required: false
+        type: string
+      runner:
+        description: 'The runner for job'
+        required: false
+        type: string
+        default: ubuntu-latest
+
+    secrets:
+      ARTIFACTORY_USERNAME:
+        required: true
+      ARTIFACTORY_PASSWORD:
+        required: true
+
+jobs:
+  ci-with-gradle:
+    name: CI for ${{ github.ref_name }} with Java ${{ inputs.testJavaVersion }} on ${{ inputs.runner }}
+    uses: ./.github/workflows/spring-artifactory-gradle-build.yml
+    with:
+      gradleTasks: ${{ inputs.gradleTasks }}
+      testJavaVersion: ${{ inputs.testJavaVersion }}
+      runner: ${{ inputs.runner }}
+    secrets: inherit
+

@@ -1,16 +1,19 @@
 name: CI Artifactory Build for Gradle
 
-description: 'Builds the project with Gradle and Artifactory plugin. 
-If `releaseVersion` input is not provided, the SNAPSHOT is uploaded.
-The buildName for build-info is based on the repository name and `releaseVersion` input if provided.
+description: 'Builds the project with Gradle. 
+If `releaseVersion` input is provided, the version is set to gradle.properties.
+If `testJavaVersion` is provided, no artifacts are published to the Artifactory.
+Otherwise the `targetRepository` is required.
+The `artifactoryUsername`, `artifactoryPassword` are always required for possible authentication to the Artifactory repository.
+The `artifactoryUrl` is `https://repo.spring.io` by default.
+The buildName for build-info is based on the repository name and `releaseVersion` input (if provided).
 Otherwise the `github.ref_name` is used if it is not `main`.
-When `github.ref_name` is `main`, the `version` is read from gradle.properties and last number is replaced with `x`.
-The `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` environment variables must be before using this action.'
+When `github.ref_name` is `main`, the `version` is read from gradle.properties and last number is replaced with `x`.'
 
 inputs:
   artifactoryUrl:
     description: 'The Artifactory Server'
-    required: true
+    required: false
   artifactoryUsername:
     description: 'The Artifactory User'
     required: true
@@ -19,12 +22,12 @@ inputs:
     required: true
   targetRepository:
     description: 'The Artifactory Repository to upload artifacts to'
-    required: true
+    required: false
   artifactoryProjectKey:
     description: 'The Artifactory project key'
     required: false
   gradleTasks:
-    description: 'Additional Gradle tasks. The `build` and `artifactoryPublish` are included.'
+    description: 'Additional Gradle tasks. The `build` and `publishAllPublicationsToDeploymentRepository` are included.'
     required: false
   releaseVersion:
     description: 'The optional release version. Otherwise builds SNAPSHOT'
@@ -35,7 +38,9 @@ inputs:
   gpgPassphrase:
     description: 'Passphrase of the signing key'
     required: false
-
+  testJavaVersion:
+    description: 'Java version for testing. Make sense only for CI workflows with matrix strategy.'
+    required: false
 
 outputs:
   buildName:
@@ -52,10 +57,11 @@ runs:
     - name: Set up Gradle
       uses: spring-io/spring-gradle-build-action@v2
       with:
-        java-version: 24
+        java-version: 25
 
     - name: Compute Version
       id: compute-version
+      if: inputs.testJavaVersion == ''
       uses: spring-io/spring-release-actions/compute-version@0.0.3
 
     - name: Set Release Version
@@ -66,8 +72,20 @@ runs:
         
         sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
 
+    - name: CI Build
+      if: inputs.testJavaVersion
+      shell: bash
+      run:  |
+        echo CI Build
+        
+        ./gradlew clean build ${{ inputs.gradleTasks }} -PtestJavaVersion=${{ inputs.testJavaVersion }}
+      env:
+        ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
+        ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
+
     - name: Build and Publish
       id: build-and-publish
+      if: inputs.testJavaVersion == ''
       shell: bash
       run: |
         echo Build and Publish
@@ -82,6 +100,7 @@ runs:
 
     - name: Evaluate Build Name
       id: build-name
+      if: inputs.testJavaVersion == ''
       shell: bash
       run: |
         echo Evaluate Build Name
@@ -102,6 +121,7 @@ runs:
         echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
 
     - name: Deploy
+      if: inputs.testJavaVersion == ''
       uses: spring-io/artifactory-deploy-action@v0.0.1
       with:
         uri: ${{ inputs.artifactoryUrl == '' && 'https://repo.spring.io' || inputs.artifactoryUrl }}
