@@ -18,6 +18,8 @@ on:
         default: ubuntu-latest
 
     secrets:
+      DEVELOCITY_ACCESS_KEY:
+        required: false
       ARTIFACTORY_USERNAME:
         required: false
       ARTIFACTORY_PASSWORD:
