@@ -25,13 +25,32 @@ on:
       ARTIFACTORY_PASSWORD:
         required: false
 
+env:
+  DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+
 jobs:
   ci-with-gradle:
     name: CI for ${{ github.ref_name }} with Java ${{ inputs.testJavaVersion }} on ${{ inputs.runner }}
-    uses: ./.github/workflows/spring-artifactory-gradle-build.yml
-    with:
-      gradleTasks: ${{ inputs.gradleTasks }}
-      testJavaVersion: ${{ inputs.testJavaVersion }}
-      runner: ${{ inputs.runner }}
-    secrets: inherit
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+
+      - uses: actions/checkout@v6
+        with:
+          show-progress: false
+
+      - name: Set up Gradle
+        uses: spring-io/spring-gradle-build-action@v2
+        with:
+          java-version: 25
+
+      - name: CI Build
+        shell: bash
+        run: |
+          echo CI Build
+          
+          ./gradlew check ${{ inputs.gradleTasks }} -PtestJavaVersion=${{ inputs.testJavaVersion }}
+        env:
+          ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
+          ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
 

@@ -1,10 +1,8 @@
 name: CI Artifactory Build for Gradle
 
-description: 'Builds the project with Gradle. 
+description: 'Builds the project with Gradle and publish artifacts to Artifactory. 
 If `releaseVersion` input is provided, the version is set to gradle.properties.
-If `testJavaVersion` is provided, no artifacts are published to the Artifactory.
-Otherwise, the `artifactoryUsername`, `artifactoryPassword` are required for publishing artifacts whether release or SNAPSHOT.
-They might be also used for getting access to the private Artifactory repository in case of CI mode.
+They might be also used for getting access to the private Artifactory repository.
 The `artifactoryUrl` is `https://repo.spring.io` by default.
 The `targetRepository` is `libs-snapshot-local` by default.
 The buildName for build-info is based on the repository name and `releaseVersion` input (if provided).
@@ -17,10 +15,10 @@ inputs:
     required: false
   artifactoryUsername:
     description: 'The Artifactory User'
-    required: false
+    required: true
   artifactoryPassword:
     description: 'The Artifactory Password'
-    required: false
+    required: true
   targetRepository:
     description: 'The Artifactory Repository to upload artifacts to'
     required: false
@@ -38,9 +36,6 @@ inputs:
     required: false
   gpgPassphrase:
     description: 'Passphrase of the signing key'
-    required: false
-  testJavaVersion:
-    description: 'Java version for testing. Make sense only for CI workflows with matrix strategy.'
     required: false
 
 outputs:
@@ -62,7 +57,6 @@ runs:
 
     - name: Compute Version
       id: compute-version
-      if: inputs.testJavaVersion == ''
       uses: spring-io/spring-release-actions/compute-version@0.0.3
 
     - name: Set Release Version
@@ -73,20 +67,8 @@ runs:
         
         sed -i "s/version=.*/version=${{ inputs.releaseVersion }}/" gradle.properties
 
-    - name: CI Build
-      if: inputs.testJavaVersion
-      shell: bash
-      run: |
-        echo CI Build
-        
-        ./gradlew clean build ${{ inputs.gradleTasks }} -PtestJavaVersion=${{ inputs.testJavaVersion }}
-      env:
-        ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
-        ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
-
     - name: Build and Publish
       id: build-and-publish
-      if: inputs.testJavaVersion == ''
       shell: bash
       run: |
         echo Build and Publish
@@ -113,7 +95,6 @@ runs:
 
     - name: Evaluate Build Name
       id: build-name
-      if: inputs.testJavaVersion == ''
       shell: bash
       run: |
         echo Evaluate Build Name
@@ -134,7 +115,6 @@ runs:
         echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
 
     - name: Deploy
-      if: inputs.testJavaVersion == ''
       uses: spring-io/artifactory-deploy-action@v0.0.1
       with:
         uri: ${{ inputs.artifactoryUrl == '' && 'https://repo.spring.io' || inputs.artifactoryUrl }}
