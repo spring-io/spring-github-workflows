@@ -50,10 +50,7 @@ runs:
   using: composite
   steps:
 
-    - name: Set up Gradle
-      uses: spring-io/spring-gradle-build-action@v2
-      with:
-        java-version: 25
+    - uses: spring-io/spring-gradle-build-action@v2
 
     - name: Compute Version
       id: compute-version

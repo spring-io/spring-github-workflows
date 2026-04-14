@@ -28,8 +28,6 @@ jobs:
           show-progress: false
 
       - uses: spring-io/spring-gradle-build-action@v2
-        with:
-          java-version: 24
 
       - name: Run Pull Request Build
         timeout-minutes: 30

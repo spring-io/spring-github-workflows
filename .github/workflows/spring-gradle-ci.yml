@@ -38,8 +38,6 @@ jobs:
           show-progress: false
 
       - uses: spring-io/spring-gradle-build-action@v2
-        with:
-          java-version: 25
 
       - name: CI Build
         run: ./gradlew test --rerun -PtestJavaVersion=${{ inputs.testJavaVersion }}
