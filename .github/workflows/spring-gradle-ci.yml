@@ -7,10 +7,6 @@ on:
         description: 'Java version for testing'
         required: true
         type: string
-      gradleTasks:
-        description: 'Additional Gradle tasks. The `build` is included'
-        required: false
-        type: string
       runner:
         description: 'The runner for job'
         required: false
@@ -27,6 +23,8 @@ on:
 
 env:
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+  ARTIFACTORY_USERNAME: ${{ secrets.ARTIFACTORY_USERNAME }}
+  ARTIFACTORY_PASSWORD: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
 jobs:
   ci-with-gradle:
@@ -39,18 +37,11 @@ jobs:
         with:
           show-progress: false
 
-      - name: Set up Gradle
-        uses: spring-io/spring-gradle-build-action@v2
+      - uses: spring-io/spring-gradle-build-action@v2
         with:
           java-version: 25
 
       - name: CI Build
-        shell: bash
-        run: |
-          echo CI Build
-          
-          ./gradlew check ${{ inputs.gradleTasks }} --rerun-tasks --no-build-cache -PtestJavaVersion=${{ inputs.testJavaVersion }}
-        env:
-          ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
-          ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
+        run: ./gradlew test --rerun -PtestJavaVersion=${{ inputs.testJavaVersion }}
+
 
