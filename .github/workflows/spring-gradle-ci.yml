@@ -28,7 +28,7 @@ env:
 
 jobs:
   ci-with-gradle:
-    name: CI for ${{ github.ref_name }} with Java ${{ inputs.testJavaVersion }} on ${{ inputs.runner }}
+    name: ${{ github.ref_name }} | ${{ inputs.testJavaVersion }} | ${{ inputs.runner }}
     runs-on: ${{ inputs.runner }}
 
     steps:
