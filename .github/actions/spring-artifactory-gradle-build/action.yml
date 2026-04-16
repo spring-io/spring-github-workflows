@@ -54,7 +54,8 @@ runs:
 
     - name: Compute Version
       id: compute-version
-      uses: spring-io/spring-release-actions/compute-version@0.0.3
+      if: ${{ github.ref_name == 'main' }}
+      uses: spring-io/spring-release-actions/compute-version@0.0.4
 
     - name: Set Release Version
       if: inputs.releaseVersion
@@ -119,6 +120,7 @@ runs:
         username: ${{ inputs.artifactoryUsername }}
         password: ${{ inputs.artifactoryPassword }}
         build-name: ${{ steps.build-name.outputs.buildName }}
+        build-number: ${{ steps.build-name.outputs.buildNumber }}
         repository: ${{ inputs.targetRepository == '' && 'libs-snapshot-local' || inputs.targetRepository }}
         folder: 'deployment-repository'
         artifact-properties: |

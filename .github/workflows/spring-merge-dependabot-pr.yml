@@ -120,7 +120,7 @@ jobs:
       - name: Compute Version
         if: steps.is-auto-merge.outputs.autoMerge == 'false'
         id: compute-version
-        uses: spring-io/spring-release-actions/compute-version@0.0.3
+        uses: spring-io/spring-release-actions/compute-version@0.0.4
 
       - name: Find Milestone for Current Version in Branch
         if: steps.is-auto-merge.outputs.autoMerge == 'false'

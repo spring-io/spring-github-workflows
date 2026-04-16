@@ -37,7 +37,7 @@ jobs:
   distribute-spring-enterprise-release-bundle:
     runs-on: ubuntu22-2-8
     steps:
-      - uses: spring-io/spring-release-actions/distribute-release-bundle@main
+      - uses: spring-io/spring-release-actions/distribute-release-bundle@0.0.4
         with:
           artifactory-url: ${{ inputs.artifactoryUrl }}
           bundle-name: ${{ inputs.bundleName }}

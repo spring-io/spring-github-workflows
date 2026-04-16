@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: spring-io/spring-release-actions/count-open-issues@0.0.3
+      - uses: spring-io/spring-release-actions/count-open-issues@0.0.4
         id: count-open-issues
         with:
           milestone: ${{ inputs.milestone }}

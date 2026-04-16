@@ -21,13 +21,18 @@ jobs:
         with:
           show-progress: false
 
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
       - name: Compute Version
         id: compute-version
-        uses: spring-io/spring-release-actions/compute-version@0.0.3
+        uses: spring-io/spring-release-actions/compute-version@0.0.4
 
       - name: Compute next scheduled milestone
         id: milestone
-        uses: spring-io/spring-release-actions/compute-next-scheduled-milestone@main
+        uses: spring-io/spring-release-actions/compute-next-scheduled-milestone@0.0.4
         with:
           snapshot-version: ${{ steps.compute-version.outputs.version }}
 

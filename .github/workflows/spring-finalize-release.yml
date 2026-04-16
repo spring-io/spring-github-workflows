@@ -34,7 +34,7 @@ jobs:
 
       - name: Compute Next Snapshot
         id: next-snapshot
-        uses: spring-io/spring-release-actions/compute-next-snapshot@0.0.3
+        uses: spring-io/spring-release-actions/compute-next-snapshot@0.0.4
         with:
           version: ${{ inputs.milestone }}
 
@@ -87,11 +87,11 @@ jobs:
           config-file: changelog.properties
 
       - name: GitHub Release
-        uses: spring-io/spring-release-actions/publish-release-notes@0.0.3
+        uses: spring-io/spring-release-actions/publish-release-notes@0.0.4
         with:
           tag: v${{ inputs.milestone }}
 
       - name: Close Milestone
-        uses: spring-io/spring-release-actions/close-milestone@0.0.3
+        uses: spring-io/spring-release-actions/close-milestone@0.0.4
         with:
           version: ${{ inputs.milestone }}

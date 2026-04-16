@@ -56,12 +56,13 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 24
+          java-version: 25
           cache: maven
 
       - name: Compute Version
         id: compute-version
-        uses: spring-io/spring-release-actions/compute-version@0.0.3
+        if: ${{ github.ref_name == 'main' }}
+        uses: spring-io/spring-release-actions/compute-version@0.0.4
 
       - name: Build and Deploy
         run: ./mvnw -B -ntp -DaltDeploymentRepository=local::file:deployment-repository ${{ inputs.mavenArgs }} deploy
@@ -82,6 +83,7 @@ jobs:
           buildNumber=${{ github.run_number }}
 
           echo buildName=$buildName >> $GITHUB_OUTPUT
+          echo buildNumber=$buildNumber >> $GITHUB_OUTPUT
 
           echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
 
