@@ -49,6 +49,6 @@ jobs:
       - uses: spring-io/spring-gradle-build-action@v2
 
       - name: CI Build
-        run: ./gradlew test --rerun -PtestJavaVersion=${{ inputs.testJavaVersion }}
+        run: ./gradlew test -PtestJavaVersion=${{ inputs.testJavaVersion }}
 
 
