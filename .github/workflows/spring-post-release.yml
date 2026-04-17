@@ -61,9 +61,7 @@ jobs:
         with:
           version: ${{ inputs.milestone }}
 
-      - name: Schedule Milestone
+      # No due_on on the next milestone according to the day/week pattern since release might be skipped for next month
+      - name: Create Next Milestone
         if: steps.next-milestone.outputs.milestone
-        uses: spring-io/spring-release-actions/schedule-milestone@0.0.4
-        with:
-          version-date: ${{ steps.next-milestone-date.outputs.due-date }}
-          version: ${{ steps.next-milestone.outputs.milestone }}
+        run: gh api repos/$GITHUB_REPOSITORY/milestones -f title=${{ steps.next-milestone.outputs.milestone }}
