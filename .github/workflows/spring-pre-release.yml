@@ -21,6 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - uses: actions/checkout@v6
+        with:
+          show-progress: false
+
       - uses: spring-io/spring-release-actions/count-open-issues@0.0.4
         id: count-open-issues
         with:
