@@ -64,4 +64,4 @@ jobs:
       # No due_on on the next milestone according to the day/week pattern since release might be skipped for next month
       - name: Create Next Milestone
         if: steps.next-milestone.outputs.version
-        run: gh api repos/$GITHUB_REPOSITORY/milestones -f title=${{ steps.next-milestone.outputs.version }}
+        run: gh api repos/$GITHUB_REPOSITORY/milestones -f title=${{ steps.next-milestone.outputs.version }} || true
