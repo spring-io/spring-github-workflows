@@ -105,7 +105,7 @@ jobs:
           repository: spring-io/spring-github-workflows
           path: .github/spring-github-workflows
           show-progress: false
-          ref: ${{ env.WORKFLOWS_REF }}
+          ref: ${{ github.action_ref }}
 
       - name: Dispatch Workflow
         timeout-minutes: 30
@@ -147,6 +147,7 @@ jobs:
       artifactoryUrl: ${{ inputs.artifactoryUrl }}
       bundleName: ${{ inputs.bundleName }}
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
+      hotfix: ${{ needs.release-version.outputs.hotfix }}
     secrets: inherit
 
   finalize:
@@ -165,4 +166,5 @@ jobs:
     uses: ./.github/workflows/spring-post-release.yml
     with:
       milestone: ${{ needs.release-version.outputs.releaseVersion }}
+      hotfix: ${{ needs.release-version.outputs.hotfix }}
     secrets: inherit

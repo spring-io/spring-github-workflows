@@ -18,6 +18,10 @@ on:
         description: 'The Bundle Version (usually project release)'
         required: true
         type: string
+      hotfix:
+        description: 'If just released milestone is a hotfix, e.g 3.1.10.1'
+        required: true
+        type: boolean
       buildName:
         description: 'The Artifactory Build Name'
         required: true
@@ -37,12 +41,29 @@ jobs:
   distribute-spring-enterprise-release-bundle:
     runs-on: ubuntu22-2-8
     steps:
-      - uses: spring-io/spring-release-actions/distribute-release-bundle@0.0.4
-        with:
-          artifactory-url: ${{ inputs.artifactoryUrl }}
-          bundle-name: ${{ inputs.bundleName }}
-          build-name: ${{ inputs.buildName }}
-          build-number: ${{ inputs.buildNumber }}
-          version: ${{ inputs.releaseVersion }}
-          username: ${{ secrets.ARTIFACTORY_USERNAME }}
-          password: ${{ secrets.ARTIFACTORY_PASSWORD }}
+
+    - name: Create Release Bundle
+      run: |
+          curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
+          -X POST -H "X-JFrog-Signing-Key-Name: packagesKey" -H "Content-Type: application/json" \
+          "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/release_bundle?project=spring&async=false" \
+          -d '{"release_bundle_name": "${{ inputs.bundleName }}", "release_bundle_version": "${{ inputs.releaseVersion }}", "skip_docker_manifest_resolution": true, "source_type": "builds", "source": {"builds": [ {"build_repository": "spring-build-info", "build_name": "${{ inputs.buildName }}", "build_number": "${{ inputs.buildNumber }}", "include_dependencies": false}]}}'
+
+    - name: Distribute Release Bundle
+      if: ${{ !inputs.hotfix }}
+      run: |  
+          curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
+          -X POST -H "Content-Type: application/json" \
+          "${{ inputs.artifactoryUrl }}/lifecycle/api/v2/distribution/distribute/${{ inputs.bundleName }}/${{ inputs.releaseVersion }}?project=spring" \
+          -d '{"auto_create_missing_repositories": "false", "distribution_rules": [{"site_name": "JP-SaaS"}], "modifications": {"mappings": [{"input": "spring-enterprise-maven-prod-local/(.*)", "output": "spring-enterprise/$1"}]}}'
+          
+
+#          - uses: spring-io/spring-release-actions/distribute-release-bundle@0.0.4
+#        with:
+#          artifactory-url: ${{ inputs.artifactoryUrl }}
+#          bundle-name: ${{ inputs.bundleName }}
+#          build-name: ${{ inputs.buildName }}
+#          build-number: ${{ inputs.buildNumber }}
+#          version: ${{ inputs.releaseVersion }}
+#          username: ${{ secrets.ARTIFACTORY_USERNAME }}
+#          password: ${{ secrets.ARTIFACTORY_PASSWORD }}

@@ -6,6 +6,9 @@ on:
       releaseVersion:
         description: Current Milestone to release
         value: ${{ jobs.find-release-version.outputs.releaseVersion }}
+      hotfix:
+        description: 'True if Milestone is hotfix'
+        value: ${{ steps.hotfix-milestone.outputs.hotfix }}
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -14,27 +17,25 @@ jobs:
   find-release-version:
     runs-on: ubuntu-latest
     outputs:
-      releaseVersion: ${{ steps.milestone.outputs.release-version }}
+      releaseVersion: ${{ steps.milestone.outputs.milestone }}
+      hotfix: ${{ steps.milestone.outputs.hotfix }}
 
     steps:
       - uses: actions/checkout@v6
         with:
           show-progress: false
 
-      - uses: actions/setup-java@v5
+      - name: Checkout Common Repo
+        uses: actions/checkout@v6
         with:
-          distribution: temurin
-          java-version: 17
-
-      - name: Compute Version
-        id: compute-version
-        uses: spring-io/spring-release-actions/compute-version@0.0.4
+          repository: spring-io/spring-github-workflows
+          path: .github/spring-github-workflows
+          show-progress: false
+          ref: ${{ github.action_ref }}
 
       - name: Compute next scheduled milestone
         id: milestone
-        uses: spring-io/spring-release-actions/compute-next-scheduled-milestone@0.0.4
-        with:
-          snapshot-version: ${{ steps.compute-version.outputs.version }}
+        uses: ./.github/spring-github-workflows/.github/actions/spring-compute-milestone-to-release
 
       - name: Version to Release
         run: |

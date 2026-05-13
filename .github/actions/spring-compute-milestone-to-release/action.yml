@@ -1,0 +1,49 @@
+name: Get the GitHub Milestone to release against current branch
+
+description: 'Get the version from current branch and find the corresponding GitHub Milestone.
+If current version matches hotfix pattern, use it as a Milestone stripping `-SNAPSHOT` suffix.'
+
+outputs:
+  milestone:
+    description: 'The scheduled Milestone if any'
+    value: ${{ steps.milestone.outputs.milestone || steps.hotfix-milestone.outputs.milestone }}
+  currentVersion:
+    description: 'The version for Milestone to find'
+    value: ${{ steps.compute-version.outputs.version }}
+  hotfix:
+    description: 'True if Milestone is hotfix'
+    value: ${{ steps.hotfix-milestone.outputs.hotfix }}
+
+runs:
+  using: composite
+  steps:
+
+    - uses: actions/setup-java@v5
+      with:
+        distribution: temurin
+        java-version: 17
+
+    - name: Compute Version
+      id: compute-version
+      uses: spring-io/spring-release-actions/compute-version@0.0.4
+
+    - name: Compute milestone from hotfix version
+      id: hotfix-milestone
+      shell: bash
+      run: |
+        VERSION="${{ steps.compute-version.outputs.version }}"
+        VERSION=${VERSION/-SNAPSHOT}
+        
+        if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
+        then
+          echo hotfix=true >> $GITHUB_OUTPUT
+        else
+          echo milestone=$VERSION >> $GITHUB_OUTPUT
+        fi
+
+    - name: Compute next scheduled milestone
+      id: milestone
+      if: ${{ steps.hotfix-milestone.outputs.hotfix != 'true' }}
+      uses: spring-io/spring-release-actions/compute-next-scheduled-milestone@0.0.4
+      with:
+        snapshot-version: ${{ steps.compute-version.outputs.version }}

@@ -7,6 +7,10 @@ on:
         description: 'Milestone title, e.g 3.0.0-M1, 3.1.0-RC1, 3.2.0 etc.'
         required: true
         type: string
+      hotfix:
+        description: 'If just released milestone is a hotfix, e.g 3.1.10.1'
+        required: true
+        type: boolean
 
     secrets:
       SPRING_RELEASE_CHAT_WEBHOOK_URL:
@@ -15,7 +19,6 @@ on:
         required: true
 
 env:
-  WORKFLOWS_REF: main
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 
@@ -34,9 +37,10 @@ jobs:
           repository: spring-io/spring-github-workflows
           path: .github/spring-github-workflows
           show-progress: false
-          ref: ${{ env.WORKFLOWS_REF }}
+          ref: ${{ github.action_ref }}
 
       - name: Update Spring IO website for new version
+        if: ${{ !inputs.hotfix }}
         uses: ./.github/spring-github-workflows/.github/actions/spring-website-project-version-update
         with:
           newVersion: ${{ inputs.milestone }}
@@ -52,16 +56,16 @@ jobs:
           CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
 
       - id: support-window
-        if: ${{ !contains(inputs.milestone, '-') }}
+        if: ${{ !inputs.hotfix && !contains(inputs.milestone, '-') }}
         uses: spring-io/spring-release-actions/compute-support-window@main
 
       - id: next-milestone
-        if: ${{ steps.support-window.outputs.support-type != 'eol' }}
+        if: ${{ !inputs.hotfix && steps.support-window.outputs.support-type != 'eol' }}
         uses: spring-io/spring-release-actions/compute-next-version@0.0.4
         with:
           version: ${{ inputs.milestone }}
 
       # No due_on on the next milestone according to the day/week pattern since release might be skipped for next month
       - name: Create Next Milestone
-        if: steps.next-milestone.outputs.version
+        if: ${{ !inputs.hotfix && steps.next-milestone.outputs.version }}
         run: gh api repos/$GITHUB_REPOSITORY/milestones -f title=${{ steps.next-milestone.outputs.version }} || true

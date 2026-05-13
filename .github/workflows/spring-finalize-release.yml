@@ -15,7 +15,6 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   SPRING_MAIN_BANNERMODE: off
-  WORKFLOWS_REF: main
 
 jobs:
   finalize-release:

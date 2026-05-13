@@ -34,19 +34,11 @@ jobs:
           
           releaseVersion=v$(($latestRelease + 1))
           
-          for file in ./.github/workflows/spring-*; do 
-            sed -i "1,/WORKFLOWS_REF:.*/s/WORKFLOWS_REF:.*/WORKFLOWS_REF: $releaseVersion/" $file
-          done
-          
-          git commit -a -m "Release version $releaseVersion"
+          git commit -a --allow-empty -m "Release version $releaseVersion"
           git tag $releaseVersion
           git push --tags origin
           
-          for file in ./.github/workflows/spring-*; do 
-            sed -i "1,/WORKFLOWS_REF:.*/s/WORKFLOWS_REF:.*/WORKFLOWS_REF: main/" $file
-          done
-          
-          git commit -a -m "Next development version"
+          git commit -a --allow-empty -m "Next development version"
           git push origin
           
           RELEASE_URL=$(gh release create $releaseVersion)

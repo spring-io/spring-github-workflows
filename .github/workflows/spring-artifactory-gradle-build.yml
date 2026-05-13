@@ -51,7 +51,6 @@ on:
 
 env:
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
-  WORKFLOWS_REF: main
 
 jobs:
   build-with-gradle:
@@ -74,7 +73,7 @@ jobs:
           repository: spring-io/spring-github-workflows
           path: .github/spring-github-workflows
           show-progress: false
-          ref: ${{ env.WORKFLOWS_REF }}
+          ref: ${{ github.action_ref }}
 
       - name: Build and Publish
         id: build-and-publish
@@ -90,5 +89,3 @@ jobs:
           artifactoryPassword: ${{ secrets.ARTIFACTORY_PASSWORD }}
           gpgPrivateKey: ${{ secrets.GPG_PRIVATE_KEY }}
           gpgPassphrase: ${{ secrets.GPG_PASSPHRASE }}
-
-
