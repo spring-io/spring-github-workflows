@@ -8,7 +8,7 @@ on:
         value: ${{ jobs.find-release-version.outputs.releaseVersion }}
       hotfix:
         description: 'True if Milestone is hotfix'
-        value: ${{ steps.hotfix-milestone.outputs.hotfix }}
+        value: ${{ jobs.find-release-version.outputs.hotfix }}
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
