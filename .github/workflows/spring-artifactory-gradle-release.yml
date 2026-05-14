@@ -152,7 +152,6 @@ jobs:
       artifactoryUrl: ${{ inputs.artifactoryUrl }}
       bundleName: ${{ inputs.bundleName }}
       releaseVersion: ${{ needs.release-version.outputs.releaseVersion }}
-      hotfix: ${{ needs.release-version.outputs.hotfix }}
     secrets: inherit
 
   finalize:
