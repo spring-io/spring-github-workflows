@@ -32,7 +32,6 @@ jobs:
         with:
           repository: spring-io/spring-github-workflows
           show-progress: false
-          ref: ${{ github.action_ref }}
 
       - uses: jfrog/setup-jfrog-cli@v5
 

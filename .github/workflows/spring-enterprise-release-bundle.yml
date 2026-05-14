@@ -21,7 +21,7 @@ on:
       hotfix:
         description: 'If just released milestone is a hotfix, e.g 3.1.10.1'
         required: true
-        type: boolean
+        type: string
       buildName:
         description: 'The Artifactory Build Name'
         required: true
@@ -50,7 +50,7 @@ jobs:
           -d '{"release_bundle_name": "${{ inputs.bundleName }}", "release_bundle_version": "${{ inputs.releaseVersion }}", "skip_docker_manifest_resolution": true, "source_type": "builds", "source": {"builds": [ {"build_repository": "spring-build-info", "build_name": "${{ inputs.buildName }}", "build_number": "${{ inputs.buildNumber }}", "include_dependencies": false}]}}'
 
     - name: Distribute Release Bundle
-      if: ${{ !inputs.hotfix }}
+      if: ${{ inputs.hotfix != 'true' }}
       run: |  
           curl -s -u "${{ secrets.ARTIFACTORY_USERNAME }}:${{ secrets.ARTIFACTORY_PASSWORD }}" \
           -X POST -H "Content-Type: application/json" \
