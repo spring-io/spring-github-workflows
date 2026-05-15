@@ -5,6 +5,7 @@ on:
     inputs:
       buildToolArgs:
         description: 'Additional Gradle command arguments: tasks, options etc. The `build` and `publishAllPublicationsToDeploymentRepository` for Gradle are included.'
+        default: '-x test'
         required: false
         type: string
       artifactoryUrl:
@@ -77,9 +78,6 @@ on:
       ARTIFACTORY_PASSWORD:
         required: true
 
-env:
-  SKIP_TESTS: true
-
 jobs:
   release-version:
     uses: ./.github/workflows/spring-find-release-version.yml
@@ -98,7 +96,7 @@ jobs:
     uses: ./.github/workflows/spring-artifactory-gradle-build.yml
     with:
       releaseVersion: ${{ needs.release-version.outputs.releaseVersion }}
-      gradleTasks: ${{ inputs.buildToolArgs }} ${{ env.SKIP_TESTS && '-x test' || '' }}
+      gradleTasks: ${{ inputs.buildToolArgs }}
       artifactoryUrl: ${{ inputs.artifactoryUrl }}
       targetRepository: ${{ inputs.stagingRepository }}
       artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}

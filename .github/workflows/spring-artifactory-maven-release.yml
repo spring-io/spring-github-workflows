@@ -5,6 +5,7 @@ on:
     inputs:
       buildToolArgs:
         description: 'Additional Maven command arguments: tasks, goals, plugins etc. The `install` for Maven is included.'
+        default: '-DskipTests'
         required: false
         type: string
       artifactoryUrl:
@@ -73,9 +74,6 @@ on:
       ARTIFACTORY_PASSWORD:
         required: true
 
-env:
-  SKIP_TESTS: true
-
 jobs:
   releaseVersion:
     uses: ./.github/workflows/spring-find-release-version.yml
@@ -86,7 +84,7 @@ jobs:
     uses: ./.github/workflows/spring-artifactory-maven-release-staging.yml
     with:
       releaseVersion: ${{ needs.releaseVersion.outputs.releaseVersion }}
-      mavenArgs: ${{ inputs.buildToolArgs }}  ${{ env.SKIP_TESTS && '-DskipTests' || '' }}
+      mavenArgs: ${{ inputs.buildToolArgs }}
       artifactoryUrl: ${{ inputs.artifactoryUrl }}
       stagingRepository: ${{ inputs.stagingRepository }}
       artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
