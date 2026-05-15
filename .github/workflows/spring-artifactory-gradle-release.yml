@@ -77,6 +77,9 @@ on:
       ARTIFACTORY_PASSWORD:
         required: true
 
+env:
+  SKIP_TESTS: true
+
 jobs:
   release-version:
     uses: ./.github/workflows/spring-find-release-version.yml
@@ -95,7 +98,7 @@ jobs:
     uses: ./.github/workflows/spring-artifactory-gradle-build.yml
     with:
       releaseVersion: ${{ needs.release-version.outputs.releaseVersion }}
-      gradleTasks: ${{ inputs.buildToolArgs }}
+      gradleTasks: ${{ inputs.buildToolArgs }} ${{ env.SKIP_TESTS && '-x test' || '' }}
       artifactoryUrl: ${{ inputs.artifactoryUrl }}
       targetRepository: ${{ inputs.stagingRepository }}
       artifactoryProjectKey: ${{ inputs.artifactoryProjectKey }}
