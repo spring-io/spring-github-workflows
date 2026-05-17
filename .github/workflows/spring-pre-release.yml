@@ -25,7 +25,7 @@ jobs:
         with:
           show-progress: false
 
-      - uses: spring-io/spring-release-actions/count-open-issues@0.0.4
+      - uses: spring-io/spring-release-actions/count-open-issues@0.0.5
         id: count-open-issues
         with:
           milestone: ${{ inputs.milestone }}
