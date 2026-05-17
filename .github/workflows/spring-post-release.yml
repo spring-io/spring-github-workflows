@@ -40,7 +40,7 @@ jobs:
 
       - name: Announce Release in Chat
         if: env.CHAT_WEBHOOK_URL
-        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.4
+        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.5
         with:
           gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
           version: ${{ inputs.milestone }}
@@ -53,7 +53,7 @@ jobs:
 
       - id: next-milestone
         if: ${{ inputs.hotfix != 'true' && steps.support-window.outputs.support-type != 'eol' }}
-        uses: spring-io/spring-release-actions/compute-next-version@0.0.4
+        uses: spring-io/spring-release-actions/compute-next-version@0.0.5
         with:
           version: ${{ inputs.milestone }}
 
