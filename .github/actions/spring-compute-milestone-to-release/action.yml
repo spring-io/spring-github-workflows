@@ -25,7 +25,7 @@ runs:
 
     - name: Compute Version
       id: compute-version
-      uses: spring-io/spring-release-actions/compute-version@0.0.4
+      uses: spring-io/spring-release-actions/compute-version@0.0.5
 
     - name: Compute milestone from hotfix version
       id: hotfix-milestone
@@ -44,6 +44,6 @@ runs:
     - name: Compute next scheduled milestone
       id: milestone
       if: ${{ steps.hotfix-milestone.outputs.hotfix != 'true' }}
-      uses: spring-io/spring-release-actions/compute-next-scheduled-milestone@0.0.4
+      uses: spring-io/spring-release-actions/compute-next-scheduled-milestone@0.0.5
       with:
         snapshot-version: ${{ steps.compute-version.outputs.version }}

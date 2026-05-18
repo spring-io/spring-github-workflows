@@ -55,7 +55,7 @@ runs:
     - name: Compute Version
       id: compute-version
       if: ${{ github.ref_name == 'main' }}
-      uses: spring-io/spring-release-actions/compute-version@0.0.4
+      uses: spring-io/spring-release-actions/compute-version@0.0.5
 
     - name: Set Release Version
       if: inputs.releaseVersion
