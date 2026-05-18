@@ -33,7 +33,7 @@ jobs:
 
       - name: Version to Release
         run: |
-          RELEASE_VERSION=${{ steps.milestone.outputs.release-version }}
+          RELEASE_VERSION=${{ steps.milestone.outputs.milestone }}
           if [ -z $RELEASE_VERSION ]
           then
             gh run cancel ${{ github.run_id }}
