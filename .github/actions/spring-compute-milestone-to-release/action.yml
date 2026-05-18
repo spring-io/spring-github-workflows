@@ -37,7 +37,6 @@ runs:
         if [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
         then
           echo hotfix=true >> $GITHUB_OUTPUT
-        else
           echo milestone=$VERSION >> $GITHUB_OUTPUT
         fi
 
