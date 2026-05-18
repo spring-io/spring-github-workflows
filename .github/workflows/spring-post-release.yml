@@ -53,6 +53,7 @@ jobs:
 
       - id: next-milestone
         if: ${{ inputs.hotfix != 'true' && steps.support-window.outputs.support-type != 'eol' }}
+        continue-on-error: true
         uses: spring-io/spring-release-actions/compute-next-version@0.0.5
         with:
           version: ${{ inputs.milestone }}
