@@ -6,7 +6,7 @@ If current version matches hotfix pattern, use it as a Milestone stripping `-SNA
 outputs:
   milestone:
     description: 'The scheduled Milestone if any'
-    value: ${{ steps.milestone.outputs.milestone || steps.hotfix-milestone.outputs.milestone }}
+    value: ${{ steps.milestone.outputs.release-version || steps.hotfix-milestone.outputs.milestone }}
   currentVersion:
     description: 'The version for Milestone to find'
     value: ${{ steps.compute-version.outputs.version }}
