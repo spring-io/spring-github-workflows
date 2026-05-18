@@ -28,6 +28,8 @@ jobs:
       - name: Compute next scheduled milestone
         id: milestone
         uses: spring-io/spring-github-workflows/.github/actions/spring-compute-milestone-to-release@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Version to Release
         run: |
