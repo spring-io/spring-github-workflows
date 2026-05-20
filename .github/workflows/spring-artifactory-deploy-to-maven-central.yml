@@ -28,18 +28,45 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - uses: actions/checkout@v6
-        with:
-          repository: spring-io/spring-github-workflows
-          show-progress: false
-
       - uses: jfrog/setup-jfrog-cli@v5
 
       - name: Download Release Files
         run: |
-          jfrog rt download \
-            --spec utils/release-files-spec.json \
-            --spec-vars "buildname=${{ inputs.buildName }};buildnumber=${{ inputs.buildNumber }}"
+          cat << 'EOF' > release-files-spec.json
+          {
+            "files": [
+              {
+                "aql": {
+                  "items.find": {
+                    "$and": [
+                      {
+                        "@build.name": "${{ inputs.buildName }}",
+                        "@build.number": "${{ inputs.buildNumber }}",
+                        "path": {
+                          "$match": "org/springframework*"
+                        }
+                      },
+                      {
+                        "$or": [
+                          { "name": { "$match": "*.pom" } },
+                          { "name": { "$match": "*.jar" } },
+                          { "name": { "$match": "*.module" } },
+                          { "name": { "$match": "*.asc" } }
+                        ]
+                      },
+                      {
+                        "name": { "$nmatch": "*.zip.asc" }
+                      }
+                    ]
+                  }
+                },
+                "target": "central_bundle/"
+              }
+            ]
+          }
+          EOF
+          
+          jfrog rt download --spec release-files-spec.json 
 
       - name: Deploy Bundle to Maven Central Portal
         uses: spring-io/central-publish-action@v0.4.0

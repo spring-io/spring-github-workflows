@@ -44,8 +44,8 @@ jobs:
         with:
           gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
           version: ${{ inputs.milestone }}
-#        env:
-#          CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+        env:
+          CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
 
       - id: support-window
         if: ${{ inputs.hotfix != 'true' && !contains(inputs.milestone, '-') }}

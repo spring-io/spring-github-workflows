@@ -11,8 +11,6 @@ on:
         description: 'True if this is a preview release'
         required: false
         type: string
-#        TODO: propagate this value from release workflow
-        default: 'true'
 
     secrets:
       GH_ACTIONS_REPO_TOKEN:
@@ -97,7 +95,7 @@ jobs:
           tag: v${{ inputs.milestone }}
 
       - name: Close Milestone
-        if: ${{ inputs.preview == 'false' }}
+        if: ${{ inputs.preview != 'true' }}
         uses: spring-io/spring-release-actions/close-milestone@0.0.5
         with:
           version: ${{ inputs.milestone }}

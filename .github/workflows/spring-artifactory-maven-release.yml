@@ -46,11 +46,10 @@ on:
         description: 'The Artifactory Bundle Name'
         required: false
         type: string
-      deployMilestoneToCentral:
-        description: 'Whether to deploy Milestone release to Maven Central'
-        default: false
+      preview:
+        description: 'True if this is a preview release'
         required: false
-        type: boolean
+        type: string
 
     secrets:
       DEVELOCITY_ACCESS_KEY:
@@ -122,7 +121,7 @@ jobs:
   deploy-to-central:
     needs: [ releaseVersion, staging, promote-release ]
     name: Deploy ${{ needs.releaseVersion.outputs.releaseVersion }} to Maven Central
-    if: ${{ !inputs.bundleName && (!contains(needs.releaseVersion.outputs.releaseVersion, '-') || inputs.deployMilestoneToCentral) }}
+    if: ${{ !inputs.bundleName }}
     uses: ./.github/workflows/spring-artifactory-deploy-to-maven-central.yml
     with:
       buildName: ${{ needs.staging.outputs.buildName }}
@@ -149,6 +148,7 @@ jobs:
     uses: ./.github/workflows/spring-finalize-release.yml
     with:
       milestone: ${{ needs.releaseVersion.outputs.releaseVersion }}
+      preview: ${{ inputs.preview }}
     secrets: inherit
 
   post-release:
