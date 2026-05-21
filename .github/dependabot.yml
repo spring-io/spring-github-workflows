@@ -5,3 +5,15 @@ updates:
     schedule:
       interval: weekly
       day: sunday
+
+  - package-ecosystem: github-actions
+    directory: /.github/actions/spring-artifactory-gradle-build
+    schedule:
+      interval: weekly
+      day: sunday
+
+  - package-ecosystem: github-actions
+    directory: /.github/actions/spring-compute-milestone-to-release
+    schedule:
+      interval: weekly
+      day: sunday
