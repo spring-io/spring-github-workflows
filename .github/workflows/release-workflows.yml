@@ -23,23 +23,39 @@ jobs:
 
       - name: Tag and Release
         run: |
+          # 1. Setup Git Identity
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
-          
-          latestRelease=$(git tag --sort=creatordate | tail -1 | tail -c+2)
-          if [ -z $latestRelease ]
-          then
+
+          # 2. Safe Version Calculation
+          latestTag=$(git tag --sort=-v:refname | head -n 1)
+          if [ -z "$latestTag" ]; then
             latestRelease=0
+          else
+            latestRelease=${latestTag#v}
           fi
-          
-          releaseVersion=v$(($latestRelease + 1))
-          
+          releaseVersion=v$((latestRelease + 1))
+          echo "Target Release Version: $releaseVersion"
+
+          # 3. Replace @main with @releaseVersion
+          for file in .github/workflows/*.yml; do 
+            sed -i -E "s|(uses: spring-io/spring-github-workflows/\.github/actions/)([^@[:space:]\r]+)@main|\1\2@$releaseVersion|g" "$file"
+          done
+
+          # 4. Commit, Tag, and Push the Release atomically
           git commit -a --allow-empty -m "Release version $releaseVersion"
-          git tag $releaseVersion
-          git push --tags origin
-          
+          git tag "$releaseVersion"
+          git push origin refs/tags/"$releaseVersion" HEAD:main
+
+          # 5. Revert back to @main for development
+          for file in .github/workflows/*.yml; do 
+            sed -i -E "s|(uses: spring-io/spring-github-workflows/\.github/actions/)([^@[:space:]\r]+)@$releaseVersion|\1\2@main|g" "$file"
+          done
+
+          # 6. Commit and Push next dev iteration safely
           git commit -a --allow-empty -m "Next development version"
-          git push origin
-          
-          RELEASE_URL=$(gh release create $releaseVersion)
+          git push origin HEAD:main
+
+          # 7. Generate GitHub Release
+          RELEASE_URL=$(gh release create "$releaseVersion" --generate-notes)
           echo "::notice title=Release Page::$RELEASE_URL"
