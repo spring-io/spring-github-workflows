@@ -113,7 +113,7 @@ runs:
         echo "::notice title=Artifactory Build Name & Number::$buildName/$buildNumber"
 
     - name: Deploy
-      uses: spring-io/artifactory-deploy-action@v0.0.1
+      uses: spring-io/artifactory-deploy-action@v0.0.4
       with:
         uri: ${{ inputs.artifactoryUrl == '' && 'https://repo.spring.io' || inputs.artifactoryUrl }}
         project: ${{ inputs.artifactoryProjectKey }}
