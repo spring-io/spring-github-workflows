@@ -50,6 +50,8 @@ jobs:
       - id: support-window
         if: ${{ inputs.hotfix != 'true' && !contains(inputs.milestone, '-') }}
         uses: spring-io/spring-release-actions/compute-support-window@0.0.5
+        with:
+          version: ${{ inputs.milestone }}
 
       - id: next-milestone
         if: ${{ inputs.hotfix != 'true' && steps.support-window.outputs.support-type != 'eol' }}
