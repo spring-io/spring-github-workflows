@@ -81,6 +81,11 @@ jobs:
           
           echo "changelog.contributors.exclude.names=$repositoryTeam" > changelog.properties
           echo "changelog.issues.generate-links=$repositoryVisibility" >> changelog.properties
+          echo "changelog.sections[0].title=:warning: Attention Required" >> changelog.properties
+          echo "changelog.sections[0].labels[0]=for: upgrade-attention" >> changelog.properties
+          echo "changelog.sections[0].summary.mode=member-comment" >> changelog.properties
+          echo "changelog.sections[0].summary.config.prefix=Attention required:" >> changelog.properties
+          
 
       - name: Generate Changelog
         uses: spring-io/github-changelog-generator@v0.0.14
