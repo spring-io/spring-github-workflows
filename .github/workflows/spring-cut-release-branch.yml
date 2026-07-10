@@ -32,6 +32,21 @@ jobs:
           VERSION: ${{ steps.compute-version.outputs.version }}
         run: echo "version=${VERSION%-SNAPSHOT}" >> "$GITHUB_OUTPUT"
 
+      - name: Check Release Branch Does Not Exist
+        env:
+          RELEASE_VERSION: ${{ steps.compute-release-version.outputs.version }}
+        run: |
+          if git ls-remote --exit-code --heads origin release/$RELEASE_VERSION
+          then
+            echo "::error title=Cannot cut release branch::Branch release/$RELEASE_VERSION already exists"
+            exit 1
+          fi
+
+      - name: Create Milestone
+        env:
+          RELEASE_VERSION: ${{ steps.compute-release-version.outputs.version }}
+        run: gh api repos/$GITHUB_REPOSITORY/milestones -f title=$RELEASE_VERSION || true
+
       - name: Create Release Branch
         env:
           RELEASE_VERSION: ${{ steps.compute-release-version.outputs.version }}
