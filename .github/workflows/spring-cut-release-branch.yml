@@ -1,0 +1,45 @@
+name: Cut the Release Branch from Git Ref
+on:
+  workflow_call:
+
+    secrets:
+      GH_ACTIONS_REPO_TOKEN:
+        required: true
+
+run-name: Cut Release Branch from ${{ github.ref_name }}
+
+env:
+  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+
+jobs:
+  cut-release-branch:
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - uses: actions/checkout@v6
+        with:
+          show-progress: false
+          token: ${{ env.GITHUB_TOKEN }}
+
+      - name: Compute Version
+        id: compute-version
+        uses: spring-io/spring-release-actions/compute-version@0.0.5
+
+      - name: Compute Release Version
+        id: compute-release-version
+        env:
+          VERSION: ${{ steps.compute-version.outputs.version }}
+        run: echo "version=${VERSION%-SNAPSHOT}" >> "$GITHUB_OUTPUT"
+
+      - name: Create Release Branch
+        env:
+          RELEASE_VERSION: ${{ steps.compute-release-version.outputs.version }}
+        run: |
+          git config push.autoSetupRemote true
+          git checkout -b release/$RELEASE_VERSION
+
+      - name: Push Release Version
+        uses: spring-io/spring-release-actions/push-release-version@0.0.5
+        with:
+          version: ${{ steps.compute-release-version.outputs.version }}
