@@ -43,16 +43,22 @@ jobs:
       - name: Fetch Release Train Versions
         env:
           GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
-        run: gh api repos/spring-io/release-train/contents/release-versions.json?ref=${{ inputs.release-train }} --jq '.content' | base64 -d > release-versions.json
+          RELEASE_TRAIN: ${{ inputs.release-train }}
+        run: |
+          gh api "repos/spring-io/release-train/contents/release-versions.json?ref=$RELEASE_TRAIN" --jq '.content' | base64 -d > release-versions.json
 
       - name: Update Libraries Versions Catalog
+        env:
+          VERSION_KEYS: ${{ inputs.version-keys }}
+          TOML_FILE: ${{ inputs.toml }}
+          SNAPSHOT: ${{ steps.compute-version.outputs.snapshot }}
         run: |
-          for tomlKey in $(echo "${{ inputs.version-keys }}" | jq -r 'keys[]'); do
-            releaseTrainKey=$(echo "${{ inputs.version-keys }}" | jq -r --arg k "$tomlKey" '.[$k]')
+          for tomlKey in $(echo "$VERSION_KEYS" | jq -r 'keys[]'); do
+            releaseTrainKey=$(echo "$VERSION_KEYS" | jq -r --arg k "$tomlKey" '.[$k]')
 
-            currentVersion=$(grep -E "^$tomlKey[[:space:]]*=" "${{ inputs.toml }}" | sed -E 's/^[^"]*"([^"]+)".*/\1/')
+            currentVersion=$(grep -E "^$tomlKey[[:space:]]*=" "$TOML_FILE" | sed -E 's/^[^"]*"([^"]+)".*/\1/')
             if [ -z "$currentVersion" ]; then
-              echo "::warning title=Skip $tomlKey::No existing entry for '$tomlKey' in ${{ inputs.toml }}. Consider to remove this key pair from 'inputs.version-keys'."
+              echo "::warning title=Skip $tomlKey::No existing entry for '$tomlKey' in $TOML_FILE. Consider to remove this key pair from 'inputs.version-keys'."
               continue
             fi
 
@@ -65,7 +71,7 @@ jobs:
               continue
             fi
 
-            if [ "${{ steps.compute-version.outputs.snapshot }}" = "true" ]; then
+            if [ "$SNAPSHOT" = "true" ]; then
               newVersion="$newVersion-SNAPSHOT"
             fi
 
@@ -81,12 +87,14 @@ jobs:
           rm -f release-versions.json
 
       - name: Commit and Push
+        env:
+          TOML_FILE: ${{ inputs.toml }}
         run: |
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
 
-          if git diff --quiet -- "${{ inputs.toml }}"; then
-            echo "::notice title=Nothing to commit::No version changes to ${{ inputs.toml }}"
+          if git diff --quiet -- "$TOML_FILE"; then
+            echo "::notice title=Nothing to commit::No version changes to $TOML_FILE"
             exit 0
           fi
 
