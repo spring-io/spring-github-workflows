@@ -1,5 +1,10 @@
 name: Update Release Train Dependency Versions
 
+# The release train comes with ephemeral dependencies which become available only during the release train build and only for the release train until it is done.
+# Therefore, making a strong assumption that development branch should be updated to '-SNAPSHOT' versions of the potential release train dependencies is reasonable.
+# The release branches are updated to release train dependencies as is since they are not built until the release train itself.
+# The limitation of this workflow is only for Gradle projects with Version Catalog (TOML).
+
 on:
   workflow_call:
     inputs:
