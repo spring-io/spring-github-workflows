@@ -22,7 +22,7 @@ on:
         required: true
 
 jobs:
-  update-release-train-version:
+  update-release-train-versions:
     runs-on: ubuntu-latest
     steps:
 
@@ -41,17 +41,13 @@ jobs:
         run: gh api repos/spring-io/release-train/contents/release-versions.json?ref=${{ inputs.release-train }} --jq '.content' | base64 -d > release-versions.json
 
       - name: Update Libraries Versions Catalog
-        env:
-          VERSION_KEYS: ${{ inputs.version-keys }}
-          TOML_FILE: ${{ inputs.toml }}
-          SNAPSHOT: ${{ steps.compute-version.outputs.snapshot }}
         run: |
-          for tomlKey in $(echo "$VERSION_KEYS" | jq -r 'keys[]'); do
-            releaseTrainKey=$(echo "$VERSION_KEYS" | jq -r --arg k "$tomlKey" '.[$k]')
+          for tomlKey in $(echo "${{ inputs.version-keys }}" | jq -r 'keys[]'); do
+            releaseTrainKey=$(echo "${{ inputs.version-keys }}" | jq -r --arg k "$tomlKey" '.[$k]')
 
-            currentVersion=$(grep -E "^$tomlKey[[:space:]]*=" "$TOML_FILE" | sed -E 's/^[^"]*"([^"]+)".*/\1/')
+            currentVersion=$(grep -E "^$tomlKey[[:space:]]*=" "${{ inputs.toml }}" | sed -E 's/^[^"]*"([^"]+)".*/\1/')
             if [ -z "$currentVersion" ]; then
-              echo "::warning title=Skip $tomlKey::No existing entry for '$tomlKey' in $TOML_FILE. Consider to remove this key pair from 'inputs.version-keys'."
+              echo "::warning title=Skip $tomlKey::No existing entry for '$tomlKey' in ${{ inputs.toml }}. Consider to remove this key pair from 'inputs.version-keys'."
               continue
             fi
 
@@ -64,7 +60,7 @@ jobs:
               continue
             fi
 
-            if [ "$SNAPSHOT" = "true" ]; then
+            if [ "${{ steps.compute-version.outputs.snapshot }}" = "true" ]; then
               newVersion="$newVersion-SNAPSHOT"
             fi
 
