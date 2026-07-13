@@ -1,0 +1,93 @@
+name: Update Release Train Dependency Versions
+
+on:
+  workflow_call:
+    inputs:
+      release-train:
+        description: 'The branch in spring-io/release-train to fetch release-versions.json from, e.g. 2026.1'
+        required: true
+        type: string
+      version-keys:
+        description: 'A JSON object mapping libs.versions.toml version keys to their corresponding release-versions.json entry keys, e.g. {"springBootVersion":"spring-boot","springSecurity":"spring-security"}'
+        required: true
+        type: string
+      toml:
+        description: 'The path to the Gradle version catalog file to update'
+        required: false
+        type: string
+        default: gradle/libs.versions.toml
+
+    secrets:
+      GH_ACTIONS_REPO_TOKEN:
+        required: true
+
+jobs:
+  update-release-train-version:
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v7
+        with:
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          show-progress: false
+
+      - name: Compute Version
+        id: compute-version
+        uses: spring-io/spring-release-actions/compute-version@0.0.5
+
+      - name: Fetch Release Train Versions
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+        run: gh api repos/spring-io/release-train/contents/release-versions.json?ref=${{ inputs.release-train }} --jq '.content' | base64 -d > release-versions.json
+
+      - name: Update Libraries Versions Catalog
+        env:
+          VERSION_KEYS: ${{ inputs.version-keys }}
+          TOML_FILE: ${{ inputs.toml }}
+          SNAPSHOT: ${{ steps.compute-version.outputs.snapshot }}
+        run: |
+          for tomlKey in $(echo "$VERSION_KEYS" | jq -r 'keys[]'); do
+            releaseTrainKey=$(echo "$VERSION_KEYS" | jq -r --arg k "$tomlKey" '.[$k]')
+
+            currentVersion=$(grep -E "^$tomlKey[[:space:]]*=" "$TOML_FILE" | sed -E 's/^[^"]*"([^"]+)".*/\1/')
+            if [ -z "$currentVersion" ]; then
+              echo "::warning title=Skip $tomlKey::No existing entry for '$tomlKey' in $TOML_FILE. Consider to remove this key pair from 'inputs.version-keys'."
+              continue
+            fi
+
+            majorMinor=$(echo "$currentVersion" | cut -d '.' -f1-2)
+
+            newVersion=$(jq -r --arg key "$releaseTrainKey" --arg mm "$majorMinor" '.[$key] // [] | map(select(startswith($mm + "."))) | .[0] // empty' release-versions.json)
+
+            if [ -z "$newVersion" ]; then
+              echo "::warning title=Skip $tomlKey::No $majorMinor.x version found for '$releaseTrainKey' in release-versions.json. Try again later."
+              continue
+            fi
+
+            if [ "$SNAPSHOT" = "true" ]; then
+              newVersion="$newVersion-SNAPSHOT"
+            fi
+
+            if [ "$newVersion" = "$currentVersion" ]; then
+              continue
+            fi
+
+            sed -i -E "s/^($tomlKey[[:space:]]*=[[:space:]]*\")[^\"]+(\")/\1$newVersion\2/" "$TOML_FILE"
+
+            echo "::notice title=Updated $tomlKey::$currentVersion -> $newVersion"
+          done
+
+          rm -f release-versions.json
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'Spring Builds'
+          git config --global user.email 'builds@springframework.org'
+
+          if git diff --quiet -- "${{ inputs.toml }}"; then
+            echo "::notice title=Nothing to commit::No version changes to ${{ inputs.toml }}"
+            exit 0
+          fi
+
+          git commit -a -m "Update release train dependency versions"
+          git push origin
