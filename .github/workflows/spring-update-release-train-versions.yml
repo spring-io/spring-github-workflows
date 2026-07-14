@@ -4,6 +4,8 @@ name: Update Release Train Dependency Versions
 # Therefore, making a strong assumption that development branch should be updated to '-SNAPSHOT' versions of the potential release train dependencies is reasonable.
 # The release branches are updated to release train dependencies as is since they are not built until the release train itself.
 # The limitation of this workflow is only for Gradle projects with Version Catalog (TOML).
+# Since the version bump is committed directly (no PR involved), a closed, milestoned issue is created per updated dependency,
+# so the upgrade still shows up in the release notes, the same way as a labeled Dependabot PR would.
 
 on:
   workflow_call:
@@ -21,6 +23,11 @@ on:
         required: false
         type: string
         default: gradle/libs.versions.toml
+      dependency-upgrade-label:
+        description: 'The issue label to apply to the created dependency upgrade issues'
+        required: false
+        type: string
+        default: 'type: dependency-upgrade'
 
     secrets:
       GH_ACTIONS_REPO_TOKEN:
@@ -40,41 +47,47 @@ jobs:
         id: compute-version
         uses: spring-io/spring-release-actions/compute-version@0.0.5
 
-      - name: Fetch Release Train Versions
+      - name: Update Libraries Versions Catalog
         env:
           GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           RELEASE_TRAIN: ${{ inputs.release-train }}
-        run: |
-          gh api "repos/spring-io/release-train/contents/release-versions.json?ref=$RELEASE_TRAIN" --jq '.content' | base64 -d > release-versions.json
-
-      - name: Update Libraries Versions Catalog
-        env:
           VERSION_KEYS: ${{ inputs.version-keys }}
           TOML_FILE: ${{ inputs.toml }}
           SNAPSHOT: ${{ steps.compute-version.outputs.snapshot }}
+          MILESTONE: ${{ steps.compute-version.outputs.version }}
+          DEPENDENCY_UPGRADE_LABEL: ${{ inputs.dependency-upgrade-label }}
         run: |
+          # Fetch release train dependency versions 
+          RELEASE_VERSIONS=$(gh api "repos/spring-io/release-train/contents/release-versions.json?ref=$RELEASE_TRAIN" --jq '.content' | base64 -d)
+
+          # Iterate over version keys to find match in release train dependency versions
           for tomlKey in $(echo "$VERSION_KEYS" | jq -r 'keys[]'); do
             releaseTrainKey=$(echo "$VERSION_KEYS" | jq -r --arg k "$tomlKey" '.[$k]')
-
+          
+            # Check if the version key is present in the TOML file
             currentVersion=$(grep -E "^$tomlKey[[:space:]]*=" "$TOML_FILE" | sed -E 's/^[^"]*"([^"]+)".*/\1/')
             if [ -z "$currentVersion" ]; then
               echo "::warning title=Skip $tomlKey::No existing entry for '$tomlKey' in $TOML_FILE. Consider to remove this key pair from 'inputs.version-keys'."
               continue
             fi
 
+            # Find the latest version in the release train dependency versions for the current dependency's major.minor
             majorMinor=$(echo "$currentVersion" | cut -d '.' -f1-2)
 
-            newVersion=$(jq -r --arg key "$releaseTrainKey" --arg mm "$majorMinor" '.[$key] // [] | map(select(startswith($mm + "."))) | .[0] // empty' release-versions.json)
+            newVersion=$(echo "$RELEASE_VERSIONS" | jq -r --arg key "$releaseTrainKey" --arg mm "$majorMinor" '.[$key] // [] | map(select(startswith($mm + "."))) | .[0] // empty')
 
             if [ -z "$newVersion" ]; then
-              echo "::warning title=Skip $tomlKey::No $majorMinor.x version found for '$releaseTrainKey' in release-versions.json. Try again later."
+              echo "::warning title=Skip $tomlKey::No $majorMinor.x version found for '$releaseTrainKey' in release-versions.json. It might not participate this release train or will join later."
               continue
             fi
 
+            # Append '-SNAPSHOT' suffix if the current branch is development.
+            # Having release train dependencies as snapshots in dev branch is a good practice for early feedback loop about regressions.
             if [ "$SNAPSHOT" = "true" ]; then
               newVersion="$newVersion-SNAPSHOT"
             fi
-
+            
+            # Skip the rest of logic if the version is already up-to-date          
             if [ "$newVersion" = "$currentVersion" ]; then
               continue
             fi
@@ -82,9 +95,16 @@ jobs:
             sed -i -E "s/^($tomlKey[[:space:]]*=[[:space:]]*\")[^\"]+(\")/\1$newVersion\2/" "$TOML_FILE"
 
             echo "::notice title=Updated $tomlKey::$currentVersion -> $newVersion"
+          
+            # Create GH issue for the dependency upgrade when we update in the release branch
+            if [ "$SNAPSHOT" != "true" ]; then
+              issueUrl=$(gh issue create \
+                --title "Upgrade $releaseTrainKey to $newVersion" \
+                --label "$DEPENDENCY_UPGRADE_LABEL" \
+                --milestone "$MILESTONE")
+              gh issue close "$issueUrl" --reason completed
+            fi
           done
-
-          rm -f release-versions.json
 
       - name: Commit and Push
         env:
