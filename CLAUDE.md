@@ -35,10 +35,11 @@ spring-artifactory-gradle-release.yml (or -maven-release.yml)
 ├─ spring-artifactory-promote-release.yml → `jfrog rt build-promote` to libs-milestone-local or libs-release-local
 ├─ spring-artifactory-deploy-to-maven-central.yml   (skipped if bundleName input given)
 ├─ spring-enterprise-release-bundle.yml             (used instead, when bundleName input given)
-├─ spring-finalize-release.yml          → tags, bumps to next SNAPSHOT, generates changelog (spring-io/github-changelog-generator),
-│                                          creates the GH release, updates the spring.io project page, closes the milestone
-└─ spring-post-release.yml              → website update, chat announcement, computes/creates the next milestone
+└─ spring-finalize-release.yml          → tags, bumps to next SNAPSHOT, pushes the commit + tag. Ends there.
 ```
+
+Pushing that tag is a separate trigger, not a job in the tree above: `spring-post-release.yml` is a `push: tags`-triggered reusable workflow (its own caller, wired up once per consumer repo alongside the release caller — see README) that derives the milestone/hotfix from the pushed tag name and does the rest — changelog generation (spring-io/github-changelog-generator), GH release creation, milestone close, spring.io website update, chat announcement, next-milestone creation.
+Because it's tag-triggered rather than job-graph-triggered, the same workflow fires identically whether `spring-finalize-release.yml` pushed the tag or something external did (e.g. a release train orchestrator) — **do not** re-add a direct job-graph call from the pipeline above to `spring-post-release.yml`, that would double-fire it for every self-release (the original tag push already triggers it once).
 
 Key conventions this pipeline assumes about the *calling* project (documented in more detail in README.md):
 - Version scheme: `major.minor.patch[-M{n}|-RC{n}]`, SNAPSHOT suffixed `-SNAPSHOT`.

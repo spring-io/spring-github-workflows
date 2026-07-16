@@ -2,16 +2,6 @@ name: Perform Post Release Procedures
 
 on:
   workflow_call:
-    inputs:
-      milestone:
-        description: 'Milestone title, e.g 3.0.0-M1, 3.1.0-RC1, 3.2.0 etc.'
-        required: true
-        type: string
-      hotfix:
-        description: 'If just released milestone is a hotfix, e.g 3.1.10.1'
-        required: true
-        type: string
-
     secrets:
       SPRING_RELEASE_CHAT_WEBHOOK_URL:
         required: false
@@ -21,21 +11,61 @@ on:
 env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-
 jobs:
   post-release:
     runs-on: ubuntu-latest
+    if: github.event.created && startsWith(github.ref_name, 'v')
     steps:
 
+      # publish-release-notes (below) runs a plain `git config user.name` internally, which
+      # needs an actual .git directory to write to - checkout is required for that alone.
       - uses: actions/checkout@v7
         with:
+          persist-credentials: false
           show-progress: false
 
+      - name: Compute Milestone
+        run: |
+          MILESTONE=${GITHUB_REF_NAME#v}
+          echo "MILESTONE=$MILESTONE" >> "$GITHUB_ENV"
+          echo "HOTFIX=$([[ $MILESTONE =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && echo true || echo false)" >> "$GITHUB_ENV"
+
+      - name: Changelog Config File
+        run: |
+          repositoryTeam=$(gh api repos/$GITHUB_REPOSITORY/collaborators --jq 'map(select(.role_name == "admin") | .login) | join(",")')
+          repositoryVisibility=$(gh repo view --json visibility --jq 'if .visibility == "PUBLIC" then "true" else "false" end')
+
+          cat > changelog.properties <<EOF
+          changelog.contributors.exclude.names=$repositoryTeam
+          changelog.issues.generate-links=$repositoryVisibility
+          changelog.sections[0].title=:warning: Attention Required
+          changelog.sections[0].labels[0]=for: upgrade-attention
+          changelog.sections[0].summary.mode=member-comment
+          changelog.sections[0].summary.config.prefix=Attention required:
+          EOF
+
+      - name: Generate Changelog
+        uses: spring-io/github-changelog-generator@v0.0.14
+        with:
+          milestone: ${{ env.MILESTONE }}
+          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          config-file: changelog.properties
+
+      - name: GitHub Release
+        uses: spring-io/spring-release-actions/publish-release-notes@0.0.5
+        with:
+          tag: ${{ github.ref_name }}
+
+      - name: Close Milestone
+        uses: spring-io/spring-release-actions/close-milestone@0.0.5
+        with:
+          version: ${{ env.MILESTONE }}
+
       - name: Update Spring IO website for new version
-        if: ${{ inputs.hotfix != 'true' }}
+        if: ${{ env.HOTFIX != 'true' }}
         uses: spring-io/spring-github-workflows/.github/actions/spring-website-project-version-update@main
         with:
-          newVersion: ${{ inputs.milestone }}
+          newVersion: ${{ env.MILESTONE }}
           token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
 
       - name: Announce Release in Chat
@@ -43,24 +73,24 @@ jobs:
         uses: spring-io/spring-release-actions/announce-on-gchat@0.0.5
         with:
           gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
-          version: ${{ inputs.milestone }}
+          version: ${{ env.MILESTONE }}
         env:
           CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
 
       - id: support-window
-        if: ${{ inputs.hotfix != 'true' && !contains(inputs.milestone, '-') }}
+        if: ${{ env.HOTFIX != 'true' && !contains(env.MILESTONE, '-') }}
         uses: spring-io/spring-release-actions/compute-support-window@0.0.5
         with:
-          version: ${{ inputs.milestone }}
+          version: ${{ env.MILESTONE }}
 
       - id: next-milestone
-        if: ${{ inputs.hotfix != 'true' && steps.support-window.outputs.support-type != 'eol' }}
+        if: ${{ env.HOTFIX != 'true' && steps.support-window.outputs.support-type != 'eol' }}
         continue-on-error: true
         uses: spring-io/spring-release-actions/compute-next-version@0.0.5
         with:
-          version: ${{ inputs.milestone }}
+          version: ${{ env.MILESTONE }}
 
       # No due_on on the next milestone according to the day/week pattern since release might be skipped for next month
       - name: Create Next Milestone
-        if: ${{ inputs.hotfix != 'true' && steps.next-milestone.outputs.version }}
+        if: ${{ env.HOTFIX != 'true' && steps.next-milestone.outputs.version }}
         run: gh api repos/$GITHUB_REPOSITORY/milestones -f title=${{ steps.next-milestone.outputs.version }} || true

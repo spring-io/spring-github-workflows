@@ -75,11 +75,28 @@ The logic of this release workflow:
 This job stages released artifacts using JFrog Artifactory plugin into `libs-staging-local` repository on Spring Artifactory and commits `Next development version` to the branch we are releasing against
 - The next job is to [verify staged artifacts](#verify-staged-artifacts)
 - When verification is successful, next job promotes release from staging either to `libs-milestone-local` or `libs-release-local` (by default) (and optional to Maven Central: if `bundleName` input is not provided) according to the releasing version schema
-- Then [spring-finalize-release.yml](.github/workflows/spring-finalize-release.yml) job is executed, which tags release into GitHub, commits next development version, generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from `Contributors` section.
-The `gh release create` command is performed on a tag for a just released version.
-Then `spring.io` project page is updated for a newly released version.
-(The [spring-website-project-version-update](.github/actions/spring-website-project-version-update) local action is implemented for this goal).
-And in the end the milestone closed, and specific Google Space notified about release (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present in the repository).
+- Then [spring-finalize-release.yml](.github/workflows/spring-finalize-release.yml) job is executed, which tags the release into GitHub, commits the next development version, and pushes both the commit and the new `v{milestone}` tag to the branch we are releasing against.
+
+That tag push is itself the trigger for [spring-post-release.yml](.github/workflows/spring-post-release.yml): a separate, `push: tags`-triggered workflow (not part of the job graph above) which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from the `Contributors` section, creates the GitHub release for that tag, closes the milestone, updates the `spring.io` project page for the newly released version (via the [spring-website-project-version-update](.github/actions/spring-website-project-version-update) local action), notifies the configured Google Space (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present), and computes/creates the next scheduled milestone.
+It derives the milestone (and whether it's a hotfix) straight from the pushed tag name, so it reacts identically no matter who pushed the tag - `spring-finalize-release.yml` above, or some other process (e.g. a release train orchestrator publishing this project's version into the repository).
+Wire it up once per repository, alongside your release caller workflow:
+
+#### Example of Post Release caller workflow:
+```yaml
+name: Post Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  post-release:
+    uses: spring-io/spring-github-workflows/.github/workflows/spring-post-release.yml@main
+    secrets:
+      GH_ACTIONS_REPO_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+      SPRING_RELEASE_CHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_GCHAT_WEBHOOK_URL }}
+```
 
 #### Example of Release caller workflow:
 https://github.com/spring-io/spring-github-workflows/blob/88d5c5f78e88d00b9ad18885438d4e3657433ccf/samples/release-with-gradle.yml#L1-L24

@@ -46,15 +46,9 @@ on:
         description: 'The Artifactory Bundle Name'
         required: false
         type: string
-      preview:
-        description: 'True if this is a preview release'
-        required: false
-        type: string
 
     secrets:
       DEVELOCITY_ACCESS_KEY:
-        required: false
-      SPRING_RELEASE_CHAT_WEBHOOK_URL:
         required: false
       GH_ACTIONS_REPO_TOKEN:
         required: true
@@ -148,15 +142,4 @@ jobs:
     uses: ./.github/workflows/spring-finalize-release.yml
     with:
       milestone: ${{ needs.releaseVersion.outputs.releaseVersion }}
-      preview: ${{ inputs.preview }}
-    secrets: inherit
-
-  post-release:
-    if: ${{ !(failure() || cancelled()) }}
-    needs: [ releaseVersion, finalize ]
-    name: Post-procedure for ${{ needs.release-version.outputs.releaseVersion }} release
-    uses: ./.github/workflows/spring-post-release.yml
-    with:
-      milestone: ${{ needs.release-version.outputs.releaseVersion }}
-      hotfix: ${{ needs.release-version.outputs.hotfix }}
     secrets: inherit
