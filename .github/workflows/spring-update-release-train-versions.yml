@@ -110,6 +110,8 @@ jobs:
       - name: Commit and Push
         env:
           TOML_FILE: ${{ inputs.toml }}
+          SNAPSHOT: ${{ steps.compute-version.outputs.snapshot }}
+          MILESTONE: ${{ steps.compute-version.outputs.version }}
         run: |
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
@@ -119,5 +121,9 @@ jobs:
             exit 0
           fi
 
-          git commit -a -m "Update release train dependency versions"
+          if [ "$SNAPSHOT" = "true" ]; then
+            git commit -a -m "Update release train dependency versions"
+          else
+            git commit -a -m "Release $MILESTONE"
+          fi
           git push origin
