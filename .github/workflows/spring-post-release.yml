@@ -45,6 +45,7 @@ jobs:
           cat > changelog.properties <<EOF
           changelog.contributors.exclude.names=$repositoryTeam
           changelog.issues.generate-links=$repositoryVisibility
+          changelog.add-sections=true
           changelog.sections[0].title=:warning: Attention Required
           changelog.sections[0].labels[0]=for: upgrade-attention
           changelog.sections[0].summary.mode=member-comment
