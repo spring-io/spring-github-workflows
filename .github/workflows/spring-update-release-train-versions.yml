@@ -54,6 +54,7 @@ jobs:
           VERSION_KEYS: ${{ inputs.version-keys }}
           TOML_FILE: ${{ inputs.toml }}
           SNAPSHOT: ${{ steps.compute-version.outputs.snapshot }}
+          INTERNAL: ${{ contains(steps.compute-version.outputs.version, '-INTERNAL-SNAPSHOT') }}
           MILESTONE: ${{ steps.compute-version.outputs.version }}
           DEPENDENCY_UPGRADE_LABEL: ${{ inputs.dependency-upgrade-label }}
         run: |
@@ -81,10 +82,17 @@ jobs:
               continue
             fi
 
-            # Append '-SNAPSHOT' suffix if the current branch is development.
+            # Append '-SNAPSHOT' (or '-INTERNAL-SNAPSHOT' on an internal branch) suffix if the current branch is development,
+            # stripping any '-M1'/'-RC1'-style milestone suffix from the release train version first.
             # Having release train dependencies as snapshots in dev branch is a good practice for early feedback loop about regressions.
+            # On a release branch, the release train version (including its own milestone/RC suffix, if any) is used as is.
             if [ "$SNAPSHOT" = "true" ]; then
-              newVersion="$newVersion-SNAPSHOT"
+              newVersion=${newVersion%-*}
+              if [ "$INTERNAL" = "true" ]; then
+                newVersion="$newVersion-INTERNAL-SNAPSHOT"
+              else
+                newVersion="$newVersion-SNAPSHOT"
+              fi
             fi
             
             # Skip the rest of logic if the version is already up-to-date          
