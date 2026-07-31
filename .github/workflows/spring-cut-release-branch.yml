@@ -2,6 +2,13 @@ name: Cut the Release Branch from Git Ref
 on:
   workflow_call:
 
+    inputs:
+      milestone-number:
+        description: 'Milestone/RC suffix to append to the release version, e.g. `M2` or `RC1`'
+        required: false
+        type: string
+        default: ''
+
     secrets:
       GH_ACTIONS_REPO_TOKEN:
         required: true
@@ -30,7 +37,17 @@ jobs:
         id: compute-release-version
         env:
           VERSION: ${{ steps.compute-version.outputs.version }}
-        run: echo "version=${VERSION%-SNAPSHOT}" >> "$GITHUB_OUTPUT"
+          MILESTONE_NUMBER: ${{ inputs.milestone-number }}
+        run: |
+          VERSION=${VERSION%-INTERNAL-SNAPSHOT}
+          VERSION=${VERSION%-SNAPSHOT}
+
+          if [ -n "$MILESTONE_NUMBER" ]
+          then
+            VERSION="$VERSION-${MILESTONE_NUMBER^^}"
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Check Release Branch Does Not Exist
         env:
