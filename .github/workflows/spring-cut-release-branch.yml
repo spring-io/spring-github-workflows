@@ -4,7 +4,7 @@ on:
 
     inputs:
       milestone-number:
-        description: 'Milestone/RC suffix to append to the release version, e.g. `M2` or `RC1`'
+        description: 'Milestone/RC suffix to append to the release version (if necessary), e.g. `M2` or `RC1`'
         required: false
         type: string
         default: ''
@@ -80,4 +80,4 @@ jobs:
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
           git commit -am "Prepare release $RELEASE_VERSION"
-          git push origin
+          git push --set-upstream origin release/$RELEASE_VERSION
