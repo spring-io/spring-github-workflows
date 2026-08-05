@@ -41,7 +41,18 @@ jobs:
           do 
             if [ "$branch" != '${{ github.ref_name }}' ]
             then
+          
+              # The commit message may mention a branch which does not exist (yet or different repository):
+              # a typo, or a maintenance line which has not been cut. Skip it with a warning instead of failing the whole run,
+              # so the remaining, existing branches are still cherry-picked into.
+              if ! git ls-remote --exit-code --heads origin "$branch" > /dev/null
+              then
+                echo "::warning title=Skip cherry-pick::No '$branch' branch in ${{ github.repository }}. The commit ${{ github.sha }} is not cherry-picked there"
+                continue
+              fi
+          
               git checkout "$branch"
+          
               if git cherry-pick ${{ github.sha }} -x
               then
                 echo "::notice title=Commit cherry-picked::${{ github.sha }} to branch $branch"
@@ -49,8 +60,10 @@ jobs:
                 echo "::error title=Cannot cherry-pick::${{ github.sha }} to branch $branch. Manual procedure required"
                 exit 1
               fi
+          
               branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$CHERRY_PICK_TOKEN")
               git commit --amend -o -m "$branchCommitMessage"  
-              git push origin $branch    
+              git push origin $branch
+          
             fi
           done
