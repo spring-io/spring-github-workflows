@@ -37,6 +37,20 @@ jobs:
   update-release-train-versions:
     runs-on: ubuntu-latest
     steps:
+      # A re-run checks out the commit which triggered the original attempt, not the current branch head.
+      # Therefore, the version bump already pushed by the previous attempt is not seen: the dependency upgrade issues
+      # are created for the second time (duplicating release notes entries), and the resulting commit
+      # is rejected by 'git push' as non-fast-forward anyway.
+      # Dispatch a fresh run instead of re-running this one.
+      - name: Prevent re-run
+        if: github.run_attempt != '1'
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+        run: |
+          gh run cancel ${{ github.run_id }} -R ${{ github.repository }}
+          echo "::warning title=Re-run is not supported::The release train versions update must not be re-run: dispatch a new run against the current branch state instead"
+          # Block until the cancellation takes effect, so no subsequent step is performed
+          gh run watch ${{ github.run_id }} -R ${{ github.repository }}
 
       - uses: actions/checkout@v7
         with:
