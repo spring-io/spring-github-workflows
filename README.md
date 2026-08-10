@@ -13,6 +13,7 @@ JF_ARTIFACTORY_SPRING
 ARTIFACTORY_USERNAME
 ARTIFACTORY_PASSWORD
 SPRING_RELEASE_CHAT_WEBHOOK_URL
+NOTIFICATIONS_CHAT_WEBHOOK_URL
 CENTRAL_TOKEN_USERNAME
 CENTRAL_TOKEN_PASSWORD
 GPG_PASSPHRASE
@@ -21,6 +22,7 @@ GPG_PRIVATE_KEY
 
 The Develocity secret is optional: mostly not used by Maven, and a Gradle project might not be enrolled for the service.  
 The `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is also optional: probably you don't want to notify Google Space about your release, or it is not available for GitHub organization.
+The `NOTIFICATIONS_CHAT_WEBHOOK_URL` secret is also optional: when set, the CI, SNAPSHOT and cherry-pick workflows send a Google Chat notification whenever their job fails.
 As well as `CENTRAL_TOKEN_*` secrets, since not all releases might go to [Maven Central Portal](https://central.sonatype.org/register/central-portal/), e.g. private (commercial) repositories only.
 
 The mentioned secrets must be passed explicitly since these reusable workflows might be in a different GitHub org than the target project.

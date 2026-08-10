@@ -12,9 +12,12 @@ on:
     secrets:
       GH_ACTIONS_REPO_TOKEN:
         required: true
+      NOTIFICATIONS_CHAT_WEBHOOK_URL:
+        required: false
 
 env:
   GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+  NOTIFICATIONS_CHAT_WEBHOOK_URL: ${{ secrets.NOTIFICATIONS_CHAT_WEBHOOK_URL }}
 
 
 jobs:
@@ -62,8 +65,14 @@ jobs:
               fi
           
               branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$CHERRY_PICK_TOKEN")
-              git commit --amend -o -m "$branchCommitMessage"  
+              git commit --amend -o -m "$branchCommitMessage"
               git push origin $branch
-          
+
             fi
           done
+
+      - name: Notify Failure in Chat
+        if: ${{ failure() && env.NOTIFICATIONS_CHAT_WEBHOOK_URL }}
+        uses: spring-io/spring-release-actions/status-on-gchat@0.0.5
+        with:
+          gchat-webhook-url: ${{ env.NOTIFICATIONS_CHAT_WEBHOOK_URL }}

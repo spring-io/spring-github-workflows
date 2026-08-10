@@ -36,6 +36,8 @@ on:
         required: false
       GPG_PRIVATE_KEY:
         required: false
+      NOTIFICATIONS_CHAT_WEBHOOK_URL:
+        required: false
 
 env:
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}

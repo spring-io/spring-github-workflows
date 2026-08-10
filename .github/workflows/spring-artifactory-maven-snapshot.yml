@@ -38,14 +38,23 @@ on:
         required: false
       GPG_PASSPHRASE:
         required: false
+      NOTIFICATIONS_CHAT_WEBHOOK_URL:
+        required: false
 
 env:
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  NOTIFICATIONS_CHAT_WEBHOOK_URL: ${{ secrets.NOTIFICATIONS_CHAT_WEBHOOK_URL }}
 
 jobs:
   build_snapshot:
     runs-on: ${{ inputs.runner }}
     name: CI Build SNAPSHOT for ${{ github.ref_name }}
+    # A `permissions:` block sets every unlisted scope to 'none', not just adds to the defaults -
+    # contents: read must be listed explicitly here too, or checkout breaks on private repositories.
+    permissions:
+      contents: read
+      actions: read
     steps:
 
       - uses: actions/checkout@v7
@@ -112,3 +121,9 @@ jobs:
           name: test-results
           path: '**/target/surefire-reports/*.*'
           retention-days: 3
+
+      - name: Notify Failure in Chat
+        if: ${{ failure() && env.NOTIFICATIONS_CHAT_WEBHOOK_URL }}
+        uses: spring-io/spring-release-actions/status-on-gchat@0.0.5
+        with:
+          gchat-webhook-url: ${{ env.NOTIFICATIONS_CHAT_WEBHOOK_URL }}
