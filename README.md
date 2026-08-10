@@ -79,6 +79,7 @@ This job stages released artifacts using JFrog Artifactory plugin into `libs-sta
 
 That tag push is itself the trigger for [spring-post-release.yml](.github/workflows/spring-post-release.yml): a separate, `push: tags`-triggered workflow (not part of the job graph above) which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from the `Contributors` section, creates the GitHub release for that tag, closes the milestone, updates the `spring.io` project page for the newly released version (via the [spring-website-project-version-update](.github/actions/spring-website-project-version-update) local action), notifies the configured Google Space (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present), and computes/creates the next scheduled milestone.
 It derives the milestone (and whether it's a hotfix) straight from the pushed tag name, so it reacts identically no matter who pushed the tag - `spring-finalize-release.yml` above, or some other process (e.g. a release train orchestrator publishing this project's version into the repository).
+
 Wire it up once per repository, alongside your release caller workflow:
 
 #### Example of Post Release caller workflow:

@@ -37,6 +37,46 @@ jobs:
           echo "MILESTONE=$MILESTONE" >> "$GITHUB_ENV"
           echo "HOTFIX=$([[ $MILESTONE =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && echo true || echo false)" >> "$GITHUB_ENV"
 
+      - name: Transfer Commercial Issues to OSS Milestone
+        if: ${{ vars.COMMERCIAL != 'true' }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          OSS_REPO: ${{ github.repository }}
+          COMMERCIAL_REPO: ${{ github.repository }}-commercial
+        run: |
+          # A missing repository/milestone (gh api failure) is swallowed rather than failing the job.
+          milestoneNumber=$(gh api "repos/$COMMERCIAL_REPO/milestones?state=open" --jq ".[] | select(.title == \"$MILESTONE\") | .number" 2>/dev/null) || true
+          if [ -z "$milestoneNumber" ]; then
+            echo "::notice title=No Commercial Milestone::No open '$MILESTONE' milestone found in $COMMERCIAL_REPO, skipping issue transfer"
+            exit 0
+          fi
+
+          gh issue list -R "$COMMERCIAL_REPO" --milestone "$MILESTONE" --state all --limit 1000 --json number,title,state,labels --jq '.[] | @base64' |
+          while read -r encodedIssue; do
+            issue=$(echo "$encodedIssue" | base64 -d)
+            number=$(jq -r '.number' <<< "$issue")
+            title=$(jq -r '.title' <<< "$issue")
+            state=$(jq -r '.state | ascii_downcase' <<< "$issue")
+            mapfile -t labels < <(jq -r '.labels[].name' <<< "$issue")
+
+            createArgs=(--title "$title" --body "Backport of: https://github.com/$COMMERCIAL_REPO/issues/$number" --milestone "$MILESTONE")
+            for label in "${labels[@]}"; do
+              gh label create "$label" -R "$OSS_REPO" 2>/dev/null || true
+              createArgs+=(--label "$label")
+            done
+
+            newIssueUrl=$(gh issue create -R "$OSS_REPO" "${createArgs[@]}")
+
+            if [ "$state" = "closed" ]; then
+              gh issue close "$newIssueUrl" -R "$OSS_REPO" --reason completed
+            fi
+
+            echo "::notice title=Transferred Issue::$COMMERCIAL_REPO#$number -> $newIssueUrl"
+          done
+
+          gh api "repos/$COMMERCIAL_REPO/milestones/$milestoneNumber" -X PATCH -f state=closed
+
       - name: Changelog Config File
         run: |
           repositoryTeam=$(gh api repos/$GITHUB_REPOSITORY/collaborators --jq 'map(select(.role_name == "admin") | .login) | join(",")')
