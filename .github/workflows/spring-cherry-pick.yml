@@ -73,6 +73,6 @@ jobs:
 
       - name: Notify Failure in Chat
         if: ${{ failure() && env.NOTIFICATIONS_CHAT_WEBHOOK_URL }}
-        uses: spring-io/spring-release-actions/status-on-gchat@0.0.5
+        uses: spring-io/spring-github-workflows/.github/actions/spring-failure-to-gchat@main
         with:
           gchat-webhook-url: ${{ env.NOTIFICATIONS_CHAT_WEBHOOK_URL }}

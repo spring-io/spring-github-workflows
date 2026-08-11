@@ -13,23 +13,36 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event.milestone.due_on
     steps:
-      - run: |
-          dueDate=${{ github.event.milestone.due_on }} 
-          dueDate=${dueDate%T*}
-          changesDueOn=${{ github.event.changes.due_on.from }}
-          changesDueOn=${changesDueOn%T*}
-          
-          if [ '${{ github.event.action }}' = 'edited' -a  '$changesDueOn' = '$dueDate' ]
+      - name: Announce milestone planning in chat
+        env:
+          GCHAT_WEBHOOK_URL: ${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}
+          EVENT_ACTION: ${{ github.event.action }}
+          PROJECT_NAME: ${{ github.event.repository.name }}
+          MILESTONE_TITLE: ${{ github.event.milestone.title }}
+          DUE_ON: ${{ github.event.milestone.due_on }}
+          PREVIOUS_DUE_ON: ${{ github.event.changes.due_on.from }}
+        run: |
+          set -euo pipefail
+
+          dueDate=${DUE_ON%T*}
+          previousDueDate=${PREVIOUS_DUE_ON%T*}
+
+          if [ "$EVENT_ACTION" = edited ] && [ "$previousDueDate" = "$dueDate" ]
           then
             exit 0
           fi
-           
-          if [ $dueDate = $(date '+%F') ]
+
+          if [ "$dueDate" = "$(date '+%F')" ]
           then
-            dueDate=today
+            dueDatePhrase=today
           else
-            dueDate="on $(date -d $dueDate '+%B %d')"
+            dueDatePhrase="on $(date -d "$dueDate" '+%B %d')"
           fi
-          
-          curl -X POST '${{ secrets.SPRING_RELEASE_CHAT_WEBHOOK_URL }}' -H 'Content-Type: application/json' \
-            -d '{ text: "${{ github.event.repository.name }}-planning `${{ github.event.milestone.title }}` '"$dueDate"'"}'
+
+          MESSAGE=$(jq -n \
+            --arg project "$PROJECT_NAME" \
+            --arg title "$MILESTONE_TITLE" \
+            --arg phrase "$dueDatePhrase" \
+            '{text: "\($project)-planning `\($title)` \($phrase)"}')
+
+          curl -s --show-error -X POST -H 'Content-Type: application/json' -d "$MESSAGE" "$GCHAT_WEBHOOK_URL"

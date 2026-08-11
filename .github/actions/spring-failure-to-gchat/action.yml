@@ -1,0 +1,33 @@
+name: Notify Google Chat about a workflow failure
+
+description: 'Posts a message to a Google Chat webhook when the calling workflow has failed.
+Replaces `spring-io/spring-release-actions/status-on-gchat`, which produces confusing messages.
+The message follows the pattern: `<project-name>`: `<workflow-name>` has <failed|link to the failed run> on `<ref-name>`.'
+
+inputs:
+  gchat-webhook-url:
+    description: 'The Google Chat webhook URL to post the failure notification to'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Post failure notification to Google Chat
+      shell: bash
+      env:
+        GCHAT_WEBHOOK_URL: ${{ inputs.gchat-webhook-url }}
+        PROJECT_NAME: ${{ github.event.repository.name }}
+        WORKFLOW_NAME: ${{ github.workflow }}
+        REF_NAME: ${{ github.ref_name }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        set -euo pipefail
+
+        MESSAGE=$(jq -n \
+          --arg project "$PROJECT_NAME" \
+          --arg workflow "$WORKFLOW_NAME" \
+          --arg ref "$REF_NAME" \
+          --arg url "$RUN_URL" \
+          '{text: "`\($project)`: `\($workflow)` has <\($url)|failed> on `\($ref)`"}')
+
+        curl -s --show-error -X POST -H 'Content-Type: application/json' -d "$MESSAGE" "$GCHAT_WEBHOOK_URL"
