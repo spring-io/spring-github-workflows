@@ -54,7 +54,7 @@ These are standalone (no nesting) and can be reasoned about in isolation:
 - `spring-gradle-pull-request-build.yml` / `spring-maven-pull-request-build.yml` — PR check (`gradlew check` / `mvnw verify`).
 - `spring-artifactory-gradle-snapshot.yml` / `spring-artifactory-maven-snapshot.yml` — CI SNAPSHOT publish to Artifactory.
 - `spring-merge-dependabot-pr.yml` — relabels Dependabot PRs (dependency-upgrade → task for dev-dependency groups), assigns the current milestone, and queues auto-merge; has special-case logic to reject Dependabot's incorrect `-SNAPSHOT`-skipping-GA upgrades (see the long comment in that file before touching this logic).
-- `spring-cherry-pick.yml` — parses `Auto-cherry-pick to X.Y.x & A.B.x` out of a push's commit message and cherry-picks (`-x`) to each named branch, stripping the trigger phrase from the picked commit message.
+- `spring-cherry-pick.yml` — parses `Auto-cherry-pick to X.Y.x & A.B.x` out of every commit message in a push (not just the head commit) and cherry-picks (`-x`) each matching commit to its named branches, stripping the trigger phrase from the picked commit message.
 - `spring-backport-issue.yml` — fires on commits containing `Fixes:`/`Closes:`, delegates to `spring-io/backport-bot`.
 - `spring-announce-milestone-planning.yml` — posts to Google Chat when a milestone's `due_on` is set/changed.
 - `spring-trigger-dependabot-updates.yml` — forces a Dependabot re-scan by toggling the executable bit on `dependabot.yml`.

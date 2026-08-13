@@ -23,7 +23,7 @@ env:
 jobs:
   cherry-pick:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, inputs.autoCherryPickToken)
+    if: contains(join(github.event.commits.*.message, ' '), inputs.autoCherryPickToken)
     steps:
 
       - uses: actions/checkout@v7
@@ -35,41 +35,49 @@ jobs:
       - name: Cherry-pick to branches in commit message
         env:
           CHERRY_PICK_TOKEN: ${{ inputs.autoCherryPickToken }}
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           git config --global user.name 'Spring Builds'
           git config --global user.email 'builds@springframework.org'
-          branches=$(echo "$COMMIT_MESSAGE" | grep "$CHERRY_PICK_TOKEN" | grep -o -E "([0-9]+\.[0-9]+(\.[0-9]+)?\.x(-internal)?)")
-          for branch in $branches
-          do 
-            if [ "$branch" != '${{ github.ref_name }}' ]
-            then
-          
-              # The commit message may mention a branch which does not exist (yet or different repository):
-              # a typo, or a maintenance line which has not been cut. Skip it with a warning instead of failing the whole run,
-              # so the remaining, existing branches are still cherry-picked into.
-              if ! git ls-remote --exit-code --heads origin "$branch" > /dev/null
-              then
-                echo "::warning title=Skip cherry-pick::No '$branch' branch in ${{ github.repository }}. The commit ${{ github.sha }} is not cherry-picked there"
-                continue
-              fi
-          
-              git checkout "$branch"
-          
-              if git cherry-pick ${{ github.sha }} -x
-              then
-                echo "::notice title=Commit cherry-picked::${{ github.sha }} to branch $branch"
-              else
-                echo "::error title=Cannot cherry-pick::${{ github.sha }} to branch $branch. Manual procedure required"
-                exit 1
-              fi
-          
-              branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$CHERRY_PICK_TOKEN")
-              git commit --amend -o -m "$branchCommitMessage"
-              git push origin $branch
 
-            fi
-          done
+          # A push can carry several commits; process every commit that carries the token,
+          # not just github.event.head_commit (the last commit of the push).
+          while IFS= read -r commit
+          do
+            sha=$(echo "$commit" | jq -r '.id')
+            message=$(echo "$commit" | jq -r '.message')
+            branches=$(echo "$message" | grep "$CHERRY_PICK_TOKEN" | grep -o -E "([0-9]+\.[0-9]+(\.[0-9]+)?\.x(-internal)?)")
+
+            for branch in $branches
+            do
+              if [ "$branch" != '${{ github.ref_name }}' ]
+              then
+
+                # The commit message may mention a branch which does not exist (yet or different repository):
+                # a typo, or a maintenance line which has not been cut. Skip it with a warning instead of failing the whole run,
+                # so the remaining, existing branches are still cherry-picked into.
+                if ! git ls-remote --exit-code --heads origin "$branch" > /dev/null
+                then
+                  echo "::warning title=Skip cherry-pick::No '$branch' branch in ${{ github.repository }}. The commit $sha is not cherry-picked there"
+                  continue
+                fi
+
+                git checkout "$branch"
+
+                if git cherry-pick "$sha" -x
+                then
+                  echo "::notice title=Commit cherry-picked::$sha to branch $branch"
+                else
+                  echo "::error title=Cannot cherry-pick::$sha to branch $branch. Manual procedure required"
+                  exit 1
+                fi
+
+                branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$CHERRY_PICK_TOKEN")
+                git commit --amend -o -m "$branchCommitMessage"
+                git push origin "$branch"
+
+              fi
+            done
+          done < <(jq -c --arg token "$CHERRY_PICK_TOKEN" '.commits[] | select(.message | contains($token))' "$GITHUB_EVENT_PATH")
 
       - name: Notify Failure in Chat
         if: ${{ failure() && env.NOTIFICATIONS_CHAT_WEBHOOK_URL }}

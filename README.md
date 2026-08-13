@@ -165,7 +165,7 @@ https://github.com/spring-io/spring-github-workflows/blob/521ac488abc90d96170403
 
 ## Automatic cherry-pick workflow
 
-The [spring-cherry-pick.yml](.github/workflows/spring-cherry-pick.yml) workflow offers a logic to cherry-pick pushed commit to branches suggested by the specific sentence in the commit message.
+The [spring-cherry-pick.yml](.github/workflows/spring-cherry-pick.yml) workflow offers a logic to cherry-pick pushed commits to branches suggested by the specific sentence in each commit message. Every commit in the push is considered, not just the last one.
 For example `Auto-cherry-pick to 6.2.x & 6.1.x`.
 The `Auto-cherry-pick` token is a default value for the `autoCherryPickToken` input of this workflow.
 The branches to cherry-pick to are extracted from the matching sentence.
