@@ -23,8 +23,24 @@ env:
 jobs:
   cherry-pick:
     runs-on: ubuntu-latest
-    if: contains(join(github.event.commits.*.message, ' '), inputs.autoCherryPickToken)
+    # Skip entirely on force-pushes (e.g. a rebase): GitHub's push payload lists the
+    # rewritten commits as if they were new, which would replay cherry-picks that were
+    # already performed against the pre-rebase commits.
+    if: ${{ !github.event.forced && contains(join(github.event.commits.*.message, ' '), inputs.autoCherryPickToken) }}
     steps:
+
+      # A re-run replays the same commits from github.event.commits against whatever the target
+      # branches look like at re-run time. The patch-id check below makes that a no-op for branches
+      # already cherry-picked into in a prior attempt, so there is nothing left for a re-run to
+      # recover: a branch that failed with a genuine conflict needs a manual fix pushed by hand.
+      # Cancel instead of wasting a run on a retry that can't succeed differently.
+      - name: Prevent re-run
+        if: github.run_attempt != '1'
+        run: |
+          gh run cancel ${{ github.run_id }} -R ${{ github.repository }}
+          echo "::warning title=Re-run is not supported::A failed cherry-pick needs a manual fix, not a re-run. Resolve and push it by hand instead"
+          # Block until the cancellation takes effect, so no subsequent step is performed
+          gh run watch ${{ github.run_id }} -R ${{ github.repository }}
 
       - uses: actions/checkout@v7
         with:
@@ -41,6 +57,10 @@ jobs:
 
           # A push can carry several commits; process every commit that carries the token,
           # not just github.event.head_commit (the last commit of the push).
+          # Re-runs are cancelled (see the 'Prevent re-run' step), so a conflict here has no
+          # retry to fall back on: record it and keep going through the remaining commits/branches
+          # instead of aborting the whole loop, then fail the job at the end if anything failed.
+          failed=''
           while IFS= read -r commit
           do
             sha=$(echo "$commit" | jq -r '.id')
@@ -63,12 +83,23 @@ jobs:
 
                 git checkout "$branch"
 
+                # A rebase + force-push gives the same logical change a new SHA, so an equivalent
+                # patch may already be on the target branch from a run before the rebase. Compare by
+                # patch-id (not SHA) and skip re-picking it.
+                if git cherry "$branch" "$sha" "$sha^" | grep -q '^-'
+                then
+                  echo "::notice title=Skip cherry-pick::$sha (or an equivalent patch) is already in branch $branch"
+                  continue
+                fi
+
                 if git cherry-pick "$sha" -x
                 then
                   echo "::notice title=Commit cherry-picked::$sha to branch $branch"
                 else
+                  git cherry-pick --abort || true
                   echo "::error title=Cannot cherry-pick::$sha to branch $branch. Manual procedure required"
-                  exit 1
+                  failed="$failed $sha->$branch"
+                  continue
                 fi
 
                 branchCommitMessage=$(git log -1 --pretty=%B | grep -v "$CHERRY_PICK_TOKEN")
@@ -78,6 +109,12 @@ jobs:
               fi
             done
           done < <(jq -c --arg token "$CHERRY_PICK_TOKEN" '.commits[] | select(.message | contains($token))' "$GITHUB_EVENT_PATH")
+
+          if [ -n "$failed" ]
+          then
+            echo "::error title=Cherry-pick failures::Manual procedure required for:$failed"
+            exit 1
+          fi
 
       - name: Notify Failure in Chat
         if: ${{ failure() && env.NOTIFICATIONS_CHAT_WEBHOOK_URL }}

@@ -171,6 +171,8 @@ The `Auto-cherry-pick` token is a default value for the `autoCherryPickToken` in
 The branches to cherry-pick to are extracted from the matching sentence.
 The "Auto-cherry-pick" sentence is removed from the target commit message.
 The `-x` option of `git cherry-pick` command adds a link back to the original commit.
+Force-pushes (e.g. a rebase) are skipped entirely, and any commit whose patch is already present on the target branch is skipped as well, to avoid replaying cherry-picks that were already performed.
+Re-runs of this workflow are cancelled: a failed cherry-pick needs a manual fix pushed by hand, not a retry of the same automated logic.
 
 ## Announce Milestone Planning in Chat
 
