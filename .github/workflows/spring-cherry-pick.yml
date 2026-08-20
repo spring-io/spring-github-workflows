@@ -61,6 +61,10 @@ jobs:
           # retry to fall back on: record it and keep going through the remaining commits/branches
           # instead of aborting the whole loop, then fail the job at the end if anything failed.
           failed=''
+          # Cached per branch across all commits/branches in this push, so a maintenance line
+          # mentioned by several commits only costs one existence check and one lock lookup.
+          declare -A branchExists
+          declare -A branchLocked
           while IFS= read -r commit
           do
             sha=$(echo "$commit" | jq -r '.id')
@@ -72,12 +76,42 @@ jobs:
               if [ "$branch" != '${{ github.ref_name }}' ]
               then
 
+                if [ -z "${branchExists[$branch]+x}" ]
+                then
+                  if git ls-remote --exit-code --heads origin "$branch" > /dev/null
+                  then
+                    branchExists[$branch]=true
+                  else
+                    branchExists[$branch]=false
+                  fi
+                fi
+
                 # The commit message may mention a branch which does not exist (yet or different repository):
                 # a typo, or a maintenance line which has not been cut. Skip it with a warning instead of failing the whole run,
                 # so the remaining, existing branches are still cherry-picked into.
-                if ! git ls-remote --exit-code --heads origin "$branch" > /dev/null
+                if [ "${branchExists[$branch]}" = false ]
                 then
                   echo "::warning title=Skip cherry-pick::No '$branch' branch in ${{ github.repository }}. The commit $sha is not cherry-picked there"
+                  continue
+                fi
+
+                if [ -z "${branchLocked[$branch]+x}" ]
+                then
+                  if [ "$(gh api "repos/${{ github.repository }}/branches/$branch/protection" --jq '.lock_branch.enabled // false' 2>/dev/null)" = true ]
+                  then
+                    branchLocked[$branch]=true
+                  else
+                    branchLocked[$branch]=false
+                  fi
+                fi
+
+                # A locked branch is a maintenance line for which support has ended: it is read-only,
+                # so checkout/cherry-pick/push would only fail. Skip it up front instead of wasting the
+                # attempt (and instead of a push failure going unnoticed, since only cherry-pick failures
+                # below are tracked in $failed).
+                if [ "${branchLocked[$branch]}" = true ]
+                then
+                  echo "::warning title=Skip cherry-pick::Branch '$branch' in ${{ github.repository }} is locked (read-only, out of support). The commit $sha is not cherry-picked there"
                   continue
                 fi
 
