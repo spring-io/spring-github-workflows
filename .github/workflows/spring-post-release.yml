@@ -133,7 +133,7 @@ jobs:
           version: ${{ env.MILESTONE }}
 
       - id: next-milestone
-        if: ${{ env.HOTFIX != 'true' && steps.support-window.outputs.support-type != 'eol' }}
+        if: ${{ env.HOTFIX != 'true' && !contains(env.MILESTONE, '-') && steps.support-window.outputs.support-type != 'eol' }}
         continue-on-error: true
         uses: spring-io/spring-release-actions/compute-next-version@0.0.5
         with:
