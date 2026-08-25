@@ -23,39 +23,29 @@ runs:
       run: |
         dispatchDate=$(date -Iseconds)
         workflowFile=${{ inputs.workflow }}
-        
+
         if [ '${{ inputs.inputs }}' ]; then
-          echo '${{ inputs.inputs }}' | gh workflow run $workflowFile -r ${{ github.ref_name }} --json
+          runUrl=$(echo '${{ inputs.inputs }}' | gh workflow run $workflowFile -r ${{ github.ref_name }} --json)
         else
-          gh workflow run $workflowFile -r ${{ github.ref_name }}
+          runUrl=$(gh workflow run $workflowFile -r ${{ github.ref_name }})
         fi
-        
-        sleep 60
-        
-        run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/workflows/$workflowFile/runs?event=workflow_dispatch&created=>=$dispatchDate)
-        
-        currentWorkflowRunId=$(echo "$run_data" | jq -r '.workflow_runs[0].id')
-        
-        run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
-        
-        currentWorkflowRunUrl=$(echo "$run_data" | jq -r '.html_url') 
-        
-        echo "::notice file=$workflowFile,title=Dispatched workflow run::$currentWorkflowRunUrl"
-        
-        while true; do
-          run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId)
-          status=$(echo "$run_data" | jq -r '.status')
-        
-          if [ $status = "completed" ]; then
-            conclusion=$(echo "$run_data" | jq -r '.conclusion')
-            if [ $conclusion != "success" ]; then
-              echo "::error file=$workflowFile::The Dispatched workflow has not completed successfully"
-              exit 1
-            else
-              echo "::notice file=$workflowFile,title=The Dispatched workflow:: Completed successfully"
-            break
-            fi
-          fi
-        
+
+        # `gh workflow run` (gh CLI >= 2.87.0) prints the created run URL when the host returns it.
+        # Older gh/GHES hosts return nothing here, so fall back to locating the run by dispatch time.
+        if [ -z "$runUrl" ]; then
           sleep 60
-        done
+          run_data=$(gh api repos/$GITHUB_REPOSITORY/actions/workflows/$workflowFile/runs?event=workflow_dispatch&created=>=$dispatchDate)
+          currentWorkflowRunId=$(echo "$run_data" | jq -r '.workflow_runs[0].id')
+          runUrl=$(gh api repos/$GITHUB_REPOSITORY/actions/runs/$currentWorkflowRunId --jq '.html_url')
+        else
+          currentWorkflowRunId=${runUrl##*/}
+        fi
+
+        echo "::notice file=$workflowFile,title=Dispatched workflow run::$runUrl"
+
+        if ! gh run watch $currentWorkflowRunId --exit-status; then
+          echo "::error file=$workflowFile::The Dispatched workflow has not completed successfully"
+          exit 1
+        fi
+
+        echo "::notice file=$workflowFile,title=The Dispatched workflow:: Completed successfully"
