@@ -39,7 +39,7 @@ jobs:
     steps:
 
       - name: Create Release Bundle
-        uses: spring-io/spring-release-actions/create-release-bundle@0.0.5
+        uses: spring-io/spring-release-actions/create-release-bundle@0.0.6
         with:
           artifactory-url: ${{ inputs.artifactoryUrl }}
           bundle-name: ${{ inputs.bundleName }}
@@ -49,7 +49,7 @@ jobs:
           username: ${{ secrets.ARTIFACTORY_USERNAME }}
           password: ${{ secrets.ARTIFACTORY_PASSWORD }}
 
-      - uses: spring-io/spring-release-actions/distribute-release-bundle@0.0.5
+      - uses: spring-io/spring-release-actions/distribute-release-bundle@0.0.6
         continue-on-error: true
         with:
           artifactory-url: ${{ inputs.artifactoryUrl }}
