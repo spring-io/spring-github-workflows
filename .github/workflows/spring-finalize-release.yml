@@ -33,7 +33,7 @@ jobs:
 
       - name: Compute Next Snapshot
         id: next-snapshot
-        uses: spring-io/spring-release-actions/compute-next-snapshot@0.0.5
+        uses: spring-io/spring-release-actions/compute-next-snapshot@0.0.6
         with:
           version: ${{ inputs.milestone }}
 
