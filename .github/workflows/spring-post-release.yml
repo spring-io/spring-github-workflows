@@ -85,6 +85,8 @@ jobs:
           cat > changelog.properties <<EOF
           changelog.contributors.exclude.names=$repositoryTeam
           changelog.issues.generate-links=$repositoryVisibility
+          changelog.issues.ports[0].label=type: backport
+          changelog.issues.ports[0].body-expression=Backport of gh-(\d+).*
           changelog.add-sections=true
           changelog.sections[0].title=:warning: Attention Required
           changelog.sections[0].labels[0]=for: upgrade-attention
