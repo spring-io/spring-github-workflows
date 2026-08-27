@@ -7,8 +7,8 @@ inputs:
     description: 'The version to add to project page'
     required: true
   token:
-    description: 'A GitHub token for REST api calls'
-    required: true
+    description: 'A GitHub token for REST api calls; falls back to the GITHUB_TOKEN env var if not provided'
+    required: false
 
 runs:
   using: composite
@@ -16,7 +16,7 @@ runs:
     - name: Update project page for new version
       shell: bash
       env:
-        GH_TOKEN: ${{ inputs.token }}
+        GH_TOKEN: ${{ inputs.token || env.GITHUB_TOKEN }}
       run: |
         set -euo pipefail
 

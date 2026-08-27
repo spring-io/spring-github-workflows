@@ -16,7 +16,7 @@ on:
         required: true
 
 env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
 
 jobs:
   post-release:
@@ -24,7 +24,7 @@ jobs:
     if: github.event.created && startsWith(github.ref_name, 'v')
     steps:
 
-      # publish-release-notes (below) runs a plain `git config user.name` internally, which
+      # The GitHub Release step (below) runs a plain `git config user.name` internally, which
       # needs an actual .git directory to write to - checkout is required for that alone.
       - uses: actions/checkout@v7
         with:
@@ -41,7 +41,6 @@ jobs:
         if: ${{ vars.COMMERCIAL != 'true' }}
         shell: bash
         env:
-          GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           OSS_REPO: ${{ github.repository }}
           COMMERCIAL_REPO: ${{ github.repository }}-commercial
         run: |
@@ -98,13 +97,20 @@ jobs:
         uses: spring-io/github-changelog-generator@v0.0.14
         with:
           milestone: ${{ env.MILESTONE }}
-          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          token: ${{ env.GITHUB_TOKEN }}
           config-file: changelog.properties
 
       - name: GitHub Release
-        uses: spring-io/spring-release-actions/publish-release-notes@0.0.6
-        with:
-          tag: ${{ github.ref_name }}
+        # Workaround until spring-io/spring-release-actions/publish-release-notes accepts a token
+        # input: https://github.com/spring-io/spring-release-actions/issues/202
+        # It hardcodes GH_TOKEN to the default github.token, ignoring the GH_ACTIONS_REPO_TOKEN
+        # (env.GITHUB_TOKEN) applied everywhere else in this workflow.
+        env:
+          PRERELEASE: ${{ (contains(github.ref_name, '-M') || contains(github.ref_name, '-RC')) && '--prerelease' || '' }}
+        run: |
+          gh release delete "$GITHUB_REF_NAME" -y || true
+          RELEASE_URL=$(gh release create "$GITHUB_REF_NAME" -F changelog.md $PRERELEASE --target "$GITHUB_SHA")
+          echo "::notice title=Release Page::$RELEASE_URL"
 
       - name: Close Milestone
         if: ${{ inputs.preview != 'true' }}
@@ -117,7 +123,6 @@ jobs:
         uses: spring-io/spring-github-workflows/.github/actions/spring-website-project-version-update@main
         with:
           newVersion: ${{ env.MILESTONE }}
-          token: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
 
       - name: Announce Release in Chat
         if: ${{ inputs.preview != 'true' && env.CHAT_WEBHOOK_URL }}
