@@ -24,11 +24,11 @@ jobs:
     if: github.event.created && startsWith(github.ref_name, 'v')
     steps:
 
-      # The GitHub Release step (below) runs a plain `git config user.name` internally, which
-      # needs an actual .git directory to write to - checkout is required for that alone.
+      # Full history + a push-capable token, needed by "Merge Release Tag into Dev Branch" below.
       - uses: actions/checkout@v7
         with:
-          persist-credentials: false
+          token: ${{ env.GITHUB_TOKEN }}
+          fetch-depth: 0
           show-progress: false
 
       - name: Compute Milestone
@@ -138,6 +138,33 @@ jobs:
         uses: spring-io/spring-release-actions/compute-support-window@0.0.6
         with:
           version: ${{ env.MILESTONE }}
+
+      - name: Merge Release Tag into Dev Branch
+        if: ${{ env.HOTFIX != 'true' && steps.support-window.outputs.support-type != 'eol' }}
+        run: |
+          git config --global user.name 'Spring Builds'
+          git config --global user.email 'builds@springframework.org'
+
+          MAJOR_MINOR=$(echo "$MILESTONE" | cut -d '.' -f1-2)
+          DEV_BRANCH="$MAJOR_MINOR.x"
+
+          if ! git ls-remote --exit-code --heads origin "$DEV_BRANCH" > /dev/null
+          then
+            DEV_BRANCH='${{ github.event.repository.default_branch }}'
+          fi
+
+          # actions/checkout with fetch-depth:0 should already fetch tags, but don't rely on it silently.
+          git fetch origin tag "$GITHUB_REF_NAME"
+          git checkout "$DEV_BRANCH"
+
+          if git merge "$GITHUB_REF_NAME"
+          then
+            git push origin "$DEV_BRANCH"
+          else
+            git merge --abort
+            echo "::error title=Cannot merge release tag::Merging $GITHUB_REF_NAME into $DEV_BRANCH failed. Manual procedure required"
+            exit 1
+          fi
 
       - id: next-milestone
         if: ${{ env.HOTFIX != 'true' && !contains(env.MILESTONE, '-') && steps.support-window.outputs.support-type != 'eol' }}
