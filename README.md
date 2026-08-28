@@ -81,7 +81,10 @@ This job stages released artifacts using JFrog Artifactory plugin into `libs-sta
 
 That tag push is itself the trigger for [spring-post-release.yml](.github/workflows/spring-post-release.yml): a separate, `push: tags`-triggered workflow (not part of the job graph above) which generates release notes using [Spring Changelog Generator](https://github.com/spring-io/github-changelog-generator) excluding repository admins from the `Contributors` section, creates the GitHub release for that tag, closes the milestone, updates the `spring.io` project page for the newly released version (via the [spring-website-project-version-update](.github/actions/spring-website-project-version-update) local action), notifies the configured Google Space (if `SPRING_RELEASE_CHAT_WEBHOOK_URL` secret is present), and computes/creates the next scheduled milestone.
 It derives the milestone (and whether it's a hotfix) straight from the pushed tag name, so it reacts identically no matter who pushed the tag - `spring-finalize-release.yml` above, or some other process (e.g. a release train orchestrator publishing this project's version into the repository).
-For any release that isn't a hotfix and isn't already end-of-life (including `-M`/`-RC` previews), it also merges the pushed release tag back into the corresponding `{major}.{minor}.x` maintenance branch - falling back to the repository's default branch if that branch doesn't exist yet - so release-prep commits added by a release train orchestrator (e.g. a version bump) aren't left stranded on an unreachable tag. Hotfix branches are excluded: they're one-time-use and never continued from.
+For any release that isn't a hotfix and isn't already end-of-life (including `-M`/`-RC` previews), it also merges the pushed release tag back into the corresponding `{major}.{minor}.x` maintenance branch.
+Falls back to the repository's default branch if that branch doesn't exist yet - so the tag's commit isn't left stranded unreachable from any branch.
+Then commits its own next-SNAPSHOT version bump on top, since the tag itself carries no such commit when it was pushed by a release train orchestrator rather than `spring-finalize-release.yml`. 
+Hotfix branches are excluded: they're one-time-use and never continued from.
 
 Wire it up once per repository, alongside your release caller workflow:
 

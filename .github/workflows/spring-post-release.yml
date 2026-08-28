@@ -139,6 +139,12 @@ jobs:
         with:
           version: ${{ env.MILESTONE }}
 
+      - id: next-snapshot
+        if: ${{ env.HOTFIX != 'true' && steps.support-window.outputs.support-type != 'eol' }}
+        uses: spring-io/spring-release-actions/compute-next-snapshot@0.0.6
+        with:
+          version: ${{ env.MILESTONE }}
+
       - name: Merge Release Tag into Dev Branch
         if: ${{ env.HOTFIX != 'true' && steps.support-window.outputs.support-type != 'eol' }}
         run: |
@@ -159,6 +165,16 @@ jobs:
 
           if git merge "$GITHUB_REF_NAME"
           then
+            NEXT_VERSION="${{ steps.next-snapshot.outputs.version }}"
+
+            if test -f pom.xml
+            then
+              mvn versions:set -DnewVersion=$NEXT_VERSION -DgenerateBackupPoms=false -DprocessAllModules=true -B -ntp
+            else
+              sed -i "s/version=.*/version=$NEXT_VERSION/" gradle.properties
+            fi
+
+            git commit -a -m "[CI/CD] Next development version"
             git push origin "$DEV_BRANCH"
           else
             git merge --abort
