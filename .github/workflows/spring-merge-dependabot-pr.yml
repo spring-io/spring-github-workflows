@@ -139,5 +139,5 @@ jobs:
           fi
 
       - name: Merge Dependabot pull request
-        if: ${{ !cancelled() && steps.is-auto-merge.outputs.autoMerge == 'true' && steps.metadata.outputs.update-type == 'version-update:semver-patch' }}
+        if: ${{ !cancelled() && (steps.is-auto-merge.outputs.autoMerge == 'true' || steps.metadata.outputs.update-type == 'version-update:semver-patch') }}
         run: gh pr merge ${{ github.event.pull_request.number }} ${{ inputs.mergeArguments }}
