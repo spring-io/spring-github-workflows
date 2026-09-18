@@ -120,7 +120,7 @@ jobs:
           CURRENT_VERSION=${{ steps.compute-version.outputs.version }}
           
           export CANDIDATE_VERSION=${CURRENT_VERSION/-SNAPSHOT}
-          MILESTONE=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq 'map(select(.title | startswith(env.CANDIDATE_VERSION))) | .[0].title')
+          MILESTONE=$(gh api repos/$GITHUB_REPOSITORY/milestones --jq '[.[] | select(.title | startswith(env.CANDIDATE_VERSION))] | sort_by(.due_on // "9999-12-31T23:59:59Z") | .[0].title')
           
           echo milestone=$MILESTONE >> $GITHUB_OUTPUT
 
