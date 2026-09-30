@@ -77,7 +77,7 @@ jobs:
 
       - name: Build and Publish
         id: build-and-publish
-        timeout-minutes: 30
+        timeout-minutes: 60
         uses: spring-io/spring-github-workflows/.github/actions/spring-artifactory-gradle-build@main
         with:
           releaseVersion: ${{ inputs.releaseVersion }}
