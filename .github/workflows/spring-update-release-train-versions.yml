@@ -3,6 +3,7 @@ name: Update Release Train Dependency Versions
 # The release train comes with ephemeral dependencies which become available only during the release train build and only for the release train until it is done.
 # Therefore, making a strong assumption that development branch should be updated to '-SNAPSHOT' versions of the potential release train dependencies is reasonable.
 # The release branches are updated to release train dependencies as is since they are not built until the release train itself.
+# On a hotfix branch (version 'X.Y.Z.N'), the hotfix versions of the release train dependencies are preferred, if any.
 # The limitation of this workflow is only for Gradle projects with Version Catalog (TOML).
 # Since the version bump is committed directly (no PR involved), a closed, milestoned issue is created per updated dependency,
 # so the upgrade still shows up in the release notes, the same way as a labeled Dependabot PR would.
@@ -72,7 +73,12 @@ jobs:
           MILESTONE: ${{ steps.compute-version.outputs.version }}
           DEPENDENCY_UPGRADE_LABEL: ${{ inputs.dependency-upgrade-label }}
         run: |
-          # Fetch release train dependency versions 
+          # The hotfix version is 'X.Y.Z.N', with an optional '-SNAPSHOT' or '-INTERNAL-SNAPSHOT' suffix
+          BASE_VERSION=${MILESTONE%-INTERNAL-SNAPSHOT}
+          BASE_VERSION=${BASE_VERSION%-SNAPSHOT}
+          HOTFIX=$([[ $BASE_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && echo true || echo false)
+
+          # Fetch release train dependency versions
           RELEASE_VERSIONS=$(gh api "repos/spring-io/release-train/contents/release-versions.json?ref=$RELEASE_TRAIN" --jq '.content' | base64 -d)
 
           # Iterate over version keys to find match in release train dependency versions
@@ -89,7 +95,14 @@ jobs:
             # Find the latest version in the release train dependency versions for the current dependency's major.minor
             majorMinor=$(echo "$currentVersion" | cut -d '.' -f1-2)
 
-            newVersion=$(echo "$RELEASE_VERSIONS" | jq -r --arg key "$releaseTrainKey" --arg mm "$majorMinor" '.[$key] // [] | map(select(startswith($mm + "."))) | .[0] // empty')
+            # On a hotfix branch, prefer a hotfix ('X.Y.Z.N') version of the dependency, falling back to its regular version.
+            # Otherwise, hotfix versions are never selected.
+            newVersion=$(echo "$RELEASE_VERSIONS" | jq -r --arg key "$releaseTrainKey" --arg mm "$majorMinor" --arg hotfix "$HOTFIX" '
+              (.[$key] // [] | map(select(startswith($mm + ".")))) as $matches
+              | ($matches | map(select(test("^[0-9]+[.][0-9]+[.][0-9]+[.][0-9]+$")))) as $hotfixes
+              | if $hotfix == "true" and ($hotfixes | length) > 0 then $hotfixes | last
+                else $matches - $hotfixes | .[0] // empty
+                end')
 
             if [ -z "$newVersion" ]; then
               echo "::warning title=Skip $tomlKey::No $majorMinor.x version found for '$releaseTrainKey' in release-versions.json. It might not participate this release train or will join later."
