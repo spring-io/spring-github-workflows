@@ -11,7 +11,7 @@ on:
 jobs:
   announce-milestone-planning:
     runs-on: ubuntu-latest
-    if: github.event.milestone.due_on
+    if: github.event.milestone.due_on && (github.event.action != 'edited' || github.event.changes.due_on)
     steps:
       - name: Announce milestone planning in chat
         env:
