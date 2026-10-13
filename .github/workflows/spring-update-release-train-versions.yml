@@ -63,6 +63,7 @@ jobs:
         uses: spring-io/spring-release-actions/compute-version@0.0.7
 
       - name: Update Libraries Versions Catalog
+        id: update-versions
         env:
           GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
           RELEASE_TRAIN: ${{ inputs.release-train }}
@@ -71,7 +72,6 @@ jobs:
           SNAPSHOT: ${{ steps.compute-version.outputs.snapshot }}
           INTERNAL: ${{ contains(steps.compute-version.outputs.version, '-INTERNAL-SNAPSHOT') }}
           MILESTONE: ${{ steps.compute-version.outputs.version }}
-          DEPENDENCY_UPGRADE_LABEL: ${{ inputs.dependency-upgrade-label }}
         run: |
           # The hotfix version is 'X.Y.Z.N', with an optional '-SNAPSHOT' or '-INTERNAL-SNAPSHOT' suffix
           BASE_VERSION=${MILESTONE%-INTERNAL-SNAPSHOT}
@@ -131,16 +131,15 @@ jobs:
 
             echo "::notice title=Updated $tomlKey::$currentVersion -> $newVersion"
           
-            # Create GH issue for the dependency upgrade when we update in the release branch
-            if [ "$SNAPSHOT" != "true" ]; then
-              issueUrl=$(gh issue create \
-                --title "Upgrade $releaseTrainKey to $newVersion" \
-                --body "" \
-                --label "$DEPENDENCY_UPGRADE_LABEL" \
-                --milestone "$MILESTONE")
-              gh issue close "$issueUrl" --reason completed
-            fi
+            upgradeTitles+=("Upgrade $releaseTrainKey to $newVersion")
           done
+
+          # The dependency upgrade issues are created only after a successful push (see the step below)
+          {
+            echo 'upgrade-titles<<EOF'
+            printf '%s\n' "${upgradeTitles[@]}"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Commit and Push
         env:
@@ -161,4 +160,40 @@ jobs:
           else
             git commit -a -m "Release $MILESTONE"
           fi
-          git push origin
+
+          # Retry the push of the same commit on transient server-side failures (e.g. '! [remote rejected] ... (failed)').
+          # No rebase on purpose: if the branch has moved, the versions were computed against a stale state, so fail instead.
+          for attempt in 1 2 3 4 5; do
+            git push origin && exit 0
+            echo "::warning title=Push failed::Attempt $attempt failed, retrying in $((attempt * 10))s"
+            sleep $((attempt * 10))
+          done
+          echo "::error title=Push failed::Could not push after 5 attempts"
+          exit 1
+
+      # Create GH issues for the dependency upgrades when we update in the release branch.
+      # Done only after a successful push: a failed run must not leave issues behind which the next run would duplicate.
+      # An issue with the same title already present in the milestone is skipped as well.
+      - name: Create Dependency Upgrade Issues
+        if: steps.compute-version.outputs.snapshot != 'true' && steps.update-versions.outputs.upgrade-titles != ''
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_TOKEN }}
+          MILESTONE: ${{ steps.compute-version.outputs.version }}
+          DEPENDENCY_UPGRADE_LABEL: ${{ inputs.dependency-upgrade-label }}
+          UPGRADE_TITLES: ${{ steps.update-versions.outputs.upgrade-titles }}
+        run: |
+          existingTitles=$(gh issue list --milestone "$MILESTONE" --state all --limit 1000 --json title --jq '.[].title')
+
+          while IFS= read -r title; do
+            [ -z "$title" ] && continue
+            if grep -Fxq -- "$title" <<< "$existingTitles"; then
+              echo "::notice title=Issue exists::'$title' is already present in the $MILESTONE milestone"
+              continue
+            fi
+            issueUrl=$(gh issue create \
+              --title "$title" \
+              --body "" \
+              --label "$DEPENDENCY_UPGRADE_LABEL" \
+              --milestone "$MILESTONE")
+            gh issue close "$issueUrl" --reason completed
+          done <<< "$UPGRADE_TITLES"
