@@ -60,7 +60,7 @@ jobs:
 
       - name: Compute Version
         id: compute-version
-        uses: spring-io/spring-release-actions/compute-version@0.0.7
+        uses: spring-io/spring-release-actions/compute-version@0.0.8
 
       - name: Update Libraries Versions Catalog
         id: update-versions
