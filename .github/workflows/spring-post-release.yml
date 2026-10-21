@@ -113,7 +113,7 @@ jobs:
           echo "::notice title=Release Page::$RELEASE_URL"
 
       - name: Close Milestone
-        if: ${{ inputs.preview != 'true' }}
+        if: ${{ vars.COMMERCIAL != 'true' }}
         uses: spring-io/spring-release-actions/close-milestone@0.0.8
         with:
           version: ${{ env.MILESTONE }}
@@ -125,7 +125,7 @@ jobs:
           newVersion: ${{ env.MILESTONE }}
 
       - name: Announce Release in Chat
-        if: ${{ inputs.preview != 'true' && env.CHAT_WEBHOOK_URL }}
+        if: ${{ vars.COMMERCIAL != 'true' && env.CHAT_WEBHOOK_URL }}
         uses: spring-io/spring-release-actions/announce-on-gchat@0.0.8
         with:
           gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
