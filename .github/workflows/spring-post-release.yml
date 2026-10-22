@@ -51,6 +51,13 @@ jobs:
             exit 0
           fi
 
+          # The OSS milestone may already be closed; resolve its number for the REST API.
+          ossMilestoneNumber=$(gh api --paginate "repos/$OSS_REPO/milestones?state=all&per_page=100" --jq ".[] | select(.title == \"$MILESTONE\") | .number")
+          if [ -z "$ossMilestoneNumber" ]; then
+            echo "::error title=No OSS Milestone::No '$MILESTONE' milestone found in $OSS_REPO"
+            exit 1
+          fi
+
           gh issue list -R "$COMMERCIAL_REPO" --milestone "$MILESTONE" --state all --limit 1000 --json number,title,state,labels --jq '.[] | @base64' |
           while read -r encodedIssue; do
             issue=$(echo "$encodedIssue" | base64 -d)
@@ -59,13 +66,13 @@ jobs:
             state=$(jq -r '.state | ascii_downcase' <<< "$issue")
             mapfile -t labels < <(jq -r '.labels[].name' <<< "$issue")
 
-            createArgs=(--title "$title" --body "Backport of: https://github.com/$COMMERCIAL_REPO/issues/$number" --milestone "$MILESTONE")
+            createArgs=(-f "title=$title" -f "body=Backport of: https://github.com/$COMMERCIAL_REPO/issues/$number" -F "milestone=$ossMilestoneNumber")
             for label in "${labels[@]}"; do
               gh label create "$label" -R "$OSS_REPO" 2>/dev/null || true
-              createArgs+=(--label "$label")
+              createArgs+=(-f "labels[]=$label")
             done
 
-            newIssueUrl=$(gh issue create -R "$OSS_REPO" "${createArgs[@]}")
+            newIssueUrl=$(gh api "repos/$OSS_REPO/issues" -X POST "${createArgs[@]}" --jq '.html_url')
 
             if [ "$state" = "closed" ]; then
               gh issue close "$newIssueUrl" -R "$OSS_REPO" --reason completed
