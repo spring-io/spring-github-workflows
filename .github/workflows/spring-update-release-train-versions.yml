@@ -4,6 +4,7 @@ name: Update Release Train Dependency Versions
 # Therefore, making a strong assumption that development branch should be updated to '-SNAPSHOT' versions of the potential release train dependencies is reasonable.
 # The release branches are updated to release train dependencies as is since they are not built until the release train itself.
 # On a hotfix branch (version 'X.Y.Z.N'), the hotfix versions of the release train dependencies are preferred, if any.
+# The rest of the release train dependencies on a hotfix development branch are updated to their '-INTERNAL-SNAPSHOT' versions.
 # The limitation of this workflow is only for Gradle projects with Version Catalog (TOML).
 # Since the version bump is committed directly (no PR involved), a closed, milestoned issue is created per updated dependency,
 # so the upgrade still shows up in the release notes, the same way as a labeled Dependabot PR would.
@@ -112,10 +113,12 @@ jobs:
             # Append '-SNAPSHOT' (or '-INTERNAL-SNAPSHOT' on an internal branch) suffix if the current branch is development,
             # stripping any '-M1'/'-RC1'-style milestone suffix from the release train version first.
             # Having release train dependencies as snapshots in dev branch is a good practice for early feedback loop about regressions.
+            # On a hotfix branch, only the hotfix ('X.Y.Z.N') dependency versions get the '-SNAPSHOT' suffix:
+            # a regular dependency version is not produced by a hotfix line, so its '-INTERNAL-SNAPSHOT' is used instead.
             # On a release branch, the release train version (including its own milestone/RC suffix, if any) is used as is.
             if [ "$SNAPSHOT" = "true" ]; then
               newVersion=${newVersion%-*}
-              if [ "$INTERNAL" = "true" ]; then
+              if [ "$INTERNAL" = "true" ] || { [ "$HOTFIX" = "true" ] && ! [[ $newVersion =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; }; then
                 newVersion="$newVersion-INTERNAL-SNAPSHOT"
               else
                 newVersion="$newVersion-SNAPSHOT"
