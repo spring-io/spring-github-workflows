@@ -1,9 +1,13 @@
 import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.initialization.resolve.RepositoriesMode
 
 // The init script for CI builds:
 // - injects a Maven proxy repository (MAVEN_PROXY_URL env) in front of all the other repositories
 //   to avoid Maven Central rate limiting on hosted runners;
+// - excludes all the content from Maven Central repositories since the proxy covers them:
+//   otherwise artifacts missing in the proxy (e.g. snapshots) are still looked up in Maven Central,
+//   and its '429 Too Many Requests' fails the build;
 // - adds a 'deployment' Maven repository into the 'maven-publish' configuration
 //   to stage artifacts into the local '$GITHUB_WORKSPACE/deployment-repository' directory.
 
@@ -11,7 +15,7 @@ def mavenProxyUrl = System.getenv('MAVEN_PROXY_URL')
 def artifactoryUsername = System.getenv('ARTIFACTORY_USERNAME')
 def artifactoryPassword = System.getenv('ARTIFACTORY_PASSWORD')
 
-def addMavenProxy = { RepositoryHandler repositories ->
+def addMavenProxyRepository = { RepositoryHandler repositories ->
     if (mavenProxyUrl) {
         repositories.maven {
             name = 'mavenProxy'
@@ -20,6 +24,21 @@ def addMavenProxy = { RepositoryHandler repositories ->
                 credentials {
                     username = artifactoryUsername
                     password = artifactoryPassword
+                }
+            }
+        }
+    }
+}
+
+def mavenCentralHosts = ['repo.maven.apache.org', 'repo1.maven.org']
+
+def addMavenProxy = { RepositoryHandler repositories ->
+    addMavenProxyRepository(repositories)
+    if (mavenProxyUrl) {
+        repositories.withType(MavenArtifactRepository).configureEach { repository ->
+            if (repository.url?.host in mavenCentralHosts) {
+                repository.content {
+                    excludeGroupByRegex '.*'
                 }
             }
         }
