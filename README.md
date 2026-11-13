@@ -214,8 +214,60 @@ The [Gradle Build Action](.github/actions/spring-artifactory-gradle-build) appli
 Then [spring-io/artifactory-deploy-action](https://github.com/spring-io/artifactory-deploy-action) picks up those artifacts for uploading to the Artifactory.
 The Maven build does that via `deploy` goal and respective `-DaltDeploymentRepository=local::file:deployment-repository` CLI option.
 
-The [Maven Proxy for Gradle](.github/actions/spring-gradle-maven-proxy) action (used by the Gradle Build Action and the [spring-gradle-ci.yml](.github/workflows/spring-gradle-ci.yml)) installs a [maven-proxy.init.gradle](.github/actions/spring-gradle-maven-proxy/maven-proxy.init.gradle) script into `$GRADLE_USER_HOME/init.d`.
+The [Maven Proxy for Gradle](.github/actions/spring-gradle-maven-proxy) action (used by the Gradle Build Action, the [spring-gradle-ci.yml](.github/workflows/spring-gradle-ci.yml) and the [Release Train Gradle Actions](#release-train-gradle-actions)) installs a [maven-proxy.init.gradle](.github/actions/spring-gradle-maven-proxy/maven-proxy.init.gradle) script into `$GRADLE_USER_HOME/init.d`.
 This script injects a Maven proxy repository (with the `ARTIFACTORY_USERNAME`/`ARTIFACTORY_PASSWORD` credentials) in front of all the other repositories in the build and excludes Maven Central repositories, to avoid Maven Central rate limiting on hosted runners: `https://repo.spring.io/artifactory/libs-release-remote/` for OSS projects, and `https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/` when the `COMMERCIAL` repository variable is set.
 The script does nothing if those credentials are not available for the Gradle build.
+
+## Release Train Gradle Actions
+
+The release train workflows (`release-train-build.yml` and `release-train-test.yml`) in the project are generated and cannot be modified.
+They call the project local `.github/actions/release-train-build` and `.github/actions/release-train-test` actions with the `ARTIFACTORY_*` and `RELEASE_TRAIN_MAVEN_REPOSITORY_*` env.
+To avoid copies of the same logic in every branch of every project, those local actions should only delegate to the shared ones:
+
+- [spring-release-train-gradle-build](.github/actions/spring-release-train-gradle-build) - `./gradlew build publishAllPublicationsToDeploymentRepository -x test --no-build-cache` with a [release-train.init.gradle](.github/actions/spring-release-train-gradle-build/release-train.init.gradle) adding the `deployment` repository for publishing and the `Release Train` repository for resolving artifacts of projects earlier in the train;
+- [spring-release-train-gradle-test](.github/actions/spring-release-train-gradle-test) - `./gradlew check` with a [release-train.init.gradle](.github/actions/spring-release-train-gradle-test/release-train.init.gradle) adding the `Release Train` repository.
+
+Both actions accept an optional `gradleOptions` input for additional Gradle CLI options (e.g. `-x integrationTest`) and apply the [Maven Proxy for Gradle](.github/actions/spring-gradle-maven-proxy) action.
+The `vars` context is not available in composite actions, so for the commercial Maven proxy the `COMMERCIAL` env has to come from the generated workflows.
+Add it next to the `ARTIFACTORY_*` env in the project `.github/workflow-generator.yml` and regenerate the workflows:
+
+```yaml
+workflow:
+  generator:
+    workflows:
+      release-train:
+        build:
+          env:
+            ARTIFACTORY_USERNAME: secrets.COMMERCIAL_ARTIFACTORY_USERNAME
+            ARTIFACTORY_PASSWORD: secrets.COMMERCIAL_ARTIFACTORY_PASSWORD
+            COMMERCIAL: vars.COMMERCIAL
+        test:
+          env:
+            ARTIFACTORY_USERNAME: secrets.COMMERCIAL_ARTIFACTORY_USERNAME
+            ARTIFACTORY_PASSWORD: secrets.COMMERCIAL_ARTIFACTORY_PASSWORD
+            COMMERCIAL: vars.COMMERCIAL
+```
+
+The project `.github/actions/release-train-build/action.yml`:
+
+```yaml
+name: Build Release
+runs:
+  using: composite
+  steps:
+    - uses: spring-io/spring-github-workflows/.github/actions/spring-release-train-gradle-build@main
+```
+
+The project `.github/actions/release-train-test/action.yml`:
+
+```yaml
+name: Test Release
+runs:
+  using: composite
+  steps:
+    - uses: spring-io/spring-github-workflows/.github/actions/spring-release-train-gradle-test@main
+```
+
+The `.github/actions/release-train-build/deployment-spec.yml` stays in the project, since the generated workflow uploads it from there.
 
 See more information in the [Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows). 

@@ -1,0 +1,24 @@
+name: Release Train Test for Gradle
+
+description: 'Runs `./gradlew check` for the release train.
+The artifacts of projects earlier in the train are resolved from the `RELEASE_TRAIN_MAVEN_REPOSITORY_URL` (with `RELEASE_TRAIN_MAVEN_REPOSITORY_USERNAME`/`RELEASE_TRAIN_MAVEN_REPOSITORY_PASSWORD`) env.
+The dependencies are resolved via the Maven proxy with `ARTIFACTORY_USERNAME`/`ARTIFACTORY_PASSWORD` env, the commercial one when the `COMMERCIAL` env is set (see `spring-gradle-maven-proxy` action).
+All the mentioned env are expected from the generated `release-train-test.yml` workflow step calling the project local `release-train-test` action.'
+
+inputs:
+  gradleOptions:
+    description: 'Additional Gradle CLI options'
+    required: false
+
+runs:
+  using: composite
+  steps:
+
+    - uses: spring-io/spring-github-workflows/.github/actions/spring-gradle-maven-proxy@main
+
+    - name: Test Release
+      shell: bash
+      run: |
+        echo Test Release
+
+        ./gradlew check ${{ inputs.gradleOptions }} --init-script "$GITHUB_ACTION_PATH/release-train.init.gradle"

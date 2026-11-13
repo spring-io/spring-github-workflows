@@ -1,0 +1,30 @@
+// Adds into all the projects:
+// - a 'deployment' Maven repository into the 'maven-publish' configuration
+//   to stage artifacts into the local '$GITHUB_WORKSPACE/deployment-repository' directory;
+// - a 'Release Train' Maven repository (RELEASE_TRAIN_MAVEN_REPOSITORY_URL/USERNAME/PASSWORD env)
+//   to resolve artifacts of projects earlier in the release train.
+allprojects {
+    afterEvaluate {
+        pluginManager.withPlugin('maven-publish') {
+            publishing {
+                repositories {
+                    maven {
+                        name = 'deployment'
+                        url = System.getenv('GITHUB_WORKSPACE') + '/deployment-repository'
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                name = 'Release Train'
+                url = System.getenv('RELEASE_TRAIN_MAVEN_REPOSITORY_URL')
+                credentials {
+                    username = System.getenv('RELEASE_TRAIN_MAVEN_REPOSITORY_USERNAME')
+                    password = System.getenv('RELEASE_TRAIN_MAVEN_REPOSITORY_PASSWORD')
+                }
+            }
+        }
+    }
+}

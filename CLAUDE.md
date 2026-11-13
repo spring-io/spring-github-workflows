@@ -59,6 +59,7 @@ These are standalone (no nesting) and can be reasoned about in isolation:
 - `spring-announce-milestone-planning.yml` — posts to Google Chat when a milestone's `due_on` is set/changed.
 - `spring-trigger-dependabot-updates.yml` — forces a Dependabot re-scan by toggling the executable bit on `dependabot.yml`.
 - `spring-build-and-deploy-docs.yml` / `spring-dispatch-docs-build.yml` — Antora docs build + rsync publish + Cloudflare cache bust.
+- `actions/spring-release-train-gradle-build` / `actions/spring-release-train-gradle-test` — shared logic for the consumer projects' release train: their generated (not editable) `release-train-*.yml` workflows call project-local `.github/actions/release-train-build|test` actions, which only delegate to these `@main` (see README "Release Train Gradle Actions"). They get the `COMMERCIAL` env (for the commercial Maven proxy) from the generated workflows, configured in the project's `.github/workflow-generator.yml`.
 - `merge-dependabot-pr.yml` and `release-workflows.yml` under `.github/workflows/` (not called externally) are this *repository's own* CI, not part of the reusable library.
 
 ## Secrets contract
