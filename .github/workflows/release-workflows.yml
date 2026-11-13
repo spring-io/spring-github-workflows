@@ -38,7 +38,7 @@ jobs:
           echo "Target Release Version: $releaseVersion"
 
           # 3. Replace @main with @releaseVersion
-          for file in .github/workflows/*.yml; do 
+          for file in .github/workflows/*.yml .github/actions/*/action.yml; do 
             sed -i -E "s|(uses: spring-io/spring-github-workflows/\.github/actions/)([^@[:space:]\r]+)@main|\1\2@$releaseVersion|g" "$file"
           done
 
@@ -48,7 +48,7 @@ jobs:
           git push origin refs/tags/"$releaseVersion" HEAD:main
 
           # 5. Revert back to @main for development
-          for file in .github/workflows/*.yml; do 
+          for file in .github/workflows/*.yml .github/actions/*/action.yml; do 
             sed -i -E "s|(uses: spring-io/spring-github-workflows/\.github/actions/)([^@[:space:]\r]+)@$releaseVersion|\1\2@main|g" "$file"
           done
 

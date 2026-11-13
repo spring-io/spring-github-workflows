@@ -1,0 +1,24 @@
+name: Maven Proxy for Gradle
+
+description: 'Installs a Gradle init script into `$GRADLE_USER_HOME/init.d` to resolve dependencies from the Artifactory Maven proxy first
+and to exclude Maven Central repositories (avoiding its rate limiting on hosted runners).
+The proxy is `https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/` when the `COMMERCIAL` env is set,
+`https://repo.spring.io/artifactory/libs-release-remote/` otherwise.
+The `vars` context is not available in composite actions, so the calling workflow has to expose the `vars.COMMERCIAL` as a `COMMERCIAL` env.
+The Gradle builds must have `ARTIFACTORY_USERNAME` and `ARTIFACTORY_PASSWORD` env: the init script does nothing without them.
+Should be used after the `spring-io/spring-gradle-build-action`.'
+
+runs:
+  using: composite
+  steps:
+
+    - name: Install Maven Proxy Init Script
+      shell: bash
+      run: |
+        echo Install Maven Proxy Init Script
+
+        initDir="${GRADLE_USER_HOME:-$HOME/.gradle}/init.d"
+        mkdir -p "$initDir"
+        cp "$GITHUB_ACTION_PATH/maven-proxy.init.gradle" "$initDir/"
+
+        echo "MAVEN_PROXY_URL=${{ env.COMMERCIAL && 'https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/' || 'https://repo.spring.io/artifactory/libs-release-remote/' }}" >> $GITHUB_ENV

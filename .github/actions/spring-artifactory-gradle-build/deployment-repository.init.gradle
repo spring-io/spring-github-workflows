@@ -1,0 +1,16 @@
+// Adds a 'deployment' Maven repository into the 'maven-publish' configuration
+// to stage artifacts into the local '$GITHUB_WORKSPACE/deployment-repository' directory.
+allprojects {
+    afterEvaluate {
+        pluginManager.withPlugin('maven-publish') {
+            publishing {
+                repositories {
+                    maven {
+                        name = 'deployment'
+                        url = System.getenv('GITHUB_WORKSPACE') + '/deployment-repository'
+                    }
+                }
+            }
+        }
+    }
+}

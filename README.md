@@ -210,9 +210,12 @@ This action is used in the `verify-staged` job of the release workflow.
 
 ## Gradle Init Scripts
 
-The [Gradle Build Action](.github/actions/spring-artifactory-gradle-build) applies a [ci-init.gradle](.github/actions/spring-artifactory-gradle-build/ci-init.gradle) script with Maven repository for publishing artifacts into a local directory (`/deployment-repository`) via respective `publishAllPublicationsToDeploymentRepository` Gradle task.
-The same init script injects a Maven proxy repository (with the Artifactory credentials) in front of all the other repositories in the build to avoid Maven Central rate limiting on hosted runners: `https://repo.spring.io/artifactory/libs-release-remote/` for OSS projects, and `https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/` when the `COMMERCIAL` repository variable is set.
+The [Gradle Build Action](.github/actions/spring-artifactory-gradle-build) applies a [deployment-repository.init.gradle](.github/actions/spring-artifactory-gradle-build/deployment-repository.init.gradle) script with Maven repository for publishing artifacts into a local directory (`/deployment-repository`) via respective `publishAllPublicationsToDeploymentRepository` Gradle task.
 Then [spring-io/artifactory-deploy-action](https://github.com/spring-io/artifactory-deploy-action) picks up those artifacts for uploading to the Artifactory.
 The Maven build does that via `deploy` goal and respective `-DaltDeploymentRepository=local::file:deployment-repository` CLI option.
+
+The [Maven Proxy for Gradle](.github/actions/spring-gradle-maven-proxy) action (used by the Gradle Build Action and the [spring-gradle-ci.yml](.github/workflows/spring-gradle-ci.yml)) installs a [maven-proxy.init.gradle](.github/actions/spring-gradle-maven-proxy/maven-proxy.init.gradle) script into `$GRADLE_USER_HOME/init.d`.
+This script injects a Maven proxy repository (with the `ARTIFACTORY_USERNAME`/`ARTIFACTORY_PASSWORD` credentials) in front of all the other repositories in the build and excludes Maven Central repositories, to avoid Maven Central rate limiting on hosted runners: `https://repo.spring.io/artifactory/libs-release-remote/` for OSS projects, and `https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/` when the `COMMERCIAL` repository variable is set.
+The script does nothing if those credentials are not available for the Gradle build.
 
 See more information in the [Reusing Workflows](https://docs.github.com/en/actions/using-workflows/reusing-workflows). 

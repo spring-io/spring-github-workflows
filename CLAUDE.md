@@ -18,7 +18,7 @@ There is no CI that lints or tests this repo's own workflows. When editing YAML:
 
 ## Releasing this repository itself
 
-`.github/workflows/release-workflows.yml` is manually dispatched to cut a release of *this* repo (distinct from the Spring project release workflow below, which releases *consumer* projects). It computes the next integer tag from the latest `vN` tag, rewrites `@main` → `@vN` for local composite-action references across `.github/workflows/*.yml`, commits/tags/pushes, generates a GitHub release, then reverts the rewrite back to `@main` for continued development. Don't manually pin local action refs to a version — this script owns that.
+`.github/workflows/release-workflows.yml` is manually dispatched to cut a release of *this* repo (distinct from the Spring project release workflow below, which releases *consumer* projects). It computes the next integer tag from the latest `vN` tag, rewrites `@main` → `@vN` for local composite-action references across `.github/workflows/*.yml` and `.github/actions/*/action.yml`, commits/tags/pushes, generates a GitHub release, then reverts the rewrite back to `@main` for continued development. Don't manually pin local action refs to a version — this script owns that.
 
 ## Architecture: the release pipeline
 

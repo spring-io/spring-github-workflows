@@ -52,6 +52,8 @@ runs:
 
     - uses: spring-io/spring-gradle-build-action@v2
 
+    - uses: spring-io/spring-github-workflows/.github/actions/spring-gradle-maven-proxy@main
+
     - name: Compute Version
       id: compute-version
       if: ${{ github.ref_name == 'main' }}
@@ -71,11 +73,10 @@ runs:
       run: |
         echo Build and Publish
 
-        ./gradlew clean build ${{ inputs.gradleTasks }} publishAllPublicationsToDeploymentRepository --init-script "$GITHUB_ACTION_PATH/ci-init.gradle"
+        ./gradlew clean build ${{ inputs.gradleTasks }} publishAllPublicationsToDeploymentRepository --init-script "$GITHUB_ACTION_PATH/deployment-repository.init.gradle"
       env:
         ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
         ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
-        MAVEN_PROXY_URL: ${{ env.COMMERCIAL && 'https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/' || 'https://repo.spring.io/artifactory/libs-release-remote/' }}
 
     - name: Evaluate Build Name
       id: build-name
