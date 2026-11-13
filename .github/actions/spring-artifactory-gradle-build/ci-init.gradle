@@ -1,0 +1,65 @@
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+// The init script for CI builds:
+// - injects a Maven proxy repository (MAVEN_PROXY_URL env) in front of all the other repositories
+//   to avoid Maven Central rate limiting on hosted runners;
+// - adds a 'deployment' Maven repository into the 'maven-publish' configuration
+//   to stage artifacts into the local '$GITHUB_WORKSPACE/deployment-repository' directory.
+
+def mavenProxyUrl = System.getenv('MAVEN_PROXY_URL')
+def artifactoryUsername = System.getenv('ARTIFACTORY_USERNAME')
+def artifactoryPassword = System.getenv('ARTIFACTORY_PASSWORD')
+
+def addMavenProxy = { RepositoryHandler repositories ->
+    if (mavenProxyUrl) {
+        repositories.maven {
+            name = 'mavenProxy'
+            url = mavenProxyUrl
+            if (artifactoryUsername) {
+                credentials {
+                    username = artifactoryUsername
+                    password = artifactoryPassword
+                }
+            }
+        }
+    }
+}
+
+def repositoriesMode = RepositoriesMode.PREFER_PROJECT
+
+// Use beforeSettings (not settingsEvaluated), so the proxy is the first repository
+// for the settings script's own `pluginManagement {}` and `plugins {}` blocks.
+gradle.beforeSettings { settings ->
+    addMavenProxy(settings.pluginManagement.repositories)
+    addMavenProxy(settings.dependencyResolutionManagement.repositories)
+}
+
+gradle.settingsEvaluated { settings ->
+    repositoriesMode = settings.dependencyResolutionManagement.repositoriesMode.get()
+}
+
+gradle.projectsLoaded {
+    rootProject.allprojects {
+        addMavenProxy(buildscript.repositories)
+        // With PREFER_SETTINGS the project repositories are ignored,
+        // and FAIL_ON_PROJECT_REPOS fails the build for any of them coming from an init script.
+        // The proxy is already in the settings repositories for those modes.
+        if (repositoriesMode == RepositoriesMode.PREFER_PROJECT) {
+            addMavenProxy(repositories)
+        }
+
+        afterEvaluate {
+            pluginManager.withPlugin('maven-publish') {
+                publishing {
+                    repositories {
+                        maven {
+                            name = 'deployment'
+                            url = System.getenv('GITHUB_WORKSPACE') + '/deployment-repository'
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

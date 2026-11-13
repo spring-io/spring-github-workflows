@@ -210,7 +210,8 @@ This action is used in the `verify-staged` job of the release workflow.
 
 ## Gradle Init Scripts
 
-The [Gradle Build Action](.github/actions/spring-artifactory-gradle-build)and a script with Maven repository for publishing artifacts into a local directory (`/deployment-repository`) via respective `publishAllPublicationsToDeploymentRepository` Gradle task.
+The [Gradle Build Action](.github/actions/spring-artifactory-gradle-build) applies a [ci-init.gradle](.github/actions/spring-artifactory-gradle-build/ci-init.gradle) script with Maven repository for publishing artifacts into a local directory (`/deployment-repository`) via respective `publishAllPublicationsToDeploymentRepository` Gradle task.
+The same init script injects a Maven proxy repository (with the Artifactory credentials) in front of all the other repositories in the build to avoid Maven Central rate limiting on hosted runners: `https://repo.spring.io/artifactory/libs-release-remote/` for OSS projects, and `https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/` when the `COMMERCIAL` repository variable is set.
 Then [spring-io/artifactory-deploy-action](https://github.com/spring-io/artifactory-deploy-action) picks up those artifacts for uploading to the Artifactory.
 The Maven build does that via `deploy` goal and respective `-DaltDeploymentRepository=local::file:deployment-repository` CLI option.
 

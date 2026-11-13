@@ -70,26 +70,12 @@ runs:
       shell: bash
       run: |
         echo Build and Publish
-        
-        printf "allprojects {
-                    afterEvaluate {
-                        pluginManager.withPlugin('maven-publish') {
-                            publishing {
-                                repositories {
-                                    maven {
-                                        it.url = System.getenv('GITHUB_WORKSPACE') + '/deployment-repository'
-                                        it.name = 'deployment'
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }" > deployment-repository-init.gradle
-        
-        ./gradlew clean build ${{ inputs.gradleTasks }} publishAllPublicationsToDeploymentRepository --init-script deployment-repository-init.gradle
+
+        ./gradlew clean build ${{ inputs.gradleTasks }} publishAllPublicationsToDeploymentRepository --init-script "$GITHUB_ACTION_PATH/ci-init.gradle"
       env:
         ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
         ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
+        MAVEN_PROXY_URL: ${{ vars.COMMERCIAL && 'https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/' || 'https://repo.spring.io/artifactory/libs-release-remote/' }}
 
     - name: Evaluate Build Name
       id: build-name
