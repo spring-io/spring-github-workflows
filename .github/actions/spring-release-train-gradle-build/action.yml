@@ -21,4 +21,4 @@ runs:
       run: |
         echo Build Release
 
-        ./gradlew build publishAllPublicationsToDeploymentRepository ${{ inputs.gradleOptions }} -x test --init-script "$GITHUB_ACTION_PATH/release-train.init.gradle"
+        ./gradlew build publishAllPublicationsToDeploymentRepository ${{ inputs.gradleOptions }} -x test --no-build-cache --init-script "$GITHUB_ACTION_PATH/release-train.init.gradle"
