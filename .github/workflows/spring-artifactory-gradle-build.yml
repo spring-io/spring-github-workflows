@@ -55,6 +55,8 @@ env:
   DEVELOCITY_ACCESS_KEY: ${{ secrets.DEVELOCITY_ACCESS_KEY }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   NOTIFICATIONS_CHAT_WEBHOOK_URL: ${{ secrets.NOTIFICATIONS_CHAT_WEBHOOK_URL }}
+  # The `vars` context is not available in composite actions
+  COMMERCIAL: ${{ vars.COMMERCIAL }}
 
 jobs:
   build-with-gradle:

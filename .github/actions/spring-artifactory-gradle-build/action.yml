@@ -75,7 +75,7 @@ runs:
       env:
         ARTIFACTORY_USERNAME: ${{ inputs.artifactoryUsername }}
         ARTIFACTORY_PASSWORD: ${{ inputs.artifactoryPassword }}
-        MAVEN_PROXY_URL: ${{ vars.COMMERCIAL && 'https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/' || 'https://repo.spring.io/artifactory/libs-release-remote/' }}
+        MAVEN_PROXY_URL: ${{ env.COMMERCIAL && 'https://usw1.packages.broadcom.com/artifactory/spring-maven-virtual/' || 'https://repo.spring.io/artifactory/libs-release-remote/' }}
 
     - name: Evaluate Build Name
       id: build-name
