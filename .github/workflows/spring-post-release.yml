@@ -121,7 +121,7 @@ jobs:
 
       - name: Close Milestone
         if: ${{ vars.COMMERCIAL != 'true' }}
-        uses: spring-io/spring-release-actions/close-milestone@0.0.8
+        uses: spring-io/spring-release-actions/close-milestone@0.0.9
         with:
           version: ${{ env.MILESTONE }}
 
@@ -133,7 +133,7 @@ jobs:
 
       - name: Announce Release in Chat
         if: ${{ vars.COMMERCIAL != 'true' && env.CHAT_WEBHOOK_URL }}
-        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.8
+        uses: spring-io/spring-release-actions/announce-on-gchat@0.0.9
         with:
           gchat-webhook-url: ${{ env.CHAT_WEBHOOK_URL }}
           version: ${{ env.MILESTONE }}
@@ -142,13 +142,13 @@ jobs:
 
       - id: support-window
         if: ${{ env.HOTFIX != 'true' && !contains(env.MILESTONE, '-') }}
-        uses: spring-io/spring-release-actions/compute-support-window@0.0.8
+        uses: spring-io/spring-release-actions/compute-support-window@0.0.9
         with:
           version: ${{ env.MILESTONE }}
 
       - id: next-snapshot
         if: ${{ env.HOTFIX != 'true' && steps.support-window.outputs.support-type != 'eol' }}
-        uses: spring-io/spring-release-actions/compute-next-snapshot@0.0.8
+        uses: spring-io/spring-release-actions/compute-next-snapshot@0.0.9
         with:
           version: ${{ env.MILESTONE }}
 
@@ -192,7 +192,7 @@ jobs:
       - id: next-milestone
         if: ${{ env.HOTFIX != 'true' && !contains(env.MILESTONE, '-') && steps.support-window.outputs.support-type != 'eol' }}
         continue-on-error: true
-        uses: spring-io/spring-release-actions/compute-next-version@0.0.8
+        uses: spring-io/spring-release-actions/compute-next-version@0.0.9
         with:
           version: ${{ env.MILESTONE }}
 
