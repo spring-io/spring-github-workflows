@@ -69,7 +69,7 @@ jobs:
           jfrog rt download --spec release-files-spec.json 
 
       - name: Deploy Bundle to Maven Central Portal
-        uses: spring-io/central-publish-action@v0.4.0
+        uses: spring-io/central-publish-action@v0.5.0
         with:
           token-name: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           token: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
