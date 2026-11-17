@@ -1,25 +1,15 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    directories:
+      - /
+      - /.github/actions/*
     schedule:
       interval: weekly
       day: sunday
     cooldown:
       default-days: 0
-
-  - package-ecosystem: github-actions
-    directory: /.github/actions/spring-artifactory-gradle-build
-    schedule:
-      interval: weekly
-      day: sunday
-    cooldown:
-      default-days: 0
-
-  - package-ecosystem: github-actions
-    directory: /.github/actions/spring-compute-milestone-to-release
-    schedule:
-      interval: weekly
-      day: sunday
-    cooldown:
-      default-days: 0
+    groups:
+      all-actions:
+        patterns:
+          - '*'
